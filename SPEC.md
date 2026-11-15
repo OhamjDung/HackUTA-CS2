@@ -187,6 +187,12 @@ Checked on 2026-11-14.
   tests pass). In a browser against the mock, the proof page filled the clone column from a mock match (donk CT:
   position 59%, route 38%, against a ceiling of 79% / 57%; marked mock) and showed an error for a
   missing match id. Mock matches walk real routes, so these are not results.
+- Proof page model card (Ashirwad, 2026-11-14). The identity swap card now shows the second learned
+  run's held-back "who is it?" result from `clone-model/results/second-a100.json` (8 of 10 in the top 2,
+  6 first; per-player ranks with donk and broky marked), its caveats, and the failed first run as a
+  footnote. The "Learned model" row says no model is in the game. In a browser against the mock: the card
+  rendered 10 rows with no console errors, and no horizontal overflow at 390px. 73 match service tests
+  pass. The QA browser harness was not re-run.
 - Live demo on Tom's PC (2026-11-14, match `09a357d5a255`). Restarted CS2 with the updated
   game state config and ran donk (CT) vs broky (T) stand-in bots on Mirage in Wingman with
   recording off. Both live map panels rendered changing bot positions from `/gsi`. The Events
@@ -1440,6 +1446,8 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-14, Ashirwad: the proof page's model card shows the second learned run's held-back "who is it?" pass (8 of 10 in the top 2) with its caveats; the first run's failure stays as a footnote. Checked in a browser against the mock.
 
 - 2026-11-14, Ashirwad: decided experiment 2 is Arjun's `v2.py` as written (section 8.9). Marked the experiment-2 plan in `clone-model/results/adapter-diagnosis.md` as superseded where it conflicts, with a table of each point v2 decides (identities, penalty, selection, pass rule). No code changed; nothing run.
 

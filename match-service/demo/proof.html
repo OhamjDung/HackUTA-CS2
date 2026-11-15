@@ -44,13 +44,22 @@
       <table id="habits"></table>
     </div>
     <div class="card">
-      <h2>Model proof: the identity swap test</h2>
-      <p class="muted small">SPEC.md 8.6: generate movement with donk's identity, then swap in broky's, and check the
-        path changes toward broky's habits.</p>
-      <button class="todo" disabled>Run the swap test</button>
-      <p class="todo-note">First run on 2026-11-14 (Arjun, A100, 600 updates): both held-out identity tests
-        failed. Mean path error, own / other identity / no identity: donk 134 / 120 / 134, broky 100 / 106 / 93
-        (Source units, lower is better). No model was promoted, so the clones play from their profiles.</p>
+      <h2>Model proof: who is it? <span class="pill good">passed</span></h2>
+      <p class="muted small">SPEC.md 8.9, second learned run (Arjun, A100, 2026-11-14, checkpoint 1,800). Take a
+        player's real moves from a match the model never saw, score them under each of the 5 teammates'
+        identities, and rank the true one. Pass rule, fixed before the run: true identity in the top 2 for
+        at least 6 of 10 players (guessing gives 4).</p>
+      <p style="margin:6px 0;font-size:18px"><b>8 of 10</b> in the top 2 · 6 of 10 ranked first</p>
+      <table id="whois"></table>
+      <ul class="small muted" style="margin:10px 0 0;padding-left:18px">
+        <li>Held-back matches 2393242 (Spirit) and 2393024 (FaZe), tested once. Nothing re-run or re-tuned.</li>
+        <li>The gaps are under 1% of the loss. For 6 of 10 players, including donk and broky, no identity
+          fits slightly better than their own: the true identity wins by being the least wrong of the five.</li>
+        <li>It scores recorded moves. It does not generate play, so the bots in the game do not use it.</li>
+      </ul>
+      <p class="todo-note">First run (600 updates, path test in SPEC.md 8.6) failed for both players. Mean path
+        error, own / other identity / no identity: donk 134 / 120 / 134, broky 100 / 106 / 93 (Source units,
+        lower is better).</p>
     </div>
   </div>
 </main>
@@ -138,10 +147,22 @@ async function show(id) {
     ["Aggression (0–1)", c.aggression],
     ["Aim skill setting (0–1)", c.aim_skill == null ? "not set" : `${c.aim_skill}: a base-bot setting, not a measured rating of the player's aim`],
     ["Reaction time", c.reaction_ms == null ? "not measured" : `${c.reaction_ms} ms`],
-    ["Learned model", c.model || "none promoted (first run failed the identity tests)"],
+    ["Learned model", c.model || "none in the game: the second run tells players apart from recorded moves but cannot generate play yet"],
   ].map(([k, v]) => `<tr><th>${k}</th><td>${esc(v)}</td></tr>`).join("");
   if ($("m-clone").value || $("m-base").value) scoreAll();
 }
+
+// Held-back result of the second learned run: clone-model/results/second-a100.json (test.ranks).
+const WHOIS = [
+  ["Spirit", "donk", 1], ["Spirit", "magixx", 1], ["Spirit", "zont1x", 1], ["Spirit", "SH1R0", 2], ["Spirit", "tN1R", 2],
+  ["FaZe", "jcobbb", 1], ["FaZe", "Twistzz", 1], ["FaZe", "karrigan", 1], ["FaZe", "broky", 3], ["FaZe", "frozen", 4],
+];
+$("whois").innerHTML = "<tr><th>Team</th><th>Player</th><th>Rank of true identity (of 5)</th></tr>" +
+  WHOIS.map(([team, name, rank]) => {
+    const cloned = name === "donk" || name === "broky";
+    return `<tr><td>${team}</td><td>${cloned ? `<b>${name}</b>` : name}</td>` +
+      `<td><span class="pill ${rank <= 2 ? "good" : "bad"}">${rank}</span></td></tr>`;
+  }).join("");
 
 (async () => {
   const list = await api("/replay/clones").catch(() => []);
