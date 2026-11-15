@@ -114,8 +114,9 @@ These facts cost time to find. Do not rediscover them.
    `!replay <slot> <name>` loads `<name>.json.br` from its `recordings` folder
    (`game/csgo/addons/counterstrikesharp/plugins/BotControllerImpl/recordings/`, to be confirmed on
    the machine).
-7. **This development machine has no CS2 and no .NET SDK.** Nothing in the game was run. Nothing in
-   C# was compiled.
+7. **This development machine has no CS2.** Codex installed a local .NET 10 SDK and compiled
+   CloneDirector. Its 25 C# tests pass, including loading all 80 donk files. Nothing in the game
+   was run. See `SPEC.md` section 3 and `clone-director/README.md`.
 
 ## 5. What is not done, in order
 
@@ -135,9 +136,11 @@ This is the highest-risk unknown in the project. `SPEC.md` calls it the 6-hour g
 5. Pass: the bot walks donk's route. Fail: use the fallback in `SPEC.md` section 11 (a person walks
    donk's top routes while `!record` captures them).
 
-### 5.2 Second: the CloneDirector plugin (not started)
+### 5.2 Second: the CloneDirector plugin (implemented by Codex; not run in CS2)
 
-Location to create: `clone-director/`. C#, on CounterStrikeSharp, calling CS2-Bot-Controller.
+Location: `clone-director/`. Release build and 25 C# tests pass. Read `clone-director/README.md`
+for deployment, current behavior, and remaining game checks. The notes below preserve the original
+starting plan; the implementation is now present. Match-service integration still uses stand-ins.
 
 **Starting points:**
 - Project file: copy CS2-Smarter-Bot's `BotState.csproj`. It targets `net10.0`, uses the package

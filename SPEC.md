@@ -35,10 +35,10 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Lobby page | Tom (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | Match page | Nikesh (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | CS2 with the bot base installed on the demo laptop | Unassigned | Not started | Demo laptop | 2026-11-14 |
-| Clone pipeline: recording in, clone profile out | Arjun | Done. Tested on real recordings (9 tests pass). | `clone-pipeline/`, `HANDOFF.md` | 2026-11-14 |
+| Clone pipeline: recording in, clone profile out | Arjun | Done. Built from real recordings; 9 synthetic tests pass. | `clone-pipeline/`, `HANDOFF.md` | 2026-11-14 |
 | donk clone (`donk_v1`): profile, purchases, grenades, 80 route files | Arjun | Done. Built from 4 matches, 80 rounds. | `clones/` | 2026-11-14 |
 | Route converter: recording data to the bot playback format | Arjun | In progress. Files are written. **Not tested in the game.** Several field values are guesses (`HANDOFF.md` section 5.1). | `clone-pipeline/clone_pipeline/recording.py` | 2026-11-14 |
-| CloneDirector plugin: applies a clone to a bot inside CS2 | Unassigned | Not started. Build notes are in `HANDOFF.md` section 5.2. | `clone-director/` (proposed) | 2026-11-14 |
+| CloneDirector plugin: applies a clone to a bot inside CS2 | Arjun (Codex) | In progress. Compiles; 25 C# tests pass, including all 80 donk files. Not run in CS2. | `clone-director/` | 2026-11-14 |
 | Generating model: CS-NET v4 plus player identity | Unassigned | Not started | `clone-model/` (proposed) | 2026-11-14 |
 | Replay page: real player next to clone | Unassigned | Not started | `replay/` (proposed) | 2026-11-14 |
 | Clone profile page | Unassigned | Not started | Not decided | 2026-11-14 |
@@ -118,6 +118,17 @@ Checked on 2026-11-14.
   (`match-service/tests/test_channels.py`, 5 tests, all pass). This checks the Python side only.
   All 26 match service tests pass.
 
+- CloneDirector Release build with .NET SDK 10.0.404 and CounterStrikeSharp.API 1.0.378:
+  zero warnings/errors. The reference contract was built from CS2-Bot-Controller source revision
+  `465fc0e3b0f663f08de935fc1dd069b34aa3f987`; the game machine must use its matching release DLL.
+- CloneDirector: 25 C# tests pass (`clone-director/Tests/`). Includes weighted route labels,
+  nearest-spawn choice, side/source/buy-type filters, purchases, hand-off state, corrupt file
+  rejection, and reading the real donk profile plus all 80 generated route files. No CS2 native
+  library or bot behavior was run by these tests.
+- Re-ran the clone pipeline's 9 synthetic tests; all pass. Claude's local pipeline and donk clone
+  were recovered from a checkout stopped during a rebase. Both teammates' change-log entries
+  were retained and the checkout was updated to current main.
+
 **Checked by reading source or documentation, not by running:**
 - What each open-source project can do (section 4).
 - The calls in the CS2-Bot-Controller programming interface (section 6).
@@ -130,7 +141,7 @@ Checked on 2026-11-14.
 
 **Not checked. Nobody has run any of this yet:**
 - Installing the bot base on the demo laptop.
-- Converting recording data into the bot playback format.
+- Playing a pipeline-produced route inside CS2 (the format loads in C#; movement is still untested).
 - Adding a custom entry to the bot personality file.
 - Running or training CS-NET v4 on this project's data.
 - Every time estimate in section 11.
@@ -306,6 +317,28 @@ built on CounterStrikeSharp, the C# plugin framework that CS2-Bot-Improver insta
    using the clone's personality numbers.
 6. **Round ends.** The plugin writes a log line: clone, route label, segment source, hand-off reason.
 
+**Implementation as of 2026-11-14:** `clone-director/` builds these steps, but has not run in CS2.
+It reads the pipeline's existing `buy_plan[side][type].aliases`, `routes[side]`, and `route_shares`.
+Route paths are relative to the clones folder; `route_key`, `file`, `source`, `buy_type`, and
+`start` come directly from the pipeline. No match-service endpoint or existing profile field
+was changed. Deployment and the manual playback gate are in `clone-director/README.md`.
+
+Pistol rounds use the first round and `mp_maxrounds / 2`; otherwise money below $2,000 means eco,
+$2,000-3,999 force, and $4,000 or more full. These are unvalidated approximations of the pipeline's
+equipment-value labels. Only routes matching side, source, and buy type are eligible. Route-label
+shares are renormalized over eligible labels, then the nearest starting position is selected.
+Enemy shots within 1,200 engine distance units stop playback, without a visibility check. Damage
+dealt or taken also stops it. Completion, death, pawn replacement, mode change, disconnect, map
+change, and unload are handled. The last route and first hand-off reason stay visible until the
+next round. A failed stop is reported and prevents starting another route or purchase plan.
+
+`clone_add` preloads files off the game thread, serializes named-bot requests, and attaches only
+a new bot with the requested name and side, with a five-second timeout. Personality comes from
+`stand_in_bot`, or `display_name` when absent (the pipeline's donk entry is named `donk`). The
+plugin does not repack the personality archive or set personality values at runtime. Without a
+custom entry installed by a person, it uses the existing named bot's personality, purchases,
+and routes. These bot creation and purchase assumptions still need an in-game check.
+
 ### 6.3 CloneDirector console commands
 
 | Command | Effect |
@@ -313,9 +346,11 @@ built on CounterStrikeSharp, the C# plugin framework that CS2-Bot-Improver insta
 | `clone_add <clone_id> <t or ct>` | Adds a bot that uses the clone's personality entry and links the bot to the clone's files |
 | `clone_list` | Prints each clone bot, its last route label, and its last hand-off reason |
 | `clone_routes <recorded, generated, or off>` | Chooses which segments the clones play |
-| `clone_record <on or off>` | Records human players' routes (section 6.4). Low priority. |
+| `clone_record <on or off>` | Planned, not implemented. Records human players' routes (section 6.4). Low priority. |
 
-The real match service (section 9.2) sends these commands when a match starts.
+The commands are server-console only. The real match service (section 9.2) still adds stand-in
+bots; switching it to `clone_add` remains its owner's integration task. `clone_routes` stops
+current playback and applies the chosen source next round. `clone_record` is not implemented.
 
 ### 6.4 Cloning users while they play (low priority)
 
@@ -726,7 +761,7 @@ game, the similarity score, or the swap test.
 |---|---|
 | Game | CS2 on Windows, started through CS2-Bot-Improver's launcher in bot mode |
 | Bot base | CS2-Bot-Improver, latest release, with its bundled Metamod:Source and CounterStrikeSharp |
-| Plugin | C# on CounterStrikeSharp, referencing `BotControllerApi.dll`. Match the .NET version the installed CounterStrikeSharp requires. Not checked which version that is. |
+| Plugin | CloneDirector targets .NET 10 and CounterStrikeSharp.API 1.0.378, following CS2-Smarter-Bot. References the installed release's `BotControllerApi.dll` without bundling it. Actual game loading remains untested. |
 | Clone pipeline | Python 3.11 or newer, `uv` for packages, demoparser2, Polars and DuckDB for tables, NumPy |
 | Match service | FastAPI, `uv`, pytest. Already in the repository. |
 | Generating model | PyTorch, CS-NET v4 code and weights, Colab Pro |
@@ -846,6 +881,8 @@ demo. A released product would need each player's or team's permission.
 ## 19. Change log
 
 Newest first. One line per change: date, who, what changed.
+
+- 2026-11-14, Arjun (Codex): recovered the local pipeline and resolved its spec rebase; added CloneDirector from the upstream plugin/controller starting points, purchase and route control, combat hand-offs, strict playback loading, AGPL notices, and deployment notes. Release build and 25 C# tests pass; all 80 donk route files load. Pipeline tests pass. In-game playback and service integration remain untested.
 
 - 2026-11-14, Ashirwad: added RCON and MatchBridge plugin fallbacks for match service console
   commands, and `start-cs2.ps1` to set up the Windows PC. Tested against fake servers only.
