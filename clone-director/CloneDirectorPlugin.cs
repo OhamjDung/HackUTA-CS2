@@ -11,7 +11,7 @@ using CounterStrikeSharp.API.Modules.Commands;
 
 namespace CloneDirector;
 
-public sealed class CloneDirectorPlugin : BasePlugin
+public sealed partial class CloneDirectorPlugin : BasePlugin
 {
     public override string ModuleName => "CloneDirector";
     public override string ModuleVersion => "0.1.0";
@@ -67,6 +67,7 @@ public sealed class CloneDirectorPlugin : BasePlugin
         RegisterListener<Listeners.OnMapEnd>(Reset);
         RegisterListener<Listeners.OnMapStart>(_ => Reset());
         RegisterListener<Listeners.OnTick>(Tick);
+        PuzzleLoad();   // replay puzzles: PuzzleMode.cs
     }
 
     public override void OnAllPluginsLoaded(bool hotReload)
@@ -150,6 +151,7 @@ public sealed class CloneDirectorPlugin : BasePlugin
     private void Tick()
     {
         while (_completed.TryDequeue(out var completion)) completion();
+        PuzzleTick();
         if (_api is null) return;
         if (_pending is { } pending)
         {
@@ -263,6 +265,7 @@ public sealed class CloneDirectorPlugin : BasePlugin
     private HookResult RoundStart(EventRoundStart e, GameEventInfo info)
     {
         _live = false;
+        if (_phase == PuzzlePhase.Idle) _recorder.Clear();   // a puzzle window never crosses a round
         foreach (var b in _bots.Values) ApplyBuy(b);
         return HookResult.Continue;
     }
@@ -292,6 +295,7 @@ public sealed class CloneDirectorPlugin : BasePlugin
     private HookResult FreezeEnd(EventRoundFreezeEnd e, GameEventInfo info)
     {
         _live = true;
+        PuzzleOnFreezeEnd();
         foreach (var b in _bots.Values)
         {
             var pawn = b.Player.PlayerPawn.Value;
@@ -309,12 +313,14 @@ public sealed class CloneDirectorPlugin : BasePlugin
 
     private HookResult Hurt(EventPlayerHurt e, GameEventInfo info)
     {
+        PuzzleOnHurt(e);
         StopFor(e.Userid, "hurt");
         StopFor(e.Attacker, "dealt damage");
         return HookResult.Continue;
     }
     private HookResult Death(EventPlayerDeath e, GameEventInfo info)
     {
+        PuzzleOnDeath(e);
         // Say how a clone died: weapon "world" with no attacker is a fall, "planted_c4" the bomb, "inferno" fire.
         // Logged before the route is stopped, so the reason shows whether it was still playing.
         if (e.Userid is { } victim && _bots.TryGetValue(victim.Slot, out var dead))
@@ -339,6 +345,7 @@ public sealed class CloneDirectorPlugin : BasePlugin
 
     private HookResult WeaponFire(EventWeaponFire e, GameEventInfo info)
     {
+        PuzzleOnFire(e);
         var shooter = e.Userid;
         var shot = shooter?.PlayerPawn.Value?.AbsOrigin;
         if (shooter is null || !shooter.IsValid || shooter.TeamNum is not (2 or 3) || shot is null) return HookResult.Continue;
@@ -369,6 +376,8 @@ public sealed class CloneDirectorPlugin : BasePlugin
     }
     private void Reset()
     {
+        EndPuzzleMode(restoreCvars: false);
+        _recorder.Clear();
         ++_generation;
         _live = false;
         foreach (var b in _bots.Values) b.Session.Release("map change or unload");
