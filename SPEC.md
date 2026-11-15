@@ -29,6 +29,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | MatchBridge Release compilation | Arjun (Codex) | Done. Builds with .NET SDK 10.0.404, zero warnings/errors; targets net8.0. In-game loading and clone commands still untested. | `match-service/plugin/MatchBridge/` | 2026-11-14 |
 | Research: which bots, dataset, and model to build on | Arjun | Done | Sections 4, 7, 8 | 2026-11-14 |
 | This spec and the agent rules | Arjun | Done | `SPEC.md`, `AGENTS.md`, `CLAUDE.md` | 2026-11-14 |
+| L-clone catalogue and halftime regression (remaining-work task 5) | Ashirwad (Codex) | Done offline. L clones selectable in both modes; duplicate installed names rejected before commands. Existing halftime fix passes names-first/scores-first/repeated-update regressions. 84 service tests pass; no CS2 run. | `match-service/` | 2026-11-15 |
 | Match service, mock version (Server API with a fake CS2 server) | Ashirwad | Done | `match-service/` | 2026-11-14 |
 | Match service, real version (starts and controls a real CS2 match) | Ashirwad | In progress. A stand-in Wingman match on Tom's PC finished automatically. At halftime the service inflated the score and emitted six extra `round.ended` events. GOTV and CloneDirector mode still await live checks. | `match-service/match_service/backends/cs2.py` | 2026-11-14 |
 | Character showcase viewer (WebGPU hot-swap stage, 5 blockouts, B1-B3) | Nikesh | Done. B1-B3 verified in headless-Chromium GPU QA: real WebGPU backend, initial model ~20ms, 5/5 GLBs cached, clean swaps, zero console errors | `frontend/` | 2026-11-14 |
@@ -133,6 +134,13 @@ only when no usable base exists, and say so here.
 Checked on 2026-11-14.
 
 **Checked by running a query or request:**
+- Remaining-work task 5 (Ashirwad, 2026-11-15): 84 match-service tests pass. L catalogue and
+  stand-in/CloneDirector start commands checked with fake channels; shared bot names rejected
+  before commands for either player and either team arrangement. Clone-mode environment defaults
+  and explicit catalogue overrides checked. Existing halftime fix holds 7-1 through names-first,
+  scores-first and repeated transitional packets, ending 9-2 with exactly 11 round events.
+  One existing Starlette/httpx deprecation warning. No CS2 process was controlled or tested.
+
 - Offline habit audit/correction (Ashirwad, 2026-11-14): verified archive SHA256, 141 build rounds then a frozen-method one-time 39-round holdout description; 11 audit tests and 27 pipeline tests pass. Candidate CLI builds ran on seven raw demos; same-input comparison changes only weapons/buy_plan/timestamp, all 141 route payloads byte-identical. Existing match-service catalogue accepts both candidates and its replay reader loads all 141 at 8 Hz. Three pipeline warnings explicitly identify unavailable inventories in legacy synthetic fixtures. No CS2 buying, route playback or clone promotion. Exact commands and denominators: `tools/habit-audit/README.md`, `tools/habit-audit/pipeline/README.md`, `tools/habit-audit/RESULTS.md`.
 - The match service in CS2 (Tom, Bot Mode on Windows, 2026-11-14): netcon commands reach the game
   (`/health` reachable), game state arrives at `/gsi`, and a wingman donk-vs-broky match loaded
@@ -972,7 +980,7 @@ The held-back matches are now used. Do not re-run or re-tune on them.
 
 The same steps run on the clone's own recorded match, to produce the clone's side of the replay page.
 
-### 9.2 Match service (exists as a mock)
+### 9.2 Match service (mock and CS2 backends)
 
 `match-service/` is a FastAPI service written by Ashirwad. FastAPI is a Python web framework. Its
 `README.md` is the reference for the endpoints and events. In short:
@@ -985,9 +993,10 @@ The same steps run on the clone's own recorded match, to produce the clone's sid
 - When a match ends, it gives a `demo_url`: the address of the match recording, or `null` when
   nothing was recorded (the mock, and CS2 with recording off).
 
-**Today it is a mock.** No CS2 match starts. Round winners are random.
+**Mock mode** simulates matches with random round winners. The CS2 stand-in backend has
+run on Tom's PC (section 3); CloneDirector integration still needs a live check.
 
-**The real version (not started, proposal):**
+**The real backend design:**
 1. The service runs on the demo laptop next to CS2.
 2. On `POST /matches` it starts the map with the bot base, then sends `clone_add` (section 6.3) for
    each clone.
@@ -998,7 +1007,7 @@ The same steps run on the clone's own recorded match, to produce the clone's sid
 clone's `stand_in_bot` with CS2's standard add-bot command instead of `clone_add`. The lobby, the
 endpoints and the events do not change when `clone_add` replaces it.
 
-**What is written (`MATCH_BACKEND=cs2`, not yet run in CS2).** `match-service/README.md` has the
+**What is written (`MATCH_BACKEND=cs2`; stand-in mode run in CS2, CloneDirector mode not yet verified).** `match-service/README.md` has the
 setup steps.
 - Commands go out through one of three channels in `console.py`, set by `CS2_CONSOLE`:
   `netcon` (CS2's network console, the default), `rcon`, or `plugin` (MatchBridge, a small
@@ -1037,6 +1046,16 @@ netcon works in CS2 Bot Mode (Tom's run, 2026-11-14); RCON and the plugin stay a
 - At match start the service sends `mp_warmup_end` and `mp_restartgame 1`, then ignores
   game state for 2 s. Bot Mode reported `live` before the match started, and CS2-Bot-Improver's own
   team commands end with `mp_restartgame 1` after adding bots.
+
+**L catalogue and bot-name constraint (Ashirwad, 2026-11-15).** `donkL` and `brokyL`
+are available beside the v1 profiles in the default sample catalogue and demo selectors.
+Stand-in mode uses the ordinary installed bot without learned quirk controls. Environment-based
+startup with `MATCH_BACKEND=cs2 CS2_BOTS=clone` defaults to the full `clones/` catalogue;
+`CLONES_DIR` overrides this. An L label names its shared v1 personality. Any CS2 request
+containing two clones with the same installed bot name is rejected before console commands,
+regardless of team. Run v1/L comparisons in separate matches. No API fields or event shapes
+changed. Existing halftime handling passes the reported glitch and repeated packets offline;
+no further score implementation change was needed. Live confirmation remains outstanding.
 
 **The link to the replay page.** `demo_url` is the input to the clone pipeline for the clone's side
 of the replay.
@@ -1447,6 +1466,9 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-15, Ashirwad (Codex): completed remaining-work task 5 offline: added L sample profiles, full-catalogue defaults for clone-mode startup, catalogue labels and duplicate installed-name validation. Existing halftime fix verified with repeated transitional packets; 84 service tests pass. API shapes unchanged; no CS2 run.
+
 
 - 2026-11-14, Ashirwad: the proof page's model card shows the second learned run's held-back "who is it?" pass (8 of 10 in the top 2) with its caveats; the first run's failure stays as a footnote. Checked in a browser against the mock.
 

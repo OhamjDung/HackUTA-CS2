@@ -39,7 +39,7 @@ def wingman(**extra):
 
 def test_lists_sample_clones(client):
     ids = {c["clone_id"] for c in client.get("/clones").json()}
-    assert ids == {"ash_v1", "pro_rifler_v1", "pro_awper_v1", "donk_v1", "broky_v1"}
+    assert ids == {"ash_v1", "pro_rifler_v1", "pro_awper_v1", "donk_v1", "broky_v1", "donkL", "brokyL"}
 
 
 def test_match_runs_to_the_end(client):

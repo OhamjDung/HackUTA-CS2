@@ -83,6 +83,16 @@ class Cs2Backend:
             errors.append(f"No stand_in_bot in the profile of: {', '.join(unplayable)}")
         elif unplayable:
             errors += [f"{cid} cannot be played: {why}" for cid, why in unplayable.items()]
+        names: dict[str, list[str]] = {}
+        for requested in body.clones:
+            clone = clones.get(requested.clone_id)
+            if clone is not None:
+                name = clone.stand_in_bot or clone.display_name
+                names.setdefault(name, []).append(clone.clone_id)
+        for name, ids in names.items():
+            if len(ids) > 1:
+                errors.append(f"Clones {', '.join(ids)} use the same installed bot name ({name}); "
+                              "choose only one per match")
         return errors
 
     def start(self, record: MatchRecord, clones: dict[str, Clone]) -> None:

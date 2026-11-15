@@ -22,16 +22,18 @@ CLONE_DIRECTOR = "clone_director"
 def describe(clone: Clone, settings: Settings) -> CloneInfo:
     """How this clone would be played now, and whether it can be."""
     base = clone.model_dump()
+    shared = (f"; shares installed bot {clone.stand_in_bot} with {clone.clone_id[:-1]}_v1, one per match"
+              if clone.stand_in_bot and clone.clone_id.endswith("L") else "")
     if settings.backend != "cs2":
         return CloneInfo(**base, driver="mock", label="simulated", playable=True)
     if settings.cs2_bots == "clone":
         generated = settings.cs2_routes == "generated"
         label = ("CloneDirector, generated routes" if generated else "CloneDirector, recorded routes")
         if generated and not clone.model:
-            return CloneInfo(**base, driver=CLONE_DIRECTOR, label=label, playable=False,
+            return CloneInfo(**base, driver=CLONE_DIRECTOR, label=label + shared, playable=False,
                              reason="no model in the profile, so no generated routes")
-        return CloneInfo(**base, driver=CLONE_DIRECTOR, label=label, playable=True)
+        return CloneInfo(**base, driver=CLONE_DIRECTOR, label=label + shared, playable=True)
     if not clone.stand_in_bot:
         return CloneInfo(**base, driver=STAND_IN, label="stand-in bot", playable=False,
                          reason="no stand-in bot in the profile")
-    return CloneInfo(**base, driver=STAND_IN, label=f"stand-in bot ({clone.stand_in_bot})", playable=True)
+    return CloneInfo(**base, driver=STAND_IN, label=f"stand-in bot ({clone.stand_in_bot})" + shared, playable=True)

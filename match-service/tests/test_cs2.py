@@ -142,6 +142,13 @@ def test_halftime_swap_glitch(game, glitch):
         gsi(client, phase="live", ct=("Bravo", 7), t=("Alpha", 1))  # names swapped, scores not yet
     else:
         gsi(client, phase="live", ct=("Alpha", 1), t=("Bravo", 7))  # scores swapped, names not yet
+    # Repeated transitional packets must not emit phantom rounds either.
+    assert events(client, match_id).count("round.ended") == 8
+    if glitch == "names_first":
+        gsi(client, phase="live", ct=("Bravo", 7), t=("Alpha", 1))
+    else:
+        gsi(client, phase="live", ct=("Alpha", 1), t=("Bravo", 7))
+    assert events(client, match_id).count("round.ended") == 8
     gsi(client, phase="live", ct=("Bravo", 1), t=("Alpha", 7))      # both swapped
     assert client.get(f"/matches/{match_id}").json()["score"] == {"CT": 7, "T": 1}
 

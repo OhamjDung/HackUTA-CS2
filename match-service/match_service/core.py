@@ -75,7 +75,9 @@ class Settings:
             server_ip=env.get("SERVER_IP", env.get("MOCK_SERVER_IP", cls.server_ip)),
             base_port=int(env.get("SERVER_PORT", env.get("MOCK_BASE_PORT", cls.base_port))),
             public_url=env.get("PUBLIC_URL", env.get("MOCK_PUBLIC_URL", cls.public_url)).rstrip("/"),
-            clones_dir=Path(env.get("CLONES_DIR", DEFAULT_CLONES_DIR)),
+            clones_dir=Path(env.get("CLONES_DIR") or (
+                DEFAULT_CLONE_DATA_DIR if env.get("MATCH_BACKEND") == "cs2"
+                and env.get("CS2_BOTS") == "clone" else DEFAULT_CLONES_DIR)),
             clone_data_dir=Path(env.get("CLONE_DATA_DIR", DEFAULT_CLONE_DATA_DIR)),
             trace_dir=Path(env["TRACE_DIR"]) if env.get("TRACE_DIR") else None,
             review_dir=Path(env.get("REVIEW_DIR") or DEFAULT_REVIEW_DIR),

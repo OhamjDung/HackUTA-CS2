@@ -83,3 +83,56 @@ def test_recorded_routes_are_set_explicitly(tmp_path):
 def test_unknown_route_source_is_rejected(tmp_path):
     with pytest.raises(ValueError, match="CS2_CLONE_ROUTES"):
         create_app(settings(tmp_path, cs2_routes="learned"), channel=RecordingChannel())
+
+
+@pytest.mark.parametrize("mode", ["stand_in", "clone"])
+def test_l_clones_are_selectable_and_start_with_their_installed_names(tmp_path, mode):
+    names = {"donkL": "donk", "brokyL": "broky"}
+    main, bridge = RecordingChannel(), RecordingChannel(names)
+    extra = {"clones_dir": REPO_CLONES} if mode == "clone" else {}
+    app = create_app(settings(tmp_path, cs2_bots=mode, **extra), channel=main, clone_channel=bridge)
+    body = {"map": "de_mirage", "mode": "wingman", "players": [],
+            "clones": [{"clone_id": "donkL", "team": "CT"}, {"clone_id": "brokyL", "team": "T"}]}
+    with TestClient(app) as client:
+        clones = listing(client)
+        for cid, name in names.items():
+            assert clones[cid]["playable"]
+            assert clones[cid]["stand_in_bot"] == name
+            assert "one per match" in clones[cid]["label"]
+        wait_for(client, start(client, main, body), "ready")
+    if mode == "clone":
+        assert bridge.sent == ["clone_routes recorded", "clone_add donkL ct", "clone_add brokyL t"]
+    else:
+        assert 'bot_add_ct "donk"' in main.sent and 'bot_add_t "broky"' in main.sent
+
+
+@pytest.mark.parametrize("mode", ["stand_in", "clone"])
+@pytest.mark.parametrize("player", ["donk", "broky"])
+@pytest.mark.parametrize("same_team", [False, True])
+def test_shared_installed_bot_names_are_rejected_before_commands(tmp_path, mode, player, same_team):
+    main, bridge = RecordingChannel(), RecordingChannel()
+    app = create_app(settings(tmp_path, cs2_bots=mode, clones_dir=REPO_CLONES),
+                     channel=main, clone_channel=bridge)
+    body = {"map": "de_mirage", "mode": "competitive",
+            "players": [{"steam_id": ASH, "team": "T"}],
+            "clones": [{"clone_id": f"{player}_v1", "team": "CT"},
+                       {"clone_id": f"{player}L", "team": "CT" if same_team else "T"}]}
+    with TestClient(app) as client:
+        response = client.post("/matches", json=body)
+        assert response.status_code == 422
+        assert "same installed bot name" in str(response.json())
+        assert main.sent == [] and bridge.sent == []
+        assert client.get("/matches").json() == []
+
+
+def test_clone_mode_defaults_to_full_profiles_and_respects_override(monkeypatch, tmp_path):
+    from match_service.core import DEFAULT_CLONES_DIR, Settings
+    monkeypatch.delenv("CLONES_DIR", raising=False)
+    monkeypatch.setenv("MATCH_BACKEND", "cs2")
+    monkeypatch.setenv("CS2_BOTS", "clone")
+    assert Settings.from_env().clones_dir == REPO_CLONES
+    monkeypatch.setenv("CLONES_DIR", str(tmp_path))
+    assert Settings.from_env().clones_dir == tmp_path
+    monkeypatch.delenv("CLONES_DIR")
+    monkeypatch.setenv("CS2_BOTS", "stand_in")
+    assert Settings.from_env().clones_dir == DEFAULT_CLONES_DIR

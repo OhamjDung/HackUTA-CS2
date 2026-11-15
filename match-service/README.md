@@ -60,6 +60,25 @@ Rules: `mode` is `competitive` (5 per team, first to 13) or `wingman` (2 per tea
 Each team needs at least one player or clone. `steam_id` must be a 17-digit Steam ID.
 Bad requests get a 422 whose `detail` lists every problem.
 
+## L clones and installed bot names
+
+`donkL` and `brokyL` are selectable alongside the v1 clones in `/clones` and the demo
+forms. In stand-in mode they use the same ordinary installed bots (`donk` and `broky`);
+this mode does not apply learned quirk controls. CloneDirector mode uses the full profiles
+in `../clones` and sends `clone_add donkL` or `clone_add brokyL` with the selected side.
+When starting Python directly, `MATCH_BACKEND=cs2 CS2_BOTS=clone` now defaults the catalogue
+to `../clones`; an explicit `CLONES_DIR` still takes precedence.
+
+CS2 refuses a second bot with the same installed name. An L clone's catalogue label
+identifies its shared v1 bot name; requests combining either pair receive 422 before
+any game commands are sent, even on different teams. Compare v1 and L in separate matches.
+The mock remains a simulation and does not apply this game restriction.
+
+Offline verification on 2026-11-15: 84 service tests pass, including L selections and start
+commands in both CS2 modes, duplicate-name rejection, and the halftime regression with
+names-first, scores-first, and repeated transitional updates. The existing halftime fix
+needed no code change. These checks used fake channels and game state; no live CS2 run.
+
 ## Events
 
 If `callback_url` is set, the service POSTs `{match_id, event, data, sent_at}` to it:
