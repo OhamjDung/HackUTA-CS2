@@ -89,6 +89,15 @@ export default function CharacterCanvas({ activeId, glitchIntensity, onBackendRe
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Full VRAM teardown when the showcase itself unmounts (page leave / HMR).
+  // CharacterModels unmount first (releasing refs), then this frees the cache.
+  useEffect(() => {
+    const manager = managerRef.current!;
+    return () => {
+      manager.evictAll();
+    };
+  }, []);
+
   const activeConfig = CHARACTER_MAP[activeId];
 
   return (

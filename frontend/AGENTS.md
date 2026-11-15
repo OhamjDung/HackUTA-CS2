@@ -186,20 +186,23 @@ export class AssetManager {
   }
 
   /**
-   * Decrements reference count and triggers asynchronous VRAM disposal if unused.
+   * Decrements the reference count. Node B4 carousel policy: decoded scenes
+   * stay resident (5-model loop, <10MB budget) — no dispose here. Eviction is
+   * explicit via evictModel/evictAll, or LRU past MAX_RESIDENT_MODELS (8).
    */
   public releaseModel(id: CharacterId): void {
     const entry = this.modelCache.get(id);
     if (!entry) return;
 
     entry.refCount = Math.max(0, entry.refCount - 1);
-    
-    // Evict if unreferenced and memory pressure requires it
-    if (entry.refCount === 0) {
-      this.disposeGlft(entry.gltf);
-      this.modelCache.delete(id);
-    }
+    this.evictLRUIfNeeded();
   }
+
+  /** Frees one unmounted model. Refuses while refCount > 0. */
+  public evictModel(id: CharacterId): void { /* dispose + delete if refCount === 0 */ }
+
+  /** Full VRAM teardown on showcase unmount. */
+  public evictAll(): void { /* dispose every resident scene, clear cache */ }
 
   private disposeGlft(gltf: any): void {
     gltf.scene.traverse((child: any) => {
@@ -324,3 +327,20 @@ export default function CharacterCanvas() {
 1. **Checkpoint B1:** Verify that `CharacterCanvas` boots up using `WebGPURenderer` without throwing WebGPU backend context exceptions in console.
 2. **Checkpoint B2:** Confirm `AssetManager` loads `01_cs2_blockout.glb` under 800ms and successfully triggers background fetching for models 2 through 5.
 3. **Checkpoint B3:** Implement `glitchPass.ts` into the post-processing pipeline and verify that changing the uniform value produces an immediate GPU-accelerated RGB shift without CPU stutter.
+
+## 5. Node B4: Auto-Cycle Loop & Skeletal Animation Fallback
+
+Drop-in readiness for the 3D artist's rigged AAA models with zero code changes:
+
+1. **Dual-mode `CharacterModel`:** if `gltf.animations.length > 0`, a fresh `THREE.AnimationMixer`
+   binds `gltf.scene` per mount and plays `idleAnimationName` (fallback: first clip) via
+   `mixer.update(delta)`; cleanup calls `stopAllAction()` + `uncacheRoot()` so no mixer or bone
+   state survives unmount. With zero clips, the procedural idle bob applies instead.
+2. **Showcase loop (`page.tsx`, `NavigationDeck.tsx`):** auto-advance every
+   `AUTO_SWAP_INTERVAL_MS` (4000ms, in `lib/constants.ts`) through
+   `cs2 -> smash -> fortnite -> fifa -> halo -> cs2`. Every swap (auto or manual) restarts the
+   timer, manual clicks can never collide with an auto-swap mid-glitch, and a Pause/Play toggle
+   freezes the loop for inspection.
+3. **Carousel residency (`AssetManager.ts`):** `releaseModel` never disposes; all 5 decoded
+   scenes stay resident, eviction is explicit (`evictModel`/`evictAll` on unmount) or LRU past a
+   high-water mark of 8 — no re-fetch/re-upload on the 20-second loop.

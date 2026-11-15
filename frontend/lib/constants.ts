@@ -7,6 +7,11 @@ export const TRANSCODER_WASM = '/decoders/basis_transcoder.wasm';
 /** Model prefetched first and rendered for time-to-first-frame. */
 export const INITIAL_CHARACTER_ID: CharacterId = 'cs2';
 
+/** Showcase auto-cycle interval (Node B4). */
+export const AUTO_SWAP_INTERVAL_MS = 4000;
+/** Auto-cycle starts enabled so judges see the full loop hands-free. */
+export const AUTO_SWAP_ENABLED_DEFAULT = true;
+
 /** Chunk size for background prefetching (HLD stage 3). */
 export const PREFETCH_CONCURRENCY = 2;
 

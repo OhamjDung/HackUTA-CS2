@@ -31,6 +31,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Match service, mock version (Server API with a fake CS2 server) | Ashirwad | Done | `match-service/` | 2026-11-14 |
 | Match service, real version (starts and controls a real CS2 match) | Ashirwad | In progress. Written (`MATCH_BACKEND=cs2`) with three console channels (netcon, RCON, MatchBridge plugin) and a Windows start script; tested only against fake servers, not in CS2 | `match-service/match_service/backends/cs2.py` | 2026-11-14 |
 | Character showcase viewer (WebGPU hot-swap stage, 5 blockouts, B1-B3) | Nikesh | Done. B1-B3 verified in headless-Chromium GPU QA: real WebGPU backend, initial model ~20ms, 5/5 GLBs cached, clean swaps, zero console errors | `frontend/` | 2026-11-14 |
+| Character showcase: auto-cycle loop + AnimationMixer fallback (B4) | Nikesh | Done. Full 5-model auto-loop verified live (CS2→Smash→Fortnite→FIFA→Halo→CS2), pause freeze + manual override verified, mixer path unit-verified, 0 errors, 0 refetches | `frontend/` | 2026-11-14 |
 | Stand-in bots: built-in CS2-Bot-Improver pro bots used in place of clones until CloneDirector works | Ashirwad | In progress. `donk_v1` and `broky_v1` profiles use the `donk` and `broky` bots; not run in CS2 | `match-service/sample_clones/` | 2026-11-14 |
 | Side-by-side page, stand-in version (two synced panels; replay page content replaces it) | Ashirwad | Not started | Not decided | 2026-11-14 |
 | Lobby page | Tom (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
@@ -962,15 +963,17 @@ demo. A released product would need each player's or team's permission.
 
 Newest first. One line per change: date, who, what changed.
 
+- 2026-11-14, Nikesh: Node B4 in `frontend/` — dual-mode CharacterModel (AnimationMixer when clips
+  exist, procedural bob otherwise), 4 s auto-cycle showcase loop with pause/play and manual
+  override, carousel residency (no dispose on swap; explicit evict + LRU-8). Verified live: full
+  5-model loop, pause freeze, resume, manual jump, 0 console errors, 0 GLB refetches.
 - 2026-11-14, Tom (with Claude): claimed the bot base install and marked it done. Found that
   `record` over netcon freezes the client clock (the cause of the 0-0 score) and crashed CS2 once;
   the stand-in match plays without it. Ran `start-cs2.ps1` on Windows. Updated sections 3 and 16.
 - 2026-11-14, Arjun (Codex): confirmed current code is pushed, started the CS2 base-game download in Steam, and re-ran all 69 current automated tests successfully. Game download remains in progress; no in-game clone validation or neural-model training has run.
-
 - 2026-11-14, Ashirwad: recorded Tom's first CS2 run (netcon and game state work; no score, no
   recording); match start now ends warmup, restarts the game, and ignores game state for 2 s.
 - 2026-11-14, Arjun (Codex): built the first broky clone from four real Mirage matches (79 routes), held out 22 rounds, corrected purchase order in both clones, added data-built clone documentation and explicit strength limits; 10 pipeline, 26 C#, and 32 service tests pass. All 159 routes load in C#. No in-game bot or replay test was run.
-
 - 2026-11-14, Ashirwad: console safety from Tom's review (refuse newline and `;` in commands; strict
   `stand_in_bot` names); `start-cs2.ps1` listens on 127.0.0.1 by default and points to .NET SDK 10.
 - 2026-11-14, Arjun (Codex): recovered the local pipeline and resolved its spec rebase; added CloneDirector from the upstream plugin/controller starting points, purchase and route control, combat hand-offs, strict playback loading, AGPL notices, and deployment notes. Release build and 25 C# tests pass; all 80 donk route files load. Pipeline tests pass. In-game playback and service integration remain untested.

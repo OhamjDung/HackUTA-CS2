@@ -7,6 +7,9 @@ interface NavigationDeckProps {
   activeId: CharacterId;
   onSelect: (id: CharacterId) => void;
   disabled?: boolean;
+  /** Showcase auto-cycle running; toggle freezes the loop for inspection. */
+  autoPlay: boolean;
+  onToggleAutoPlay: () => void;
 }
 
 export default function NavigationDeck({
@@ -14,11 +17,13 @@ export default function NavigationDeck({
   activeId,
   onSelect,
   disabled = false,
+  autoPlay,
+  onToggleAutoPlay,
 }: NavigationDeckProps) {
   return (
     <nav
       aria-label="Character selection"
-      className="absolute bottom-16 left-1/2 z-20 flex -translate-x-1/2 gap-2 rounded-full border border-white/15 bg-black/70 p-2 backdrop-blur-md"
+      className="absolute bottom-16 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/15 bg-black/70 p-2 backdrop-blur-md"
     >
       {characters.map((character, index) => {
         const isActive = character.id === activeId;
@@ -39,6 +44,25 @@ export default function NavigationDeck({
           </button>
         );
       })}
+      <button
+        type="button"
+        onClick={onToggleAutoPlay}
+        aria-pressed={autoPlay}
+        aria-label={autoPlay ? 'Pause auto-cycle' : 'Resume auto-cycle'}
+        title={autoPlay ? 'Pause auto-cycle (inspect this model)' : 'Resume auto-cycle'}
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+      >
+        {autoPlay ? (
+          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden>
+            <rect x="2" y="1" width="3" height="10" fill="currentColor" />
+            <rect x="7" y="1" width="3" height="10" fill="currentColor" />
+          </svg>
+        ) : (
+          <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden>
+            <polygon points="3,1 11,6 3,11" fill="currentColor" />
+          </svg>
+        )}
+      </button>
     </nav>
   );
 }

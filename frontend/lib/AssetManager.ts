@@ -112,7 +112,15 @@ export class AssetManager {
   }
 
   /**
-   * Decrements reference count and triggers asynchronous VRAM disposal if unused.
+   * Node B4 carousel residency policy: the 5-model loop re-shows every model
+   * every ~20s and the total compressed budget is <10MB, so decoded scenes
+   * stay resident once prefetched. releaseModel only drops the ref count;
+   * eviction is explicit (evictModel/evictAll) or LRU past the high-water mark.
+   */
+  private static readonly MAX_RESIDENT_MODELS = 8;
+
+  /**
+   * Decrements the reference count. Never disposes on its own — see above.
    */
   public releaseModel(id: CharacterId): void {
     const entry = this.modelCache.get(id);
@@ -120,10 +128,41 @@ export class AssetManager {
 
     entry.refCount = Math.max(0, entry.refCount - 1);
 
-    // Evict if unreferenced and memory pressure requires it
-    if (entry.refCount === 0) {
+    // Only guard against unbounded growth; the 5-model carousel never trips this.
+    this.evictLRUIfNeeded();
+  }
+
+  /**
+   * Explicit single-model eviction. Refuses while the model is still mounted
+   * (refCount > 0) so a visible scene is never freed underneath the renderer.
+   */
+  public evictModel(id: CharacterId): void {
+    const entry = this.modelCache.get(id);
+    if (!entry || entry.refCount > 0) return;
+    this.disposeGltf(entry.gltf);
+    this.modelCache.delete(id);
+  }
+
+  /**
+   * Full teardown for component unmount (leaving the page / HMR). Disposes
+   * every resident scene regardless of ref count — the caller must have
+   * unmounted all CharacterModels first.
+   */
+  public evictAll(): void {
+    for (const entry of this.modelCache.values()) {
       this.disposeGltf(entry.gltf);
-      this.modelCache.delete(id);
+    }
+    this.modelCache.clear();
+  }
+
+  private evictLRUIfNeeded(): void {
+    if (this.modelCache.size <= AssetManager.MAX_RESIDENT_MODELS) return;
+    const cold = [...this.modelCache.entries()]
+      .filter(([, entry]) => entry.refCount === 0)
+      .sort((a, b) => a[1].lastAccessed - b[1].lastAccessed);
+    while (this.modelCache.size > AssetManager.MAX_RESIDENT_MODELS && cold.length > 0) {
+      const [id] = cold.shift()!;
+      this.evictModel(id);
     }
   }
 

@@ -11,13 +11,20 @@ interface CharacterModelProps {
 }
 
 /**
- * Loads one character through the AssetManager singleton and plays its idle
- * clip. Blockout proxies ship no animation clips, so a procedural idle bob
- * stands in for `idleAnimationName` until AAA assets land.
+ * Dual-mode character (Node B4):
+ * - Skeletal mode: `gltf.animations` has clips → bind an AnimationMixer and play
+ *   `config.idleAnimationName` (fallback: first clip). Procedural bob is OFF.
+ * - Blockout mode: no clips → procedural idle bob stands in for the idle clip.
+ *
+ * `gltf.scene` is shared from the AssetManager cache, so every mount binds a
+ * FRESH mixer and the cleanup stops all actions plus `uncacheRoot`s the scene:
+ * no mixer (and no driven bone state) ever survives an unmount, and re-mounting
+ * a cached character can never stack duplicate mixers.
  */
 export default function CharacterModel({ config }: CharacterModelProps) {
   const [scene, setScene] = useState<THREE.Group | null>(null);
   const mixerRef = useRef<THREE.AnimationMixer | null>(null);
+  const clipActiveRef = useRef(false);
   const groupRef = useRef<THREE.Group>(null);
 
   useEffect(() => {
@@ -28,15 +35,19 @@ export default function CharacterModel({ config }: CharacterModelProps) {
       .loadInitialModel(config.id, config.url)
       .then((gltf) => {
         if (cancelled) return;
-        const mixer = new THREE.AnimationMixer(gltf.scene);
         const clips: THREE.AnimationClip[] = gltf.animations ?? [];
         const clip =
           clips.find((c) => c.name === config.idleAnimationName) ?? clips[0];
         if (clip) {
-          const action = mixer.clipAction(clip);
-          action.play();
+          // Fresh mixer per mount — the scene is cached/shared, so mixers must
+          // never be reused across mounts or bone matrices go stale.
+          const mixer = new THREE.AnimationMixer(gltf.scene);
+          mixer.clipAction(clip).play();
+          mixerRef.current = mixer;
+          clipActiveRef.current = true;
+        } else {
+          clipActiveRef.current = false;
         }
-        mixerRef.current = mixer;
         setScene(gltf.scene);
       })
       .catch((err) => {
@@ -45,8 +56,12 @@ export default function CharacterModel({ config }: CharacterModelProps) {
 
     return () => {
       cancelled = true;
-      mixerRef.current?.stopAllAction();
-      mixerRef.current = null;
+      if (mixerRef.current) {
+        mixerRef.current.stopAllAction();
+        mixerRef.current.uncacheRoot(mixerRef.current.getRoot());
+        mixerRef.current = null;
+      }
+      clipActiveRef.current = false;
       setScene(null);
       manager.releaseModel(config.id);
     };
@@ -54,7 +69,8 @@ export default function CharacterModel({ config }: CharacterModelProps) {
 
   useFrame((state, delta) => {
     mixerRef.current?.update(delta);
-    if (groupRef.current) {
+    // Procedural bob is the blockout fallback only; skeletal clips own the bones.
+    if (!clipActiveRef.current && groupRef.current) {
       groupRef.current.position.y =
         config.position[1] + Math.sin(state.clock.elapsedTime * 1.6) * 0.03;
     }
