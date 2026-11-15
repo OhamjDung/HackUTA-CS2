@@ -55,7 +55,8 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Offline weapon-role and habit audit handoff | Arjun's friend (handoff prepared) | Not started. CPU-only audit/fix handoff ready; recipient must remove consumed handoff docs on task branch after reading. | `handoffs/friend/01-HABIT-AUDIT-AND-FIX.md` | 2026-11-14 |
 | Independent mock replay QA handoff | Arjun's friend (optional second task) | Not started. Existing Ashirwad replay implementation remains with its owner; QA/report only. | `handoffs/friend/02-MOCK-REPLAY-QA.md` | 2026-11-14 |
 | Claude continuation handoff | Arjun (Codex) | Done and consumed. Claude read it on 2026-11-14 and removed the folder, as its own instructions said. | removed (`handoffs/claude-continuation/`) | 2026-11-14 |
-| Continuation handoff (Arjun's remaining model and game work) | Ashirwad | In progress. Handoff read and its context saved outside the repo; folder removed. Tasks: map-geometry review of generated paths, generated-path viewer (done: replay page tab), generated-route converter (candidates only), adapter diagnosis, CS2 checklist for Tom. | Removed from the repo | 2026-11-14 |
+| Continuation handoff (Arjun's remaining model and game work) | Ashirwad | In progress. Handoff read and its context saved outside the repo; folder removed. Tasks: map-geometry review of generated paths, generated-path viewer (done: replay page tab), generated-route converter (done: candidates only), adapter diagnosis, CS2 checklist for Tom. | Removed from the repo | 2026-11-14 |
+| Generated-path playback candidates (8.5 steps 5-7, candidates only) | Ashirwad | In progress. Converter, gates and provenance written; 13 synthetic tests pass (30 pipeline tests). One real development case converted with a hand-made check file (no geometry check). Output is a candidate for a person to review, never promoted; not run in CS2 | `clone-pipeline/clone_pipeline/generated.py` | 2026-11-14 |
 | Offline generated-path review export | Arjun (Codex) | Done. Eight development cases exported on A100 (24 generated paths plus real paths), JSON checked and plots inspected; 12 CPU tests pass. No route promotion. | `clone-model/review.py` | 2026-11-14 |
 | Replay page: real player next to clone | Unassigned | In progress (demo version by Ashirwad: 2D map from positions, no video; a generated-path tab shows the model's offline development review files, run against the mock in a browser) | `match-service/demo/replay.html`, `match-service/match_service/generated.py` | 2026-11-14 |
 | Clone profile page | Unassigned | Not started | Not decided | 2026-11-14 |
@@ -212,6 +213,22 @@ Checked on 2026-11-14.
   synthetic tests cover wrong format, split, `deployed`, held-out matches, path traversal, symlinks
   and a check file with the wrong SHA-256; 67 match service tests pass. No real geometry check file
   was used.
+- Generated-path candidate converter (Ashirwad, 2026-11-14). `clone_pipeline.generated` turns one
+  `own`/`other`/`base` trace of a `cs2.clone.review.v1` file into a 64-tick playback file through
+  `recording.write_recording`, only under git-ignored `data/generated-candidates/<player>/`, with a
+  `.provenance.json` file (`source: generated`, `identity_quality: not_established`,
+  `promoted: false`). 13 synthetic tests pass (30 pipeline tests): 64 ticks a second, the 0.25 s
+  points land exactly on their ticks, yaw wraps across ±180 the short way, the file reads back
+  through `read_recording`, and every gate refuses (format, split, `deployed`, check-file SHA-256,
+  failed or missing check, the `actual` trace, held-out matches, output inside `clones/`). On the
+  A100 development review, case 1 (donk, match 2393237, zero-based round 7, CT, `own`) converted to
+  256 ticks with a peak speed of 113 units/s, holding BACK or BACK+RIGHT the whole time
+  (backpedalling). That run used a hand-made check file, not a geometry check. The movement-key bits
+  (8/16/512/1024) agree with ForwardMove/LeftMove on all 187,170 commands of the 159 recorded route
+  files. Found while checking: about 40% of those files' ticks are marked not on the ground
+  (`EntityFlags` 0 or 2), because `recording.py` sets that flag from vertical speed; Tom's real
+  recording had 65665. In 5 of the 8 development cases the own-identity path stands still after its
+  first point. Not run in CS2.
 - Every GitHub repository in section 4 exists. Stars, licenses, and update dates come from GitHub.
 - The OpenCS2 counts in section 7 come from queries against its index tables.
 - The match service's cs2 backend, against a fake console and hand-written game state updates
@@ -332,6 +349,7 @@ One install of CS2-Bot-Improver gives the first four rows.
 | Match control API | This repository's `match-service/` |
 | Match service: events from the game | CS2's Game State Integration (Valve). Field names from the [CounterStrike2GSI](https://github.com/antonpup/CounterStrike2GSI) README; read only, no code copied |
 | Match service: commands to the game | CS2's network console (`-netconport`). Idea from [csctl](https://github.com/403-Fruit/csctl) (CS:GO); read only. The client is written from zero: about 40 lines, no CS2 client found |
+| Generated-path playback candidates | The pipeline's own route converter (`clone_pipeline/recording.py`) and CS2-Bot-Controller's playback format (`MotionRecording.cs`, AGPL-3.0). The 0.25 s to 64-tick interpolation and the gates are written from zero: no converter from CS-NET paths to bot playback was found |
 | Generated-path viewer (replay page) | Written from zero on the demo pages' own map drawing (`common.js`). It reads `clone-model/review.py`'s `cs2.clone.review.v1` export directly; no existing viewer reads that file |
 | In-game similarity score | The pipeline's own `similarity.compare()` and `build.stats_block()`; area names are CS2's `last_place_name` from OpenCS2 recordings, looked up by position. Scorer written from zero: no tool found that scores game-state traces |
 | Match service: commands to the game, fallback 1 | RCON through the [rcon](https://pypi.org/project/rcon/) Python library (GPL-3.0), used as a dependency |
@@ -685,8 +703,19 @@ The model does not run during the match. `clone-model/review.py` now exports dev
 4. Open the result in the viewer. Reject any path that crosses a wall or stops for no reason.
    Generate again until a path is good.
 5. Fill in the steps between the model's 4 outputs per second to reach 64 ticks per second.
-6. Convert the path to the bot playback format with the same converter used for recorded segments.
-7. Save it under the clone's generated segments. `clone_routes generated` makes the bots play it.
+   `clone-pipeline/clone_pipeline/generated.py` does this: `start_position` at t=0, straight lines
+   between the 0.25 s points, shortest-arc yaw and linear pitch (5-degree tokens), velocity from the
+   positions, and 8-way movement keys from velocity relative to yaw. It never extends a path past
+   its early stop and cuts it before the first non-alive point. Ducking, jumping, walking and firing
+   are not modeled. It refuses a file that is not a `dev`, undeployed `cs2.clone.review.v1` review,
+   the `actual` trace, held-out matches, and any path without a passing `cs2.clone.review-check.v1`
+   entry for the same review SHA-256.
+6. Convert the path to the bot playback format with the same converter used for recorded segments
+   (`recording.write_recording`, so its field guesses apply unchanged).
+7. Output goes only to the git-ignored `data/generated-candidates/<player>/`, with a provenance file
+   (`manual_review_required: true`, `promoted: false`), never into `clones/`. Moving a candidate into
+   the clone's generated segments, so that `clone_routes generated` plays it, is a separate manual
+   step after a person reviews it. It is not the player's style until an identity test passes.
 
 **Say this in the pitch.** The generated routes in the demo were made offline and picked by hand.
 The model does not yet run during a match.
@@ -1266,6 +1295,8 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-14, Ashirwad: added `clone_pipeline.generated`, which turns a checked generated path (own/other/base) into a candidate playback file plus provenance under ignored `data/generated-candidates/`, gated on a development review and a matching passed geometry check. 13 synthetic tests; one real development case converted with a hand-made check file; nothing promoted, not run in CS2.
 
 - 2026-11-14, Ashirwad: added the replay page's generated-path tab and `GET /replay/generated[/{file}/{case}]` (`REVIEW_DIR`, default `data/reviews/`), reading `cs2.clone.review.v1` development files and optional matching review-check files, labelled as failed-identity development examples not used in the game. Run against the mock with the real review file; 67 match service tests pass.
 
