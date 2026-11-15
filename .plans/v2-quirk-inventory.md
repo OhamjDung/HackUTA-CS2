@@ -72,6 +72,11 @@ Hearing radii (1,100 footsteps, 2,000 gunfire) and the 150 u/s cut are historica
 
 ## 3. The v2 list: what makes each better than v1
 
+**Built 2026-11-15 (commit on `worktree-models-plumbing`), not run in CS2:** G-1, G-2, G-4, G-6, G-7 and the
+full-strength bot entry. Personality overrides were dropped: the original entries already use Aggression 60/55
+and Teamwork 100, higher than the measured values. Still to build: G-3, G-5, the buy-plan quirks, broky's
+knife-out and donk's fixed sidestep.
+
 v2 = v1's routes and full-strength aim + every distinctive quirk we can drive + game-sense rules held to each player's measured targets. Quirks and strength are top priority (plan: `v2-quirks-gamesense-plan.md`).
 
 ### Shared by both (game sense and sound, new code in CloneDirector)

@@ -371,7 +371,7 @@ public sealed partial class CloneDirectorPlugin : BasePlugin
             !e.Weapon.Contains("knife") && !e.Weapon.Contains("grenade") && !e.Weapon.Contains("flashbang") &&
             !e.Weapon.Contains("molotov") && !e.Weapon.Contains("decoy") && !e.Weapon.Contains("bayonet"))
             ApplyShotQuirks(own);
-        OnNoise(shooter, Noise.Gunfire);   // game sense: remembered as a heard position (v2 clones)
+        if (GameSense.IsGun(e.Weapon)) OnNoise(shooter, Noise.Gunfire);   // game sense (v2 clones): heard gunfire
         foreach (var b in _bots.Values)
         {
             if (!b.Player.IsValid || b.Player.TeamNum == shooter.TeamNum) continue;

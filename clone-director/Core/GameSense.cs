@@ -26,7 +26,10 @@ public sealed class GameSenseSettings
     // player's measured slow_share quirk.
     [JsonPropertyName("quiet_walk_share")] public double? QuietWalkShare { get; init; }
     [JsonPropertyName("grenade_wait_seconds")] public double GrenadeWaitSeconds { get; init; } = 1;
-    [JsonPropertyName("route_spawn_units")] public double RouteSpawnUnits { get; init; } = 600;
+    // Only routes recorded from the bot's own spawn spot. Measured in the route data: starts from one spawn
+    // spot lie within 16 units of each other, neighbouring spots 64 to 128 units apart. A route started away
+    // from its recorded spot can walk into a wall.
+    [JsonPropertyName("route_spawn_units")] public double RouteSpawnUnits { get; init; } = 32;
     [JsonPropertyName("recent_routes")] public int RecentRoutes { get; init; } = 2;
     [JsonPropertyName("recent_route_weight")] public double RecentRouteWeight { get; init; } = 0.25;
 
@@ -49,8 +52,13 @@ public enum Noise { Footstep, Gunfire, Reload }
 
 public static class GameSense
 {
-    // Engine button bit for walking (Source IN_SPEED, the shift key).
-    public const ulong Walk = 1UL << 17;
+    // Engine button bit for walking (the shift key). Measured in the recorded routes (demo buttons): ticks
+    // with bit 16 set average 115 u/s against 199 u/s without; bit 17 is never set.
+    public const ulong Walk = 1UL << 16;
+
+    /// <summary>True for a weapon whose shot counts as gunfire (not a knife swing or a grenade throw).</summary>
+    public static bool IsGun(string? weapon) => weapon is { } w && !w.Contains("knife") && !w.Contains("bayonet") &&
+        !IsGrenade(w) && !w.Contains("c4") && !w.Contains("taser");
 
     /// <summary>True when a noise of this kind at this distance is in hearing range.</summary>
     public static bool Audible(Noise kind, double distance, GameSenseSettings s) => kind switch

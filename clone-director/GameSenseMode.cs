@@ -35,8 +35,12 @@ public sealed partial class CloneDirectorPlugin
             if (me is null) continue;
             double distance = Math.Sqrt(Math.Pow(from.X - me.X, 2) + Math.Pow(from.Y - me.Y, 2) + Math.Pow(from.Z - me.Z, 2));
             if (!GameSense.Audible(kind, distance, s)) continue;
-            b.HeardAt = GameSense.Blur([from.X, from.Y, from.Z], distance, Random.Shared.NextDouble(), Random.Shared.NextDouble());
-            b.HeardTime = Server.CurrentTime;
+            // Quiet walking keys on footsteps and reloads only: gunfire means a fight, where the bot base fights.
+            if (kind != Noise.Gunfire)
+            {
+                b.HeardAt = GameSense.Blur([from.X, from.Y, from.Z], distance, Random.Shared.NextDouble(), Random.Shared.NextDouble());
+                b.HeardTime = Server.CurrentTime;
+            }
             if (s.HearHandoff && b.Session.Playing) HandOff(b, $"heard enemy {kind.ToString().ToLowerInvariant()}");
         }
     }
@@ -80,7 +84,8 @@ public sealed partial class CloneDirectorPlugin
         if (pawn is null || !pawn.IsValid || !b.Player.PawnIsAlive) return;
         if (s.SightHandoff && b.Session.Playing && _tickCount % SightCheckEveryTicks == 0 && SeesEnemy(b))
             HandOff(b, "saw enemy");
-        if (s.QuietWalk && _live && !b.Session.Playing && Server.CurrentTime >= b.NextWalkDecision)
+        // Never during or just after a fight (QuietUntil), so walking cannot weaken the bot base's fighting.
+        if (s.QuietWalk && _live && !b.Session.Playing && Server.CurrentTime >= b.QuietUntil && Server.CurrentTime >= b.NextWalkDecision)
         {
             b.NextWalkDecision = Server.CurrentTime + QuietWalkDecisionSeconds;
             var me = pawn.AbsOrigin;

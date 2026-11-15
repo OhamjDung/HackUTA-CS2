@@ -32,11 +32,11 @@ COPIES = {"donk": ["donk_v1", "donkL", "donkL2", "donkLF", "donk_v2"],
           "broky": ["broky_v1", "brokyL", "brokyL2", "brokyLF", "broky_v2"]}
 # the copies that get human aim settings; the others stay plain copies of the original entry
 HUMAN_AIM_IDS = {"donkL2", "brokyL2", "donkLF", "brokyLF"}
-# v2 keeps the original entry's full-strength aim (no human-aim limits) and sets two personality fields from
-# each player's measured values: Teamwork from the clone profile's `teamwork` quirk control (donk 100,
-# broky 90) and Aggression from the v1 profile's measured `aggression` (0.52 and 0.333, as 0-100).
-PERSONALITY = {"donk_v2": {"Teamwork": "100", "Aggression": "52"},
-               "broky_v2": {"Teamwork": "90", "Aggression": "33"}}
+# v2 entries are plain copies: the original entry's full-strength aim and personality. The originals use
+# Aggression 60 (donk) / 55 (broky) and Teamwork 100 through their templates; the measured profile values
+# (0.52, 0.333) would have lowered them, so they are not applied. Add per-clone overrides here only when they
+# are shown not to weaken the bot.
+PERSONALITY: dict[str, dict[str, str]] = {}
 
 # Starting values chosen by simulating the bot's view as a damped spring with capped acceleration
 # (the model in the original Counter-Strike bot code; assumed, not confirmed, to hold in CS2). With these,

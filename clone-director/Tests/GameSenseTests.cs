@@ -11,7 +11,8 @@ public sealed class GameSenseTests
     private static CloneProfile Profile(GameSenseSettings? s = null) => new()
     {
         Id = "v2", DisplayName = "v2",
-        Routes = new() { ["T"] = [R("mid", 0), R("mid", 100), R("mid", 5000), R("a", 0)] },
+        // Two mid routes from the same spawn spot (0 and 10), one from the neighbouring spot (100), one far away.
+        Routes = new() { ["T"] = [R("mid", 0), R("mid", 10), R("mid", 100), R("mid", 5000), R("a", 0)] },
         RouteShares = new() { ["T"] = new() { ["mid"] = .5, ["a"] = .5 } },
         GameSense = s ?? new GameSenseSettings { RouteVariety = true },
     };
@@ -125,16 +126,28 @@ public sealed class GameSenseTests
     }
 
     [Fact]
-    public void VariedPickDrawsAmongNearbyRoutesNotOnlyTheNearest()
+    public void VariedPickDrawsAmongRoutesFromTheSameSpawnSpotOnly()
     {
         var p = Profile();
-        // draw1 0.1 picks "mid"; draw2 picks among the two mid routes within 600 units of the spawn.
-        var first = GameSense.PickVaried(p, "T", "full", "recorded", [0, 0, 0], [], .1, .1)!;
-        var second = GameSense.PickVaried(p, "T", "full", "recorded", [0, 0, 0], [], .1, .9)!;
-        Assert.Equal("mid", first.Key);
-        Assert.NotEqual(first.Start[0], second.Start[0]);
-        Assert.All(new[] { first, second }, r => Assert.True(r.Start[0] <= 100));   // never the far one
+        // draw1 0.1 picks "mid"; draw2 picks among the mid routes within 32 units: the ones at 0 and 10.
+        var seen = Enumerable.Range(0, 10).Select(i => GameSense.PickVaried(p, "T", "full", "recorded", [0, 0, 0], [], .1, i / 10.0)!)
+            .ToArray();
+        Assert.All(seen, r => Assert.Equal("mid", r.Key));
+        Assert.Equal(new float[] { 0, 10 }, seen.Select(r => r.Start[0]).Distinct().OrderBy(x => x).ToArray());
     }
+
+    [Fact]
+    public void GunfireExcludesKnivesGrenadesAndTheBomb()
+    {
+        Assert.True(GameSense.IsGun("ak47"));
+        Assert.True(GameSense.IsGun("weapon_awp"));
+        foreach (var w in new[] { "knife", "weapon_knife_t", "bayonet", "hegrenade", "flashbang", "molotov", "decoy", "c4", "taser" })
+            Assert.False(GameSense.IsGun(w));
+        Assert.False(GameSense.IsGun(null));
+    }
+
+    [Fact]
+    public void WalkIsButtonBit16AsInTheRecordedRoutes() => Assert.Equal(65536UL, GameSense.Walk);
 
     [Fact]
     public void VariedPickFallsBackToTheNearestWhenNoneIsNear()

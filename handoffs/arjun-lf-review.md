@@ -52,6 +52,7 @@ Ran (fakes only, nothing in CS2):
 - `python -m pytest clone-director/tools`: 3 passed.
 
 Not run / not known:
+- **Update 2026-11-15: now run.** With `-p:BotControllerApiPath=...` the C# tests run on Tom's PC; `GameSenseTests.RealProfilesLoadThroughTheLoader` loads `donkLF`, `brokyLF`, `donk_v1`, `donk_v2` and `broky_v2` through `ProfileStore`, and the `model` object is accepted. The text below was written before that.
 - **C# profile loader with the new `model` object.** `Profiles.cs` deserializes with
   `PropertyNameCaseInsensitive = false`; I found no `model` member in `Core/*.cs` and expect unknown properties
   to be ignored (System.Text.Json default), but I have not run it. C# tests cannot run on Tom's PC.
