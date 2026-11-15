@@ -1,0 +1,1826 @@
+{
+  "clone_id": "broky_v1",
+  "display_name": "broky",
+  "source": "pro",
+  "reaction_ms": null,
+  "aim_skill": 1.0,
+  "aggression": 0.333,
+  "weapons": [
+    "m4a1",
+    "ak47",
+    "awp",
+    "m4a1_silencer",
+    "usp_silencer",
+    "galilar"
+  ],
+  "positions": {
+    "T": {
+      "SideAlley": 0.1246,
+      "BombsiteA": 0.0968,
+      "TSpawn": 0.0951,
+      "TopofMid": 0.0908,
+      "PalaceAlley": 0.0844,
+      "BackAlley": 0.0704,
+      "Apartments": 0.0684,
+      "House": 0.0654,
+      "BombsiteB": 0.052,
+      "PalaceInterior": 0.0483,
+      "Underpass": 0.0464,
+      "Middle": 0.0396
+    },
+    "CT": {
+      "CTSpawn": 0.3162,
+      "BombsiteA": 0.1437,
+      "Shop": 0.1025,
+      "Underpass": 0.0754,
+      "BombsiteB": 0.0742,
+      "Connector": 0.0666,
+      "SnipersNest": 0.0595,
+      "Middle": 0.0418,
+      "Jungle": 0.036,
+      "Stairs": 0.0244,
+      "Truck": 0.0199,
+      "Apartments": 0.0192
+    }
+  },
+  "model": null,
+  "map": "de_mirage",
+  "steam_id": "76561198201620490",
+  "aggression_detail": {
+    "value": 0.333,
+    "opening_duel_rate": 0.177,
+    "compared_with_players": 24
+  },
+  "route_shares": {
+    "T": {
+      "SideAlley": 0.2368,
+      "BackAlley": 0.1316,
+      "TopofMid": 0.1316,
+      "PalaceAlley": 0.1053,
+      "TRamp": 0.0789,
+      "PalaceInterior": 0.0789,
+      "Apartments": 0.0526,
+      "House": 0.0526,
+      "Catwalk": 0.0526,
+      "Middle": 0.0263,
+      "Underpass": 0.0263,
+      "TSpawn": 0.0263
+    },
+    "CT": {
+      "CTSpawn": 0.1463,
+      "SnipersNest": 0.122,
+      "Connector": 0.122,
+      "BombsiteA": 0.0976,
+      "Shop": 0.0976,
+      "Truck": 0.0732,
+      "Jungle": 0.0732,
+      "Middle": 0.0732,
+      "Underpass": 0.0732,
+      "Stairs": 0.0732,
+      "Catwalk": 0.0244,
+      "Apartments": 0.0244
+    }
+  },
+  "routes": {
+    "T": [
+      {
+        "recording": "broky_v1_t_2392601_r13",
+        "file": "broky_v1/routes/T/broky_v1_t_2392601_r13.json.br",
+        "source": "recorded",
+        "route_key": "Apartments",
+        "label": "TSpawn > SideAlley > House > BackAlley > Apartments",
+        "buy_type": "pistol",
+        "match_id": "2392601",
+        "round": 13,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.0,
+          -306.8,
+          -164.8
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2392601_r14",
+        "file": "broky_v1/routes/T/broky_v1_t_2392601_r14.json.br",
+        "source": "recorded",
+        "route_key": "SideAlley",
+        "label": "TSpawn > SideAlley",
+        "buy_type": "full",
+        "match_id": "2392601",
+        "round": 14,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1215.9,
+          -306.9,
+          -164.8
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2392601_r15",
+        "file": "broky_v1/routes/T/broky_v1_t_2392601_r15.json.br",
+        "source": "recorded",
+        "route_key": "House",
+        "label": "TSpawn > SideAlley > House",
+        "buy_type": "eco",
+        "match_id": "2392601",
+        "round": 15,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.0,
+          -15.8,
+          -164.0
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2392601_r16",
+        "file": "broky_v1/routes/T/broky_v1_t_2392601_r16.json.br",
+        "source": "recorded",
+        "route_key": "PalaceAlley",
+        "label": "TSpawn > PalaceAlley",
+        "buy_type": "full",
+        "match_id": "2392601",
+        "round": 16,
+        "seconds": 10.8,
+        "ticks": 690,
+        "end_reason": "contact",
+        "start": [
+          1136.0,
+          -256.2,
+          -164.8
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2392601_r17",
+        "file": "broky_v1/routes/T/broky_v1_t_2392601_r17.json.br",
+        "source": "recorded",
+        "route_key": "SideAlley",
+        "label": "TSpawn > SideAlley > House > SideAlley",
+        "buy_type": "full",
+        "match_id": "2392601",
+        "round": 17,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1296.0,
+          32.2,
+          -168.0
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2392601_r18",
+        "file": "broky_v1/routes/T/broky_v1_t_2392601_r18.json.br",
+        "source": "recorded",
+        "route_key": "TRamp",
+        "label": "TSpawn > PalaceAlley > TRamp",
+        "buy_type": "full",
+        "match_id": "2392601",
+        "round": 18,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.0,
+          -307.2,
+          -164.8
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2392601_r19",
+        "file": "broky_v1/routes/T/broky_v1_t_2392601_r19.json.br",
+        "source": "recorded",
+        "route_key": "BackAlley",
+        "label": "TSpawn > SideAlley > House > BackAlley",
+        "buy_type": "full",
+        "match_id": "2392601",
+        "round": 19,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1136.0,
+          -255.8,
+          -164.8
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2392601_r20",
+        "file": "broky_v1/routes/T/broky_v1_t_2392601_r20.json.br",
+        "source": "recorded",
+        "route_key": "SideAlley",
+        "label": "TSpawn > SideAlley",
+        "buy_type": "full",
+        "match_id": "2392601",
+        "round": 20,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1296.0,
+          32.0,
+          -168.0
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2392601_r21",
+        "file": "broky_v1/routes/T/broky_v1_t_2392601_r21.json.br",
+        "source": "recorded",
+        "route_key": "TopofMid",
+        "label": "TSpawn > SideAlley > TopofMid",
+        "buy_type": "full",
+        "match_id": "2392601",
+        "round": 21,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1136.0,
+          -255.8,
+          -164.8
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393037_r13",
+        "file": "broky_v1/routes/T/broky_v1_t_2393037_r13.json.br",
+        "source": "recorded",
+        "route_key": "TRamp",
+        "label": "TSpawn > PalaceAlley > TRamp",
+        "buy_type": "pistol",
+        "match_id": "2393037",
+        "round": 13,
+        "seconds": 19.97,
+        "ticks": 1277,
+        "end_reason": "time_limit",
+        "start": [
+          1216.0,
+          -16.2,
+          -164.0
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393037_r14",
+        "file": "broky_v1/routes/T/broky_v1_t_2393037_r14.json.br",
+        "source": "recorded",
+        "route_key": "SideAlley",
+        "label": "TSpawn > SideAlley > TopofMid > SideAlley",
+        "buy_type": "force",
+        "match_id": "2393037",
+        "round": 14,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.0,
+          -211.0,
+          -164.0
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393037_r15",
+        "file": "broky_v1/routes/T/broky_v1_t_2393037_r15.json.br",
+        "source": "recorded",
+        "route_key": "Catwalk",
+        "label": "TSpawn > SideAlley > TopofMid > SideAlley > TopofMid > SideAlley > TopofMid > Catwalk",
+        "buy_type": "full",
+        "match_id": "2393037",
+        "round": 15,
+        "seconds": 19.45,
+        "ticks": 1244,
+        "end_reason": "contact",
+        "start": [
+          1136.0,
+          -159.8,
+          -164.4
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393037_r16",
+        "file": "broky_v1/routes/T/broky_v1_t_2393037_r16.json.br",
+        "source": "recorded",
+        "route_key": "TopofMid",
+        "label": "TSpawn > SideAlley > TopofMid",
+        "buy_type": "full",
+        "match_id": "2393037",
+        "round": 16,
+        "seconds": 18.05,
+        "ticks": 1154,
+        "end_reason": "contact",
+        "start": [
+          1136.0,
+          -255.4,
+          -164.8
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393037_r17",
+        "file": "broky_v1/routes/T/broky_v1_t_2393037_r17.json.br",
+        "source": "recorded",
+        "route_key": "PalaceInterior",
+        "label": "TSpawn > PalaceInterior",
+        "buy_type": "full",
+        "match_id": "2393037",
+        "round": 17,
+        "seconds": 19.92,
+        "ticks": 1274,
+        "end_reason": "time_limit",
+        "start": [
+          1216.0,
+          -307.2,
+          -164.8
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393059_r01",
+        "file": "broky_v1/routes/T/broky_v1_t_2393059_r01.json.br",
+        "source": "recorded",
+        "route_key": "BackAlley",
+        "label": "TSpawn > SideAlley > House > BackAlley",
+        "buy_type": "pistol",
+        "match_id": "2393059",
+        "round": 1,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1296.0,
+          32.2,
+          -168.0
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393059_r02",
+        "file": "broky_v1/routes/T/broky_v1_t_2393059_r02.json.br",
+        "source": "recorded",
+        "route_key": "SideAlley",
+        "label": "TSpawn > SideAlley",
+        "buy_type": "full",
+        "match_id": "2393059",
+        "round": 2,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1136.0,
+          32.2,
+          -164.8
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393059_r03",
+        "file": "broky_v1/routes/T/broky_v1_t_2393059_r03.json.br",
+        "source": "recorded",
+        "route_key": "TopofMid",
+        "label": "TSpawn > SideAlley > TopofMid",
+        "buy_type": "full",
+        "match_id": "2393059",
+        "round": 3,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.1,
+          -306.9,
+          -164.8
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393059_r04",
+        "file": "broky_v1/routes/T/broky_v1_t_2393059_r04.json.br",
+        "source": "recorded",
+        "route_key": "BackAlley",
+        "label": "TSpawn > SideAlley > House > SideAlley > House > BackAlley",
+        "buy_type": "full",
+        "match_id": "2393059",
+        "round": 4,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.1,
+          -210.9,
+          -164.0
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393059_r05",
+        "file": "broky_v1/routes/T/broky_v1_t_2393059_r05.json.br",
+        "source": "recorded",
+        "route_key": "PalaceAlley",
+        "label": "TSpawn > PalaceAlley",
+        "buy_type": "full",
+        "match_id": "2393059",
+        "round": 5,
+        "seconds": 11.5,
+        "ticks": 735,
+        "end_reason": "contact",
+        "start": [
+          1296.0,
+          32.0,
+          -168.0
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393059_r06",
+        "file": "broky_v1/routes/T/broky_v1_t_2393059_r06.json.br",
+        "source": "recorded",
+        "route_key": "TRamp",
+        "label": "TSpawn > PalaceAlley > TRamp",
+        "buy_type": "eco",
+        "match_id": "2393059",
+        "round": 6,
+        "seconds": 16.61,
+        "ticks": 1062,
+        "end_reason": "contact",
+        "start": [
+          1296.0,
+          32.0,
+          -168.0
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393059_r07",
+        "file": "broky_v1/routes/T/broky_v1_t_2393059_r07.json.br",
+        "source": "recorded",
+        "route_key": "BackAlley",
+        "label": "TSpawn > SideAlley > House > BackAlley",
+        "buy_type": "eco",
+        "match_id": "2393059",
+        "round": 7,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.1,
+          -306.9,
+          -164.8
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393059_r08",
+        "file": "broky_v1/routes/T/broky_v1_t_2393059_r08.json.br",
+        "source": "recorded",
+        "route_key": "TopofMid",
+        "label": "TSpawn > SideAlley > TopofMid",
+        "buy_type": "full",
+        "match_id": "2393059",
+        "round": 8,
+        "seconds": 14.77,
+        "ticks": 944,
+        "end_reason": "contact",
+        "start": [
+          1136.0,
+          -159.8,
+          -164.4
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393059_r09",
+        "file": "broky_v1/routes/T/broky_v1_t_2393059_r09.json.br",
+        "source": "recorded",
+        "route_key": "PalaceAlley",
+        "label": "TSpawn > PalaceAlley > TSpawn > PalaceAlley",
+        "buy_type": "eco",
+        "match_id": "2393059",
+        "round": 9,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.0,
+          -307.2,
+          -164.8
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393059_r10",
+        "file": "broky_v1/routes/T/broky_v1_t_2393059_r10.json.br",
+        "source": "recorded",
+        "route_key": "Middle",
+        "label": "TSpawn > SideAlley > TopofMid > Catwalk > Middle",
+        "buy_type": "full",
+        "match_id": "2393059",
+        "round": 10,
+        "seconds": 18.17,
+        "ticks": 1162,
+        "end_reason": "contact",
+        "start": [
+          1216.0,
+          -15.8,
+          -164.0
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393059_r11",
+        "file": "broky_v1/routes/T/broky_v1_t_2393059_r11.json.br",
+        "source": "recorded",
+        "route_key": "SideAlley",
+        "label": "TSpawn > SideAlley",
+        "buy_type": "eco",
+        "match_id": "2393059",
+        "round": 11,
+        "seconds": 17.42,
+        "ticks": 1114,
+        "end_reason": "contact",
+        "start": [
+          1216.0,
+          -210.8,
+          -164.0
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393059_r12",
+        "file": "broky_v1/routes/T/broky_v1_t_2393059_r12.json.br",
+        "source": "recorded",
+        "route_key": "House",
+        "label": "TSpawn > SideAlley > House",
+        "buy_type": "full",
+        "match_id": "2393059",
+        "round": 12,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1136.1,
+          -63.9,
+          -164.5
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393063_r01",
+        "file": "broky_v1/routes/T/broky_v1_t_2393063_r01.json.br",
+        "source": "recorded",
+        "route_key": "Underpass",
+        "label": "TSpawn > SideAlley > House > BackAlley > Underpass",
+        "buy_type": "pistol",
+        "match_id": "2393063",
+        "round": 1,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1296.0,
+          -351.8,
+          -168.0
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393063_r02",
+        "file": "broky_v1/routes/T/broky_v1_t_2393063_r02.json.br",
+        "source": "recorded",
+        "route_key": "PalaceInterior",
+        "label": "TSpawn > PalaceInterior",
+        "buy_type": "force",
+        "match_id": "2393063",
+        "round": 2,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1295.9,
+          -352.1,
+          -168.0
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393063_r03",
+        "file": "broky_v1/routes/T/broky_v1_t_2393063_r03.json.br",
+        "source": "recorded",
+        "route_key": "TSpawn",
+        "label": "TSpawn > PalaceInterior > TSpawn",
+        "buy_type": "full",
+        "match_id": "2393063",
+        "round": 3,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.1,
+          -115.1,
+          -164.0
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393063_r04",
+        "file": "broky_v1/routes/T/broky_v1_t_2393063_r04.json.br",
+        "source": "recorded",
+        "route_key": "SideAlley",
+        "label": "TSpawn > SideAlley > House > SideAlley > TopofMid > SideAlley",
+        "buy_type": "full",
+        "match_id": "2393063",
+        "round": 4,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.0,
+          -306.8,
+          -164.8
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393063_r05",
+        "file": "broky_v1/routes/T/broky_v1_t_2393063_r05.json.br",
+        "source": "recorded",
+        "route_key": "SideAlley",
+        "label": "TSpawn > SideAlley > House > SideAlley",
+        "buy_type": "full",
+        "match_id": "2393063",
+        "round": 5,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1136.1,
+          -159.8,
+          -164.4
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393063_r06",
+        "file": "broky_v1/routes/T/broky_v1_t_2393063_r06.json.br",
+        "source": "recorded",
+        "route_key": "PalaceAlley",
+        "label": "TSpawn > PalaceAlley",
+        "buy_type": "full",
+        "match_id": "2393063",
+        "round": 6,
+        "seconds": 9.67,
+        "ticks": 618,
+        "end_reason": "contact",
+        "start": [
+          1216.0,
+          -211.2,
+          -164.0
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393063_r07",
+        "file": "broky_v1/routes/T/broky_v1_t_2393063_r07.json.br",
+        "source": "recorded",
+        "route_key": "Apartments",
+        "label": "TSpawn > SideAlley > House > BackAlley > Apartments",
+        "buy_type": "full",
+        "match_id": "2393063",
+        "round": 7,
+        "seconds": 16.28,
+        "ticks": 1041,
+        "end_reason": "contact",
+        "start": [
+          1136.0,
+          32.2,
+          -164.8
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393063_r08",
+        "file": "broky_v1/routes/T/broky_v1_t_2393063_r08.json.br",
+        "source": "recorded",
+        "route_key": "PalaceInterior",
+        "label": "TSpawn > PalaceInterior",
+        "buy_type": "full",
+        "match_id": "2393063",
+        "round": 8,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1296.0,
+          32.0,
+          -168.0
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393063_r09",
+        "file": "broky_v1/routes/T/broky_v1_t_2393063_r09.json.br",
+        "source": "recorded",
+        "route_key": "Catwalk",
+        "label": "TSpawn > SideAlley > House > SideAlley > TopofMid > Catwalk",
+        "buy_type": "full",
+        "match_id": "2393063",
+        "round": 9,
+        "seconds": 16.38,
+        "ticks": 1047,
+        "end_reason": "contact",
+        "start": [
+          1296.0,
+          32.0,
+          -168.0
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393063_r10",
+        "file": "broky_v1/routes/T/broky_v1_t_2393063_r10.json.br",
+        "source": "recorded",
+        "route_key": "BackAlley",
+        "label": "TSpawn > SideAlley > House > BackAlley",
+        "buy_type": "full",
+        "match_id": "2393063",
+        "round": 10,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1296.0,
+          32.2,
+          -168.0
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393063_r11",
+        "file": "broky_v1/routes/T/broky_v1_t_2393063_r11.json.br",
+        "source": "recorded",
+        "route_key": "TopofMid",
+        "label": "TSpawn > SideAlley > TopofMid",
+        "buy_type": "full",
+        "match_id": "2393063",
+        "round": 11,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.1,
+          -114.9,
+          -164.0
+        ]
+      },
+      {
+        "recording": "broky_v1_t_2393063_r12",
+        "file": "broky_v1/routes/T/broky_v1_t_2393063_r12.json.br",
+        "source": "recorded",
+        "route_key": "SideAlley",
+        "label": "TSpawn > SideAlley",
+        "buy_type": "full",
+        "match_id": "2393063",
+        "round": 12,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1296.0,
+          32.0,
+          -168.0
+        ]
+      }
+    ],
+    "CT": [
+      {
+        "recording": "broky_v1_ct_2392601_r01",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2392601_r01.json.br",
+        "source": "recorded",
+        "route_key": "CTSpawn",
+        "label": "CTSpawn",
+        "buy_type": "pistol",
+        "match_id": "2392601",
+        "round": 1,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1719.9,
+          -1896.1,
+          -267.6
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2392601_r02",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2392601_r02.json.br",
+        "source": "recorded",
+        "route_key": "CTSpawn",
+        "label": "CTSpawn",
+        "buy_type": "full",
+        "match_id": "2392601",
+        "round": 2,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1719.9,
+          -1896.1,
+          -267.6
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2392601_r03",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2392601_r03.json.br",
+        "source": "recorded",
+        "route_key": "CTSpawn",
+        "label": "CTSpawn",
+        "buy_type": "full",
+        "match_id": "2392601",
+        "round": 3,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1775.8,
+          -1976.1,
+          -264.0
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2392601_r04",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2392601_r04.json.br",
+        "source": "recorded",
+        "route_key": "BombsiteA",
+        "label": "CTSpawn > BombsiteA > Stairs > BombsiteA",
+        "buy_type": "full",
+        "match_id": "2392601",
+        "round": 4,
+        "seconds": 15.62,
+        "ticks": 999,
+        "end_reason": "contact",
+        "start": [
+          -1655.9,
+          -1976.1,
+          -267.5
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2392601_r05",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2392601_r05.json.br",
+        "source": "recorded",
+        "route_key": "SnipersNest",
+        "label": "CTSpawn > SnipersNest",
+        "buy_type": "full",
+        "match_id": "2392601",
+        "round": 5,
+        "seconds": 11.69,
+        "ticks": 747,
+        "end_reason": "contact",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2392601_r06",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2392601_r06.json.br",
+        "source": "recorded",
+        "route_key": "BombsiteA",
+        "label": "CTSpawn > BombsiteA > Stairs > BombsiteA",
+        "buy_type": "full",
+        "match_id": "2392601",
+        "round": 6,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1655.9,
+          -1976.1,
+          -267.5
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2392601_r07",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2392601_r07.json.br",
+        "source": "recorded",
+        "route_key": "CTSpawn",
+        "label": "CTSpawn",
+        "buy_type": "eco",
+        "match_id": "2392601",
+        "round": 7,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1775.9,
+          -1976.1,
+          -264.0
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2392601_r08",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2392601_r08.json.br",
+        "source": "recorded",
+        "route_key": "Truck",
+        "label": "CTSpawn > Shop > BombsiteB > Truck",
+        "buy_type": "full",
+        "match_id": "2392601",
+        "round": 8,
+        "seconds": 14.3,
+        "ticks": 914,
+        "end_reason": "contact",
+        "start": [
+          -1656.0,
+          -1975.8,
+          -267.5
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2392601_r09",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2392601_r09.json.br",
+        "source": "recorded",
+        "route_key": "Shop",
+        "label": "CTSpawn > SnipersNest > CTSpawn > Shop",
+        "buy_type": "full",
+        "match_id": "2392601",
+        "round": 9,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2392601_r10",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2392601_r10.json.br",
+        "source": "recorded",
+        "route_key": "Jungle",
+        "label": "CTSpawn > SnipersNest > CTSpawn > Shop > CTSpawn > Jungle",
+        "buy_type": "full",
+        "match_id": "2392601",
+        "round": 10,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2392601_r11",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2392601_r11.json.br",
+        "source": "recorded",
+        "route_key": "Middle",
+        "label": "CTSpawn > BombsiteA > Connector > Middle",
+        "buy_type": "full",
+        "match_id": "2392601",
+        "round": 11,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1655.9,
+          -1976.1,
+          -267.5
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2392601_r12",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2392601_r12.json.br",
+        "source": "recorded",
+        "route_key": "Underpass",
+        "label": "CTSpawn > SnipersNest > Middle > Catwalk > Underpass",
+        "buy_type": "force",
+        "match_id": "2392601",
+        "round": 12,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393037_r01",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393037_r01.json.br",
+        "source": "recorded",
+        "route_key": "SnipersNest",
+        "label": "CTSpawn > SnipersNest",
+        "buy_type": "pistol",
+        "match_id": "2393037",
+        "round": 1,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1775.9,
+          -1975.8,
+          -264.0
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393037_r02",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393037_r02.json.br",
+        "source": "recorded",
+        "route_key": "BombsiteA",
+        "label": "CTSpawn > Jungle > BombsiteA > Stairs > BombsiteA",
+        "buy_type": "eco",
+        "match_id": "2393037",
+        "round": 2,
+        "seconds": 19.64,
+        "ticks": 1256,
+        "end_reason": "contact",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393037_r03",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393037_r03.json.br",
+        "source": "recorded",
+        "route_key": "Connector",
+        "label": "CTSpawn > BombsiteA > Connector > Middle > Connector",
+        "buy_type": "full",
+        "match_id": "2393037",
+        "round": 3,
+        "seconds": 19.97,
+        "ticks": 1277,
+        "end_reason": "time_limit",
+        "start": [
+          -1655.6,
+          -1976.4,
+          -267.4
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393037_r04",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393037_r04.json.br",
+        "source": "recorded",
+        "route_key": "Underpass",
+        "label": "CTSpawn > SnipersNest > Middle > Underpass",
+        "buy_type": "full",
+        "match_id": "2393037",
+        "round": 4,
+        "seconds": 19.88,
+        "ticks": 1271,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393037_r05",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393037_r05.json.br",
+        "source": "recorded",
+        "route_key": "Stairs",
+        "label": "CTSpawn > SnipersNest > CTSpawn > Jungle > BombsiteA > Stairs",
+        "buy_type": "full",
+        "match_id": "2393037",
+        "round": 5,
+        "seconds": 19.97,
+        "ticks": 1277,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393037_r06",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393037_r06.json.br",
+        "source": "recorded",
+        "route_key": "Connector",
+        "label": "CTSpawn > BombsiteA > Connector",
+        "buy_type": "full",
+        "match_id": "2393037",
+        "round": 6,
+        "seconds": 9.14,
+        "ticks": 584,
+        "end_reason": "contact",
+        "start": [
+          -1655.9,
+          -1976.1,
+          -267.5
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393037_r07",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393037_r07.json.br",
+        "source": "recorded",
+        "route_key": "Stairs",
+        "label": "CTSpawn > Jungle > BombsiteA > Stairs > BombsiteA > Jungle > BombsiteA > Stairs",
+        "buy_type": "full",
+        "match_id": "2393037",
+        "round": 7,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393037_r08",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393037_r08.json.br",
+        "source": "recorded",
+        "route_key": "Underpass",
+        "label": "CTSpawn > SnipersNest > Middle > Underpass",
+        "buy_type": "full",
+        "match_id": "2393037",
+        "round": 8,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393037_r09",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393037_r09.json.br",
+        "source": "recorded",
+        "route_key": "Jungle",
+        "label": "CTSpawn > SnipersNest > CTSpawn > Jungle",
+        "buy_type": "full",
+        "match_id": "2393037",
+        "round": 9,
+        "seconds": 19.97,
+        "ticks": 1277,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393037_r10",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393037_r10.json.br",
+        "source": "recorded",
+        "route_key": "Connector",
+        "label": "CTSpawn > BombsiteA > Connector",
+        "buy_type": "full",
+        "match_id": "2393037",
+        "round": 10,
+        "seconds": 9.94,
+        "ticks": 635,
+        "end_reason": "contact",
+        "start": [
+          -1775.9,
+          -1976.1,
+          -264.0
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393037_r11",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393037_r11.json.br",
+        "source": "recorded",
+        "route_key": "Middle",
+        "label": "CTSpawn > SnipersNest > Middle",
+        "buy_type": "full",
+        "match_id": "2393037",
+        "round": 11,
+        "seconds": 14.72,
+        "ticks": 941,
+        "end_reason": "contact",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393037_r12",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393037_r12.json.br",
+        "source": "recorded",
+        "route_key": "Stairs",
+        "label": "CTSpawn > BombsiteA > Stairs",
+        "buy_type": "full",
+        "match_id": "2393037",
+        "round": 12,
+        "seconds": 19.95,
+        "ticks": 1276,
+        "end_reason": "time_limit",
+        "start": [
+          -1775.9,
+          -1976.1,
+          -264.0
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393059_r13",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393059_r13.json.br",
+        "source": "recorded",
+        "route_key": "BombsiteA",
+        "label": "CTSpawn > BombsiteA",
+        "buy_type": "pistol",
+        "match_id": "2393059",
+        "round": 13,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.1,
+          -1800.2,
+          -267.2
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393059_r14",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393059_r14.json.br",
+        "source": "recorded",
+        "route_key": "Catwalk",
+        "label": "CTSpawn > Shop > BombsiteB > Catwalk",
+        "buy_type": "eco",
+        "match_id": "2393059",
+        "round": 14,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1776.1,
+          -1975.8,
+          -264.0
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393059_r15",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393059_r15.json.br",
+        "source": "recorded",
+        "route_key": "SnipersNest",
+        "label": "CTSpawn > SnipersNest",
+        "buy_type": "full",
+        "match_id": "2393059",
+        "round": 15,
+        "seconds": 6.75,
+        "ticks": 431,
+        "end_reason": "contact",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393059_r16",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393059_r16.json.br",
+        "source": "recorded",
+        "route_key": "Middle",
+        "label": "CTSpawn > SnipersNest > Middle",
+        "buy_type": "full",
+        "match_id": "2393059",
+        "round": 16,
+        "seconds": 10.53,
+        "ticks": 673,
+        "end_reason": "contact",
+        "start": [
+          -1775.9,
+          -1799.9,
+          -264.0
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393059_r17",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393059_r17.json.br",
+        "source": "recorded",
+        "route_key": "Connector",
+        "label": "CTSpawn > SnipersNest > CTSpawn > Jungle > BombsiteA > Connector",
+        "buy_type": "full",
+        "match_id": "2393059",
+        "round": 17,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.1,
+          -1975.9,
+          -267.5
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393059_r18",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393059_r18.json.br",
+        "source": "recorded",
+        "route_key": "Truck",
+        "label": "CTSpawn > Shop > BombsiteB > Truck",
+        "buy_type": "full",
+        "match_id": "2393059",
+        "round": 18,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1720.0,
+          -1895.8,
+          -267.6
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393059_r19",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393059_r19.json.br",
+        "source": "recorded",
+        "route_key": "Shop",
+        "label": "CTSpawn > SnipersNest > CTSpawn > Shop",
+        "buy_type": "full",
+        "match_id": "2393059",
+        "round": 19,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1775.9,
+          -1975.8,
+          -264.0
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393059_r20",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393059_r20.json.br",
+        "source": "recorded",
+        "route_key": "SnipersNest",
+        "label": "CTSpawn > SnipersNest",
+        "buy_type": "full",
+        "match_id": "2393059",
+        "round": 20,
+        "seconds": 8.81,
+        "ticks": 563,
+        "end_reason": "contact",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393059_r21",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393059_r21.json.br",
+        "source": "recorded",
+        "route_key": "Shop",
+        "label": "CTSpawn > SnipersNest > CTSpawn > Shop",
+        "buy_type": "full",
+        "match_id": "2393059",
+        "round": 21,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1720.0,
+          -1895.8,
+          -267.6
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393059_r22",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393059_r22.json.br",
+        "source": "recorded",
+        "route_key": "Shop",
+        "label": "CTSpawn > SnipersNest > CTSpawn > Shop",
+        "buy_type": "full",
+        "match_id": "2393059",
+        "round": 22,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1776.0,
+          -1975.8,
+          -264.0
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393063_r13",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393063_r13.json.br",
+        "source": "recorded",
+        "route_key": "Jungle",
+        "label": "CTSpawn > SnipersNest > CTSpawn > Jungle",
+        "buy_type": "pistol",
+        "match_id": "2393063",
+        "round": 13,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1975.8,
+          -267.5
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393063_r14",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393063_r14.json.br",
+        "source": "recorded",
+        "route_key": "CTSpawn",
+        "label": "CTSpawn > SnipersNest > CTSpawn > SnipersNest > CTSpawn",
+        "buy_type": "full",
+        "match_id": "2393063",
+        "round": 14,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1776.1,
+          -1975.8,
+          -264.0
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393063_r15",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393063_r15.json.br",
+        "source": "recorded",
+        "route_key": "SnipersNest",
+        "label": "CTSpawn > SnipersNest",
+        "buy_type": "full",
+        "match_id": "2393063",
+        "round": 15,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1775.8,
+          -1800.0,
+          -264.0
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393063_r16",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393063_r16.json.br",
+        "source": "recorded",
+        "route_key": "Connector",
+        "label": "CTSpawn > BombsiteA > Connector > Middle > Connector",
+        "buy_type": "full",
+        "match_id": "2393063",
+        "round": 16,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1775.9,
+          -1976.1,
+          -264.0
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393063_r17",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393063_r17.json.br",
+        "source": "recorded",
+        "route_key": "Apartments",
+        "label": "CTSpawn > Shop > BombsiteB > Truck > Apartments",
+        "buy_type": "full",
+        "match_id": "2393063",
+        "round": 17,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393063_r18",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393063_r18.json.br",
+        "source": "recorded",
+        "route_key": "Truck",
+        "label": "CTSpawn > Shop > BombsiteB > Truck",
+        "buy_type": "full",
+        "match_id": "2393063",
+        "round": 18,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "broky_v1_ct_2393063_r19",
+        "file": "broky_v1/routes/CT/broky_v1_ct_2393063_r19.json.br",
+        "source": "recorded",
+        "route_key": "CTSpawn",
+        "label": "CTSpawn > SnipersNest > CTSpawn",
+        "buy_type": "full",
+        "match_id": "2393063",
+        "round": 19,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1776.1,
+          -1975.9,
+          -264.0
+        ]
+      }
+    ]
+  },
+  "buy_plan": {
+    "CT": {
+      "eco": {
+        "items": [],
+        "aliases": [],
+        "unmapped_items": [],
+        "rounds_of_this_type": 3,
+        "share_of_rounds_bought": {
+          "Desert Eagle": 0.33,
+          "Flashbang": 0.33
+        }
+      },
+      "force": {
+        "items": [
+          "Kevlar & Helmet",
+          "Five-SeveN"
+        ],
+        "aliases": [
+          "vesthelm",
+          "fiveseven"
+        ],
+        "unmapped_items": [],
+        "rounds_of_this_type": 1,
+        "share_of_rounds_bought": {
+          "Five-SeveN": 1.0,
+          "Kevlar & Helmet": 1.0
+        }
+      },
+      "full": {
+        "items": [
+          "M4A4",
+          "Kevlar & Helmet",
+          "Smoke Grenade",
+          "Flashbang",
+          "High Explosive Grenade",
+          "Incendiary Grenade"
+        ],
+        "aliases": [
+          "m4a1",
+          "vesthelm",
+          "smokegrenade",
+          "flashbang",
+          "hegrenade",
+          "incgrenade"
+        ],
+        "unmapped_items": [],
+        "rounds_of_this_type": 33,
+        "share_of_rounds_bought": {
+          "Smoke Grenade": 0.88,
+          "Flashbang": 0.82,
+          "High Explosive Grenade": 0.64,
+          "Incendiary Grenade": 0.55,
+          "Kevlar & Helmet": 0.45,
+          "Defuse Kit": 0.18,
+          "Kevlar Vest": 0.18,
+          "M4A4": 0.18,
+          "M4A1-S": 0.15,
+          "AWP": 0.12,
+          "Desert Eagle": 0.06,
+          "P250": 0.06,
+          "Decoy Grenade": 0.03
+        }
+      },
+      "pistol": {
+        "items": [
+          "Dual Berettas",
+          "Flashbang",
+          "Smoke Grenade"
+        ],
+        "aliases": [
+          "elite",
+          "flashbang",
+          "smokegrenade"
+        ],
+        "unmapped_items": [],
+        "rounds_of_this_type": 4,
+        "share_of_rounds_bought": {
+          "Dual Berettas": 0.5,
+          "Flashbang": 0.5,
+          "Smoke Grenade": 0.5
+        }
+      }
+    },
+    "T": {
+      "eco": {
+        "items": [],
+        "aliases": [],
+        "unmapped_items": [],
+        "rounds_of_this_type": 5,
+        "share_of_rounds_bought": {
+          "Desert Eagle": 0.4,
+          "Smoke Grenade": 0.4,
+          "Flashbang": 0.2,
+          "Molotov": 0.2
+        }
+      },
+      "force": {
+        "items": [
+          "Galil AR",
+          "Kevlar & Helmet",
+          "Kevlar Vest",
+          "Desert Eagle",
+          "Smoke Grenade"
+        ],
+        "aliases": [
+          "galilar",
+          "vesthelm",
+          "vest",
+          "deagle",
+          "smokegrenade"
+        ],
+        "unmapped_items": [],
+        "rounds_of_this_type": 2,
+        "share_of_rounds_bought": {
+          "Kevlar & Helmet": 1.0,
+          "Desert Eagle": 0.5,
+          "Galil AR": 0.5,
+          "Kevlar Vest": 0.5,
+          "Smoke Grenade": 0.5
+        }
+      },
+      "full": {
+        "items": [
+          "AK-47",
+          "Kevlar & Helmet",
+          "Flashbang",
+          "Smoke Grenade",
+          "Molotov"
+        ],
+        "aliases": [
+          "ak47",
+          "vesthelm",
+          "flashbang",
+          "smokegrenade",
+          "molotov"
+        ],
+        "unmapped_items": [],
+        "rounds_of_this_type": 27,
+        "share_of_rounds_bought": {
+          "Flashbang": 0.89,
+          "Smoke Grenade": 0.85,
+          "Molotov": 0.67,
+          "Kevlar & Helmet": 0.44,
+          "AK-47": 0.26,
+          "AWP": 0.19,
+          "High Explosive Grenade": 0.11,
+          "P250": 0.11,
+          "Tec-9": 0.11,
+          "Galil AR": 0.07,
+          "Kevlar Vest": 0.07
+        }
+      },
+      "pistol": {
+        "items": [
+          "Kevlar Vest"
+        ],
+        "aliases": [
+          "vest"
+        ],
+        "unmapped_items": [],
+        "rounds_of_this_type": 4,
+        "share_of_rounds_bought": {
+          "Kevlar Vest": 0.5,
+          "Flashbang": 0.25,
+          "Smoke Grenade": 0.25
+        }
+      }
+    }
+  },
+  "files": {
+    "botprofile": "broky_v1/botprofile.txt",
+    "buy_plan": "broky_v1/buy_plan.json",
+    "grenades": "broky_v1/grenades.json"
+  },
+  "grenade_throws": 182,
+  "seconds_to_first_contact": {
+    "T": [
+      126.92,
+      81.73,
+      81.91,
+      10.81,
+      81.52,
+      22.61,
+      95.53,
+      41.73,
+      24.81,
+      61.75,
+      19.5,
+      18.08,
+      27.75,
+      22.14,
+      81.41,
+      68.69,
+      36.08,
+      11.52,
+      16.62,
+      73.92,
+      14.78,
+      40.23,
+      18.19,
+      17.44,
+      54.22,
+      111.14,
+      31.61,
+      103.19,
+      124.72,
+      9.69,
+      16.3,
+      24.12,
+      16.39,
+      35.36,
+      41.22,
+      29.94
+    ],
+    "CT": [
+      20.03,
+      38.64,
+      56.52,
+      15.64,
+      11.7,
+      86.08,
+      82.77,
+      14.31,
+      58.52,
+      20.47,
+      72.34,
+      51.12,
+      28.62,
+      19.66,
+      22.88,
+      61.39,
+      9.17,
+      23.23,
+      21.39,
+      26.98,
+      9.95,
+      14.75,
+      28.25,
+      33.48,
+      31.23,
+      6.77,
+      10.55,
+      73.92,
+      8.83,
+      46.95,
+      54.36,
+      72.27,
+      29.06,
+      20.23,
+      22.48,
+      23.41,
+      124.0,
+      31.64
+    ]
+  },
+  "source_games": [
+    {
+      "match_id": "2392601",
+      "file": "2392601_faze-vs-aimclub-m1-mirage.dem",
+      "rounds": 21
+    },
+    {
+      "match_id": "2393037",
+      "file": "2393037_faze-vs-bee-m1-mirage.dem",
+      "rounds": 17
+    },
+    {
+      "match_id": "2393059",
+      "file": "2393059_faze-vs-cybershoke-m1-mirage.dem",
+      "rounds": 22
+    },
+    {
+      "match_id": "2393063",
+      "file": "2393063_faze-vs-illwill-m2-mirage.dem",
+      "rounds": 19
+    }
+  ],
+  "rounds": {
+    "T": 38,
+    "CT": 41
+  },
+  "similarity": {
+    "what": "The player's building matches compared with the player's own held-back matches. This is the ceiling: how alike the player is to themselves.",
+    "held_back_matches": [
+      "2393024"
+    ],
+    "player_vs_self": {
+      "T": {
+        "position_overlap": 0.705,
+        "route_overlap": 0.579,
+        "median_seconds_to_first_contact": [
+          33.48,
+          61.72
+        ],
+        "rounds": [
+          38,
+          10
+        ]
+      },
+      "CT": {
+        "position_overlap": 0.733,
+        "route_overlap": 0.297,
+        "median_seconds_to_first_contact": [
+          27.62,
+          28.14
+        ],
+        "rounds": [
+          41,
+          12
+        ]
+      }
+    }
+  },
+  "built_at": "2026-11-15T02:08:00+00:00"
+}

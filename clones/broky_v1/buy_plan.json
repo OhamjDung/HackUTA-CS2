@@ -1,0 +1,169 @@
+{
+  "CT": {
+    "eco": {
+      "items": [],
+      "aliases": [],
+      "unmapped_items": [],
+      "rounds_of_this_type": 3,
+      "share_of_rounds_bought": {
+        "Desert Eagle": 0.33,
+        "Flashbang": 0.33
+      }
+    },
+    "force": {
+      "items": [
+        "Kevlar & Helmet",
+        "Five-SeveN"
+      ],
+      "aliases": [
+        "vesthelm",
+        "fiveseven"
+      ],
+      "unmapped_items": [],
+      "rounds_of_this_type": 1,
+      "share_of_rounds_bought": {
+        "Five-SeveN": 1.0,
+        "Kevlar & Helmet": 1.0
+      }
+    },
+    "full": {
+      "items": [
+        "M4A4",
+        "Kevlar & Helmet",
+        "Smoke Grenade",
+        "Flashbang",
+        "High Explosive Grenade",
+        "Incendiary Grenade"
+      ],
+      "aliases": [
+        "m4a1",
+        "vesthelm",
+        "smokegrenade",
+        "flashbang",
+        "hegrenade",
+        "incgrenade"
+      ],
+      "unmapped_items": [],
+      "rounds_of_this_type": 33,
+      "share_of_rounds_bought": {
+        "Smoke Grenade": 0.88,
+        "Flashbang": 0.82,
+        "High Explosive Grenade": 0.64,
+        "Incendiary Grenade": 0.55,
+        "Kevlar & Helmet": 0.45,
+        "Defuse Kit": 0.18,
+        "Kevlar Vest": 0.18,
+        "M4A4": 0.18,
+        "M4A1-S": 0.15,
+        "AWP": 0.12,
+        "Desert Eagle": 0.06,
+        "P250": 0.06,
+        "Decoy Grenade": 0.03
+      }
+    },
+    "pistol": {
+      "items": [
+        "Dual Berettas",
+        "Flashbang",
+        "Smoke Grenade"
+      ],
+      "aliases": [
+        "elite",
+        "flashbang",
+        "smokegrenade"
+      ],
+      "unmapped_items": [],
+      "rounds_of_this_type": 4,
+      "share_of_rounds_bought": {
+        "Dual Berettas": 0.5,
+        "Flashbang": 0.5,
+        "Smoke Grenade": 0.5
+      }
+    }
+  },
+  "T": {
+    "eco": {
+      "items": [],
+      "aliases": [],
+      "unmapped_items": [],
+      "rounds_of_this_type": 5,
+      "share_of_rounds_bought": {
+        "Desert Eagle": 0.4,
+        "Smoke Grenade": 0.4,
+        "Flashbang": 0.2,
+        "Molotov": 0.2
+      }
+    },
+    "force": {
+      "items": [
+        "Galil AR",
+        "Kevlar & Helmet",
+        "Kevlar Vest",
+        "Desert Eagle",
+        "Smoke Grenade"
+      ],
+      "aliases": [
+        "galilar",
+        "vesthelm",
+        "vest",
+        "deagle",
+        "smokegrenade"
+      ],
+      "unmapped_items": [],
+      "rounds_of_this_type": 2,
+      "share_of_rounds_bought": {
+        "Kevlar & Helmet": 1.0,
+        "Desert Eagle": 0.5,
+        "Galil AR": 0.5,
+        "Kevlar Vest": 0.5,
+        "Smoke Grenade": 0.5
+      }
+    },
+    "full": {
+      "items": [
+        "AK-47",
+        "Kevlar & Helmet",
+        "Flashbang",
+        "Smoke Grenade",
+        "Molotov"
+      ],
+      "aliases": [
+        "ak47",
+        "vesthelm",
+        "flashbang",
+        "smokegrenade",
+        "molotov"
+      ],
+      "unmapped_items": [],
+      "rounds_of_this_type": 27,
+      "share_of_rounds_bought": {
+        "Flashbang": 0.89,
+        "Smoke Grenade": 0.85,
+        "Molotov": 0.67,
+        "Kevlar & Helmet": 0.44,
+        "AK-47": 0.26,
+        "AWP": 0.19,
+        "High Explosive Grenade": 0.11,
+        "P250": 0.11,
+        "Tec-9": 0.11,
+        "Galil AR": 0.07,
+        "Kevlar Vest": 0.07
+      }
+    },
+    "pistol": {
+      "items": [
+        "Kevlar Vest"
+      ],
+      "aliases": [
+        "vest"
+      ],
+      "unmapped_items": [],
+      "rounds_of_this_type": 4,
+      "share_of_rounds_bought": {
+        "Kevlar Vest": 0.5,
+        "Flashbang": 0.25,
+        "Smoke Grenade": 0.25
+      }
+    }
+  }
+}

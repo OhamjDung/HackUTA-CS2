@@ -5,7 +5,7 @@ After damage, a nearby enemy shot, or the end of the route, playback stops and t
 bot base resumes play. Only private matches on Mirage are supported.
 
 **Checked here:** Release compilation, automated session/selection tests, and loading the real
-`clones/donk_v1.json` plus all 80 pipeline-produced route files with the C# loader.
+both clone profiles plus all 159 donk/broky route files with the C# loader.
 **Not checked here:** loading this plugin in CS2, bot creation/name matching, purchase aliases,
 or whether generated playback makes a bot follow the real route. Passing the file checks does
 not prove movement works in the game. The six-hour gate in `SPEC.md` section 11 is still open.
@@ -26,7 +26,7 @@ dotnet build clone-director/CloneDirector.csproj -c Release "-p:BotControllerApi
 dotnet test clone-director/Tests/CloneDirector.Tests.csproj -c Release "-p:BotControllerApiPath=$api"
 ```
 
-Tests need the repository's `clones/donk_v1` files. They do not load any CS2 native libraries.
+Tests need the repository's `clones/donk_v1` and `clones/broky_v1` files. They do not load any CS2 native libraries.
 The `Private=false` reference keeps the contract out of the plugin's deployment folder; the
 tests copy it only into their own test output folder.
 

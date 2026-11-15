@@ -177,9 +177,13 @@ starting plan; the implementation is now present. Match-service integration stil
 
 ### 5.3 Third: everything else in `SPEC.md` section 0.2
 
-In priority order: record a clone match and score it with `similarity.compare()`, the broky clone
-(same build command, files in `SPEC.md` section 7.3, hold back 2393024), the replay page, the
-generating model (`SPEC.md` section 8), the real match service.
+Codex built `broky_v1`: four real Mirage matches, 79 routes, and match 2393024 held back (22 rounds).
+Both clones' purchase order was corrected; 10 pipeline, 26 C#, and 32 service tests pass. All
+159 routes load in C#. See `clones/README.md` for the current evidence and limits.
+
+Remaining priority order: pass the in-game playback gate, record a clone match and score it with
+`similarity.compare()`, build the replay page, train the generating model (`SPEC.md` section 8),
+and connect CloneDirector to the real match service. None of these is established by file tests.
 
 ## 6. Known limits of the current pipeline
 

@@ -113,3 +113,18 @@ def test_habits_on_the_fake_match():
     plan = habits.buy_plan([match])["T"]["full"]
     assert plan["aliases"] == ["ak47", "smokegrenade"]
     assert habits.positions([match])["T"] == {"TopofMid": 0.875, "TSpawn": 0.125}
+
+
+def test_frequent_grenades_do_not_consume_the_main_weapon_budget_first():
+    match = fake_match()
+    second = match.rounds.iloc[0].copy()
+    second["round"] = 3
+    match.rounds = pd.concat([match.rounds, pd.DataFrame([second])], ignore_index=True)
+    match.purchases = pd.DataFrame({
+        "tick": [900, 901, 3500, 3501],
+        "item_name": ["AK-47", "Smoke Grenade", "Smoke Grenade", "Kevlar Vest"],
+        "round": [2, 2, 3, 3],
+    })
+    plan = habits.buy_plan([match])["T"]["full"]
+    assert plan["aliases"] == ["ak47", "vest", "smokegrenade"]
+    assert plan["share_of_rounds_bought"]["Smoke Grenade"] == 1.0

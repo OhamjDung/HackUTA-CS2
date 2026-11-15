@@ -158,18 +158,20 @@ public sealed class DirectorTests
         Assert.Throws<InvalidDataException>(() => store.Validate(new() { Id = "bad", DisplayName = "donk\";quit" }));
     }
 
-    [Fact]
-    public void RealPipelineProfileAndAllEightyRecordingsLoadInCSharp()
+    [Theory]
+    [InlineData("donk_v1", "donk", 80)]
+    [InlineData("broky_v1", "broky", 79)]
+    public void RealPipelineProfilesAndEveryRecordingLoadInCSharp(string id, string name, int expectedRoutes)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "SPEC.md"))) dir = dir.Parent;
         Assert.NotNull(dir);
         var store = new ProfileStore(Path.Combine(dir!.FullName, "clones"));
-        var profile = store.Load("donk_v1");
-        Assert.Equal("donk", profile.Personality);
+        var profile = store.Load(id);
+        Assert.Equal(name, profile.Personality);
         Assert.Contains("ak47", profile.BuyPlan["T"]["full"].Aliases);
         var routes = profile.Routes.Values.SelectMany(r => r).ToArray();
-        Assert.Equal(80, routes.Length);
+        Assert.Equal(expectedRoutes, routes.Length);
         foreach (var route in routes)
         {
             var recording = MotionStore.LoadFromFile(store.Resolve(route.File));

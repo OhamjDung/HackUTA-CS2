@@ -35,10 +35,11 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Lobby page | Tom (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | Match page | Nikesh (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | CS2 with the bot base installed on the demo laptop | Unassigned | Not started | Demo laptop | 2026-11-14 |
-| Clone pipeline: recording in, clone profile out | Arjun | Done. Built from real recordings; 9 synthetic tests pass. | `clone-pipeline/`, `HANDOFF.md` | 2026-11-14 |
+| Clone pipeline: recording in, clone profile out | Arjun (Codex) | Done. 10 tests pass; purchase order corrected in both clones. | `clone-pipeline/`, `HANDOFF.md` | 2026-11-14 |
 | donk clone (`donk_v1`): profile, purchases, grenades, 80 route files | Arjun | Done. Built from 4 matches, 80 rounds. | `clones/` | 2026-11-14 |
+| broky clone (`broky_v1`): data-built profile and routes | Arjun (Codex) | Done. Built from 4 matches, 79 rounds/routes; held back 22 rounds. Files load in C#; not run in game. | `clones/broky_v1.json`, `clones/README.md` | 2026-11-14 |
 | Route converter: recording data to the bot playback format | Arjun | In progress. Files are written. **Not tested in the game.** Several field values are guesses (`HANDOFF.md` section 5.1). | `clone-pipeline/clone_pipeline/recording.py` | 2026-11-14 |
-| CloneDirector plugin: applies a clone to a bot inside CS2 | Arjun (Codex) | In progress. Compiles; 25 C# tests pass, including all 80 donk files. Not run in CS2. | `clone-director/` | 2026-11-14 |
+| CloneDirector plugin: applies a clone to a bot inside CS2 | Arjun (Codex) | In progress. Compiles; 26 C# tests pass, including all 159 donk/broky files. Not run in CS2. | `clone-director/` | 2026-11-14 |
 | Generating model: CS-NET v4 plus player identity | Unassigned | Not started | `clone-model/` (proposed) | 2026-11-14 |
 | Replay page: real player next to clone | Unassigned | Not started | `replay/` (proposed) | 2026-11-14 |
 | Clone profile page | Unassigned | Not started | Not decided | 2026-11-14 |
@@ -124,13 +125,16 @@ Checked on 2026-11-14.
 - CloneDirector Release build with .NET SDK 10.0.404 and CounterStrikeSharp.API 1.0.378:
   zero warnings/errors. The reference contract was built from CS2-Bot-Controller source revision
   `465fc0e3b0f663f08de935fc1dd069b34aa3f987`; the game machine must use its matching release DLL.
-- CloneDirector: 25 C# tests pass (`clone-director/Tests/`). Includes weighted route labels,
+- CloneDirector: 26 C# tests pass (`clone-director/Tests/`). Includes weighted route labels,
   nearest-spawn choice, side/source/buy-type filters, purchases, hand-off state, corrupt file
-  rejection, and reading the real donk profile plus all 80 generated route files. No CS2 native
+  rejection, and reading both real profiles plus all 159 generated route files. No CS2 native
   library or bot behavior was run by these tests.
-- Re-ran the clone pipeline's 9 synthetic tests; all pass. Claude's local pipeline and donk clone
+- Re-ran the clone pipeline's 10 synthetic tests; all pass, including purchase priority. Claude's local pipeline and donk clone
   were recovered from a checkout stopped during a rebase. Both teammates' change-log entries
   were retained and the checkout was updated to current main.
+- Built broky from four real recordings (79 rounds/routes), reserving match 2393024 (22 rounds).
+  Confirmed both profiles load in the match-service catalogue and both holdouts are excluded from
+  building matches. Re-ran all 32 match-service tests; all pass (one dependency deprecation warning).
 
 **Checked by reading source or documentation, not by running:**
 - What each open-source project can do (section 4).
@@ -185,6 +189,7 @@ One install of CS2-Bot-Improver gives the first four rows.
 | Bots that play a match | CS2-Bot-Improver |
 | Recording and playing back movement on a bot | CS2-Bot-Controller |
 | The playback file format | CS2-Bot-Controller's own recorder source (`csharp/BotControllerImpl/MotionRecording.cs`) |
+| Purchase execution order | CS2-Bot-Controller's `src/features/buy/BuyController.cpp` (AGPL-3.0-only), which issues aliases in sequence; the pipeline now orders main weapon, armor, then other items |
 | CloneDirector plugin skeleton | CS2-Smarter-Bot's source, and the code samples in CS2-Bot-Controller's `TECH.md` |
 | Grenade throws | CS2-Bot-NadeSystem and its Mirage data files |
 | Reading recordings | demoparser2 |
@@ -228,6 +233,16 @@ attack delay, teamwork, and a weapon preference list.
 **Caution.** The rule that turns a measured value into a personality number is a design choice.
 Nobody has validated it. Section 10 measures whether it works.
 
+Current purchase plans choose item membership by frequency, then order the main weapon and armor
+before utility. The controller executes buys sequentially; putting frequent grenades first could
+leave no money for the gun. Both built profiles and their `buy_plan.json` files were updated
+without changing item membership, measured frequencies, or the profile format.
+
+Weapon preferences currently count shots, which favors automatic weapons. The single full-buy
+plan favors AK-47 on T and M4A4 on CT for both clones; broky's AWP use is in the data but its full
+purchase mix is not reproduced. This is a limit of the current habit model, not proof that the
+players have identical roles. `clones/README.md` records current evidence and limits.
+
 ### 5.2 Layer 2: routes
 
 A **route segment** is a stretch of movement from the moment a round goes live until the first of
@@ -252,6 +267,11 @@ The decision is "always true level". So the clone uses:
 
 Measuring reaction time needs the moment an enemy became visible. Recordings give this only roughly.
 Treat the measured value as an estimate.
+
+**Current limit:** reaction time is actually `null` in both built profiles, and `aim_skill=1` /
+`Skill=100` are maximum base-bot settings, not measured player ratings. The true-level goal in
+section 2.1 is unproven. After the opening route, the existing bot AI makes decisions; no
+player-specific combat or generating model has been trained or evaluated.
 
 ### 5.4 The clone profile file
 
@@ -411,6 +431,17 @@ All five also have per-tick tables and first-person video in `opencs2_dataset`.
 | 2393024 | Inner Circle vs FaZe | 22 | 2026-04-06 | `demos/shard-europe-db22335d/2393024/inner-circle-vs-faze-m2-mirage.dem` |
 
 Hold back match 2393024 (22 rounds).
+
+**Built 2026-11-14:** `broky_v1`, four building matches, 79 rounds and route files (38 T, 41 CT),
+182 extracted throws. The held-back match is excluded from building matches and routes. Both
+profiles load in the catalogue reader, and every route file loads in C#. In-game behavior is untested.
+The five raw recordings are under `data/demos/broky/` and are ignored by Git.
+
+Player-versus-self comparison on the held-back match (not clone performance): T position overlap
+0.705, route overlap 0.579, 38/10 building/held-back rounds; CT position overlap 0.733, route
+overlap 0.297, 41/12 rounds. These are small samples. Cross-player overlap sometimes exceeds
+self-overlap in these samples, so these measures do not establish player identification or bot
+strength. Both players' numbers are in `clones/README.md`.
 
 **Check before the pitch:** FaZe changed players several times in 2026. Nobody has confirmed that
 broky is on the November 2026 lineup.
@@ -888,6 +919,8 @@ demo. A released product would need each player's or team's permission.
 ## 19. Change log
 
 Newest first. One line per change: date, who, what changed.
+
+- 2026-11-14, Arjun (Codex): built the first broky clone from four real Mirage matches (79 routes), held out 22 rounds, corrected purchase order in both clones, added data-built clone documentation and explicit strength limits; 10 pipeline, 26 C#, and 32 service tests pass. All 159 routes load in C#. No in-game bot or replay test was run.
 
 - 2026-11-14, Ashirwad: console safety from Tom's review (refuse newline and `;` in commands; strict
   `stand_in_bot` names); `start-cs2.ps1` listens on 127.0.0.1 by default and points to .NET SDK 10.

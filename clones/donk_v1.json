@@ -1528,12 +1528,12 @@
     "CT": {
       "eco": {
         "items": [
-          "Desert Eagle",
-          "Kevlar Vest"
+          "Kevlar Vest",
+          "Desert Eagle"
         ],
         "aliases": [
-          "deagle",
-          "vest"
+          "vest",
+          "deagle"
         ],
         "unmapped_items": [],
         "rounds_of_this_type": 2,
@@ -1563,20 +1563,20 @@
       },
       "full": {
         "items": [
+          "M4A4",
+          "Kevlar & Helmet",
           "Smoke Grenade",
           "Incendiary Grenade",
           "High Explosive Grenade",
-          "Flashbang",
-          "M4A4",
-          "Kevlar & Helmet"
+          "Flashbang"
         ],
         "aliases": [
+          "m4a1",
+          "vesthelm",
           "smokegrenade",
           "incgrenade",
           "hegrenade",
-          "flashbang",
-          "m4a1",
-          "vesthelm"
+          "flashbang"
         ],
         "unmapped_items": [],
         "rounds_of_this_type": 39,
@@ -1623,16 +1623,16 @@
       },
       "force": {
         "items": [
-          "Smoke Grenade",
+          "Galil AR",
           "Kevlar & Helmet",
-          "Flashbang",
-          "Galil AR"
+          "Smoke Grenade",
+          "Flashbang"
         ],
         "aliases": [
-          "smokegrenade",
+          "galilar",
           "vesthelm",
-          "flashbang",
-          "galilar"
+          "smokegrenade",
+          "flashbang"
         ],
         "unmapped_items": [],
         "rounds_of_this_type": 5,
@@ -1649,19 +1649,19 @@
       },
       "full": {
         "items": [
+          "AK-47",
+          "Kevlar & Helmet",
           "Smoke Grenade",
           "Molotov",
-          "Kevlar & Helmet",
           "Flashbang",
-          "AK-47",
           "High Explosive Grenade"
         ],
         "aliases": [
+          "ak47",
+          "vesthelm",
           "smokegrenade",
           "molotov",
-          "vesthelm",
           "flashbang",
-          "ak47",
           "hegrenade"
         ],
         "unmapped_items": [],

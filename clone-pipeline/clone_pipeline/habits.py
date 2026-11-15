@@ -34,6 +34,15 @@ PRIMARY_GUNS = {
 }
 
 
+def purchase_order(items: list[str]) -> list[str]:
+    """Put the main gun and armor before utility so a limited budget reaches the gun first.
+
+    CS2-Bot-Controller's src/features/buy/BuyController.cpp issues each buy in list order.
+    Frequency still decides membership; this only changes execution order.
+    """
+    return sorted(items, key=lambda item: 0 if item in PRIMARY_GUNS else 1 if item in ARMOR else 2)
+
+
 def weapon_preferences(matches: list[Match], top: int = 6) -> list[str]:
     """Guns ordered by the number of shots the player fired with them."""
     fired: Counter[str] = Counter()
@@ -137,6 +146,7 @@ def buy_plan(matches: list[Match]) -> dict[str, dict[str, dict]]:
                 if not any(item in group for item in usual):
                     bought = [item for item in share if item in group]  # most-bought first
                     usual += bought[:1]
+        usual = purchase_order(usual)
         out.setdefault(side, {})[kind] = {
             "items": usual,
             "aliases": [BUY_ALIAS[i] for i in usual if i in BUY_ALIAS],
