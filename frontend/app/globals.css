@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  background: #000000;
+  color: #ffffff;
+  margin: 0;
+  padding: 0;
+  overscroll-behavior: none;
+}
+
+/* RGB-split text glitch used by the HUD overlay during hot-swaps. */
+@keyframes hud-glitch-shift {
+  0% {
+    text-shadow:
+      -2px 0 0 rgba(255, 0, 80, 0.9),
+      2px 0 0 rgba(0, 255, 255, 0.9);
+    transform: translateX(0);
+  }
+  25% {
+    text-shadow:
+      3px 0 0 rgba(255, 0, 80, 0.9),
+      -3px 0 0 rgba(0, 255, 255, 0.9);
+    transform: translateX(-1px);
+  }
+  50% {
+    text-shadow:
+      -3px 0 0 rgba(255, 0, 80, 0.9),
+      3px 0 0 rgba(0, 255, 255, 0.9);
+    transform: translateX(1px);
+  }
+  100% {
+    text-shadow: none;
+    transform: translateX(0);
+  }
+}
+
+@keyframes hud-scan-drift {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 120px;
+  }
+}
+
+.hud-glitching {
+  animation: hud-glitch-shift 180ms steps(2, end) infinite;
+}
+
+.hud-scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.06) 0px,
+    rgba(255, 255, 255, 0.06) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  animation: hud-scan-drift 6s linear infinite;
+}

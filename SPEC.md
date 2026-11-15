@@ -30,6 +30,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | This spec and the agent rules | Arjun | Done | `SPEC.md`, `AGENTS.md`, `CLAUDE.md` | 2026-11-14 |
 | Match service, mock version (Server API with a fake CS2 server) | Ashirwad | Done | `match-service/` | 2026-11-14 |
 | Match service, real version (starts and controls a real CS2 match) | Ashirwad | In progress. Written (`MATCH_BACKEND=cs2`) with three console channels (netcon, RCON, MatchBridge plugin) and a Windows start script; tested only against fake servers, not in CS2 | `match-service/match_service/backends/cs2.py` | 2026-11-14 |
+| Character showcase viewer (WebGPU hot-swap stage, 5 blockouts, B1-B3) | Nikesh | Done. B1-B3 verified in headless-Chromium GPU QA: real WebGPU backend, initial model ~20ms, 5/5 GLBs cached, clean swaps, zero console errors | `frontend/` | 2026-11-14 |
 | Stand-in bots: built-in CS2-Bot-Improver pro bots used in place of clones until CloneDirector works | Ashirwad | In progress. `donk_v1` and `broky_v1` profiles use the `donk` and `broky` bots; not run in CS2 | `match-service/sample_clones/` | 2026-11-14 |
 | Side-by-side page, stand-in version (two synced panels; replay page content replaces it) | Ashirwad | Not started | Not decided | 2026-11-14 |
 | Lobby page | Tom (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
@@ -154,6 +155,10 @@ Checked on 2026-11-14.
 - Built broky from four real recordings (79 rounds/routes), reserving match 2393024 (22 rounds).
   Confirmed both profiles load in the match-service catalogue and both holdouts are excluded from
   building matches. Re-ran all 32 match-service tests; all pass (one dependency deprecation warning).
+- The character showcase viewer (`frontend/`): `tsc --noEmit` and `next build` clean, plus
+  headless-Chromium QA against `next start`. WebGPURenderer initialized the real WebGPU backend,
+  all 5 blockout GLBs served and parsed, and manual hot-swaps render through the TSL glitch
+  pipeline with zero console errors. Initial model painted in ~20 ms on localhost.
 
 - Re-ran current suites on Windows: 10 pipeline, 26 CloneDirector, and 33 match-service tests pass (69 total). The service has one dependency deprecation warning. This includes reading both clone profiles and all 159 route files.
 - Started the CS2 base-game download in the existing Steam client on Arjun's current PC after confirming no running download or CS2 manifest. Observed active transfer at 6%, 3.3 / 57.6 GB downloaded, with Steam estimating about 33 minutes remaining. This is a progress snapshot, not an installation or in-game test. No CS2-Bot-Improver files were installed or run.
@@ -203,6 +208,9 @@ When you run one of these, move it up and record the result here.
 | [CS-NET v4](https://github.com/Gary2005/cs-net) | A trained network that generates player movement. Also a 3D replay viewer that draws a predicted path over the real path. | 113 stars. Trained weights are downloadable (529 MB). Mirage map geometry is included. | MIT |
 | [CS2 Clone Lab](https://github.com/hpagni/cs2-clone-lab) | Code for per-player identity in a model (`sim/identity.py`). | 0 stars. No weights and no data, but the identity code is small and self-contained. | MIT |
 | [cs2-movesim](https://github.com/370025263/cs2-movesim) | Turns a planned path into key presses. | 0 stars. Tested by its author on the Dust2 map only. | MIT |
+| [Next.js](https://github.com/vercel/next.js) | Web framework for the character showcase viewer. | 16.4.6, installed from npm. | MIT |
+| [three.js](https://github.com/mrdoob/three.js) | WebGPU renderer (r187: WebGPURenderer, RenderPipeline, TSL) for the viewer. | 0.187.0, installed from npm. | MIT |
+| [React Three Fiber](https://github.com/pmndrs/react-three-fiber) | React renderer for the viewer's Three.js scene graph. | 9.8.2, installed from npm. | MIT |
 
 One install of CS2-Bot-Improver gives the first four rows.
 
@@ -230,6 +238,7 @@ One install of CS2-Bot-Improver gives the first four rows.
 | Match service: commands to the game, fallback 2 | MatchBridge, a CounterStrikeSharp plugin (`match-service/plugin/MatchBridge/`). Written from zero: no plugin found that runs console commands sent over a local port (LeaderOS Connect, the closest, runs store purchases). Project settings copied from CS2-Bot-Improver's own plugins; calls from the CounterStrikeSharp docs |
 | Stand-in bots | CS2-Bot-Improver's pro bot profiles and the `bot_add_ct "<name>"` blocks in its `Commands.txt` |
 | Style numbers for every professional | OpenCS2's ready-made index tables |
+| Character showcase viewer (5-model WebGPU hot-swap stage) | Written from zero: no template base exists for this design, and the architecture is prescribed by `frontend/AGENTS.md`. Frameworks: Next.js, three.js, React Three Fiber (all MIT, section 4.1) |
 
 ### 4.3 Rejected
 
@@ -682,6 +691,8 @@ of the replay.
   from OpenCS2, and the caster audio.
 - **Profile page.** Heat map of positions per side. Weapons, purchases, route frequencies, reaction
   numbers. An AI-written scouting report. Similarity scores. "Most similar professionals".
+- **Character showcase viewer (`frontend/`).** Five blockout models on a WebGPU canvas with a TSL
+  glitch hot-swap transition. Drop-in point for the 3D artist's rigged AAA models.
 
 ### 9.4 Sponsor services
 
@@ -831,6 +842,7 @@ game, the similarity score, or the swap test.
 | Match service | FastAPI, `uv`, pytest. Already in the repository. |
 | Generating model | PyTorch, CS-NET v4 code and weights, Colab Pro |
 | Replay page | CS-NET v4's viewer (Flask and Three.js) as the base |
+| Character showcase frontend | Next.js 16, React 19, Three.js 0.187 (WebGPURenderer + RenderPipeline), Tailwind. In `frontend/` |
 | Other web pages | Owners decide |
 | Database | MongoDB Atlas with Atlas Vector Search |
 | AI text and video | Gemini API, Flash model |
@@ -842,6 +854,7 @@ game, the similarity score, or the swap test.
 
 ```
 match-service/     exists: the Server API
+frontend/          Next.js: WebGPU character showcase (5 blockouts, TSL glitch swaps)
 clone-pipeline/    Python: parser, feature builder, clone builder, route converter, similarity
 clone-director/    C#: the CloneDirector plugin
 clone-model/       changes to CS-NET, training notebook, test results
@@ -964,6 +977,10 @@ Newest first. One line per change: date, who, what changed.
 
 - 2026-11-14, Ashirwad: added RCON and MatchBridge plugin fallbacks for match service console
   commands, and `start-cs2.ps1` to set up the Windows PC. Tested against fake servers only.
+- 2026-11-14, Nikesh: implemented the character showcase viewer in `frontend/` (Next.js 16.4.6,
+  React 19.3.1, Three.js 0.187.0, WebGPURenderer + TSL glitch pipeline, AssetManager with
+  KTX2/Meshopt). Verified B1-B3 in headless-Chromium GPU QA: real WebGPU backend, initial model
+  ~20 ms, 5/5 blockout GLBs cached, clean hot-swaps, zero console errors.
 - 2026-11-14, Ashirwad: wrote the match service's cs2 backend (console commands out, game state
   in, stand-in bots, recordings, `/health`); added `donk_v1` and `broky_v1` profiles with
   `stand_in_bot`. Tested against a fake console only.
