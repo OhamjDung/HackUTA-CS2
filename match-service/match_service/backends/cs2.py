@@ -77,6 +77,13 @@ class Cs2Backend:
     def busy(self) -> bool:
         return self.current is not None and self.current.active
 
+    async def plugin_command(self, command: str) -> str:
+        """One CloneDirector command through the plugin channel (used to start a replay puzzle)."""
+        if self.clone_ch is self.ch and self.s.cs2_console != "plugin":
+            raise RuntimeError("CloneDirector only accepts commands through the MatchBridge plugin. "
+                               "Start the service with  start-cs2.ps1 -Bots clone")
+        return await self.clone_ch.query(command, 1.0)
+
     def validate(self, body: MatchCreate, clones: dict[str, Clone], others: list[MatchRecord]) -> list[str]:
         errors = []
         if len(body.players) > 1:

@@ -303,3 +303,26 @@ uv run pytest
 ```
 
 On Windows PCs where Application Control blocks `uv run pytest`, use `uv run python -m pytest`.
+
+## Replay puzzles (not part of the Interface specs; added 2026-11-15)
+
+Extra routes used by the Next.js Puzzles tab. The Server API above is unchanged. Details: `SPEC.md` section 9.6.
+
+| Route | What it does |
+|---|---|
+| `GET /puzzles?tag=&map=&source=&min_rating=&max_rating=&sort=` | Library list. `sort`: `rating`, `plays`, `votes`, `new` |
+| `GET /puzzles/tags`, `/puzzles/daily`, `/puzzles/next?player=` | Themes with counts; the puzzle of the day; the unsolved puzzle nearest the player's rating |
+| `GET /puzzles/{id}` | Summary, the full puzzle document, and the feedback for the original death |
+| `POST /puzzles` | Save a puzzle document (same format as a death file) |
+| `DELETE /puzzles/{id}` | Delete a saved puzzle (seed puzzles are refused) |
+| `POST /puzzles/{id}/result` `{player?, survived, kills}` | Record an attempt, update ratings and streak. The plugin sends this itself |
+| `POST /puzzles/{id}/vote` `{player, value: -1\|0\|1}` | One vote per player |
+| `POST /puzzles/{id}/start` `{player}` | Practice in CS2: copy the puzzle to `PUZZLE_GAME_DIR`, send `puzzle_load <id>` through MatchBridge (cs2 backend, `-Bots clone`) |
+| `GET /players/{name}`, `/players/{name}/history` | Rating, streak, solved; attempts |
+| `GET /deaths`, `/deaths/latest`, `/deaths/{id}` | Deaths saved by CloneDirector in `PUZZLE_DEATH_DIR`, with feedback |
+| `POST /deaths/{id}/start` `{player}`, `POST /deaths/{id}/save` `{title, tags}` | Retry a death in CS2; save it to the library |
+| `POST /puzzles/drafts`, `PUT /puzzles/drafts/{id}/pov/{slot}?ext=.mp4`, `GET /puzzles/drafts[/{id}]` | Multi-POV form: create a draft, upload each player's video as the raw body. Footage is stored only; nothing is derived from it |
+
+Settings: `PUZZLE_SEED_DIR` (default `seed_puzzles/`), `PUZZLE_DIR` (default `data/puzzles`), `PUZZLE_DEATH_DIR`
+(default `data/deaths`), `PUZZLE_GAME_DIR` (unset: practice in CS2 is refused). `start-cs2.ps1` points the last two at the
+CloneDirector plugin folder.

@@ -10,6 +10,7 @@ const LINKS = [
   { id: 'home', label: 'Home', href: '/' },
   { id: 'bots', label: 'Bots', href: '/bots' },
   { id: 'scenes', label: 'Scenes', href: '/scenes' },
+  { id: 'puzzles', label: 'Puzzles', href: '/puzzles' },
   { id: 'leaderboard', label: 'Leaderboard', href: '/leaderboard' },
 ] as const;
 

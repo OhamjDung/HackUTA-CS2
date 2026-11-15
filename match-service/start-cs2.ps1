@@ -183,6 +183,10 @@ $env:CS2_RECORD = $Record
 # Keep each match's position trace after the service stops (data\ is git-ignored).
 $env:TRACE_DIR = Join-Path (Split-Path -Parent $here) "data\traces"
 $env:PUBLIC_URL = "http://localhost:$Port"
+# Replay puzzles: CloneDirector saves each death here and reads puzzles from here (the service copies them in).
+$cloneDirectorDir = Join-Path $csgo "addons\counterstrikesharp\plugins\CloneDirector"
+$env:PUZZLE_DEATH_DIR = Join-Path $cloneDirectorDir "deaths"
+$env:PUZZLE_GAME_DIR = Join-Path $cloneDirectorDir "puzzles"
 
 Write-Host ""
 Write-Host "Starting the match service. Check the connection at  http://localhost:$Port/health" -ForegroundColor Green
