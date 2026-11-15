@@ -159,8 +159,9 @@ public sealed class DirectorTests
     }
 
     [Theory]
-    [InlineData("donk_v1", "donk", 80)]
-    [InlineData("broky_v1", "broky", 79)]
+    // Each clone is added under its own bot name (Tom, 2026-11-14: the game refuses duplicate names).
+    [InlineData("donk_v1", "donk_v1", 80)]
+    [InlineData("broky_v1", "broky_v1", 79)]
     public void RealPipelineProfilesAndEveryRecordingLoadInCSharp(string id, string name, int expectedRoutes)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

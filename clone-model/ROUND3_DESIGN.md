@@ -1,7 +1,7 @@
 # Round 3: a donk clone that stays inside human limits and feels like donk
 
-Written 2026-11-15 by Arjun (with Claude). Status: **design. Nothing in sections 4 to 7 has been built
-or run yet.** The measurements in section 3 were run.
+Written 2026-11-15 by Arjun (with Claude). Status: **step 1 (section 6) is built and tested off the game;
+it waits for Tom's PC. Steps 2 to 4 are design only.** The measurements in section 3 were run.
 
 Inputs: Arjun watched `donk_v1` against `donkL` in CS2 (Tom's PC). Tom's report on the same run
 (`handoffs/arjun-donkL-report.md`, now consumed; its findings are summarised in section 1).
@@ -130,7 +130,7 @@ Two kinds:
 |---|---|---|---|
 | H1 | View turn speed, sustained over 4 ticks | ≤ 1,600 °/s | highest player p99.9: 1,565 |
 | H2 | View turn speed, any single tick | ≤ 2,200 °/s | flick peak max: 2,154 |
-| H3 | View turn acceleration | ≤ 25,000 °/s² | p99.9: 22,556 |
+| H3 | View turn acceleration | ≤ 36,100 °/s² at a player-match's p99.9 | highest player-match p99.9: 34,411 (corrected; 25,000 failed real pros) |
 | H4 | Flick time, flicks of 15° or more | ≥ 0.08 s | p1 |
 | H5 | First shot at a newly seen enemy | ≥ 0.15 s after it becomes visible | below the 0.20 s median response; to be checked in game |
 | H6 | Unbroken backwards walking | ≤ 6.3 s | p99.9 |
@@ -155,6 +155,30 @@ Each is compared with donk's own value; the tolerance is how much donk varies be
 | Jumps per minute | 4.1 | donk's quirk |
 | Standing-still share | 11% | donk's quirk |
 | Distance from teammates | 694 units | donk plays apart from the team |
+
+### 4.2a How the limits are checked in practice (built, 2026-11-15)
+
+`uv run python -m clone_pipeline.limits check --name <bot> [--like donk] <match.dem>` measures one player
+in a recording and checks 9 limits per player-match. The thresholds are in
+`clone-pipeline/references/human_limits.json`, made by `limits calibrate` from the 80 real pro
+player-matches: each sits 5% beyond the most extreme real player-match, so **every measured pro passes**,
+and a bot fails only by doing what no measured elite pro did.
+
+| Check | Limit | Most extreme real player-match |
+|---|---|---|
+| Sustained turn speed, p99.9 | ≤ 1,524 °/s | 1,452 |
+| Turn speed, p99.9 | ≤ 1,643 °/s | 1,565 |
+| Turn acceleration, p99.9 | ≤ 36,131 °/s² | 34,411 |
+| Backwards share of moving time | ≤ 11.4% | 10.8% |
+| Unbroken backwards walking, p99 | ≤ 5.1 s | 4.8 s |
+| Flick time (flicks of 15° or more), p5 | ≥ 0.090 s, needs 5 flicks | 0.095 s |
+| Pitch change per 0.25 s step, p99.9 | ≤ 67.4° | 64.2° |
+| Distance per 0.25 s step, p99.9 | ≤ 77.3 units | 73.6 |
+| Change of step movement, p99.9 | ≤ 81.1 units | 77.3 |
+
+Known weakness: the flick check. Real donk on his held-back match 2393242 made a 15° flick in 0.059 s,
+below the limit; the check skipped it because he made fewer than 5 such flicks. The threshold was not
+changed after seeing this, because that match is held back. Decide on more data.
 
 ### 4.3 Where each limit is enforced
 
@@ -223,7 +247,14 @@ The similarity score from earlier rounds is tier 3, item 3. It no longer decides
 
 ## 6. Next round, step by step
 
-### Step 1. Fix the live bot now (no training; needs Tom's PC)
+### Step 1. Fix the live bot now (no training; needs Tom's PC). Built 2026-11-15; waiting for Tom.
+
+Done off the game: `clone-director/tools/add_clone_bot_entries.py` writes `HUMAN_AIM` into the four clone
+entries (simulated: a 45° flick settles in 0.34 s, peak under 1,200 °/s, acceleration at most 20,000 °/s²;
+the current settings give 0.09 s, 2,109 °/s and 135,000 °/s²). `donkL` and `brokyL` no longer apply the
+restlessness or crouch-at-burst rules (`quirk_controls_disabled` in each profile says why). The test steps
+for Tom are in `handoffs/tom-human-aim-test.md`. The simulation assumes the bot aim model of the earlier
+Counter-Strike bot code; whether CS2 behaves the same is what Tom's recording shows.
 
 1. **Aim:** give the clone entries finite aim settings. Starting values, to be tuned by measurement:
    `LookAngleMaxAccelAttacking` 20,000, `LookAngleStiffnessAttacking` 1,150 (the bot base's `ProSteady`

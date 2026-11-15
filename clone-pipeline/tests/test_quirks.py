@@ -55,6 +55,15 @@ def test_who_is_it_ranks_the_nearest_player_first():
     assert len(ranking) == 4 and ranking[0][1] < ranking[1][1]
 
 
+def test_switched_off_rules_are_never_written_as_controls():
+    rules = quirks.fit_quirks(rows(), "hopper")
+    rules["still_share"] = dict(rules["jumps_per_min"], player=0.1)
+    rules["crouched_shot_share"] = dict(rules["jumps_per_min"], player=0.3)
+    controls = quirks.controls_from_quirks(rules)
+    assert "still_share" not in controls and "crouched_shot_share" not in controls
+    assert set(quirks.disabled_controls(rules)) == {"still_share", "crouched_shot_share"}
+
+
 def test_controls_map_quirks_to_bot_settings():
     controls = quirks.controls_from_quirks(quirks.fit_quirks(rows(), "hopper"))
     assert controls["jumps_per_min"]["value"] == pytest.approx(6.1)
@@ -73,3 +82,7 @@ def test_committed_learned_profiles_keep_the_fields_other_code_reads():
         held = set(profile["learned"]["held_back_matches"])
         assert held and not held & set(profile["learned"]["building_matches"])
         assert profile["routes"]["T"] and profile["buy_plan"]["T"]
+        assert profile["stand_in_bot"] == clone_id
+        for name in quirks.DISABLED_CONTROLS:          # switched off until checked against human limits
+            assert name not in profile["quirk_controls"]
+            assert name in profile["quirk_controls_disabled"]
