@@ -5,25 +5,24 @@ import CharacterCanvas from '@/components/canvas/CharacterCanvas';
 import BottomHub from '@/components/bots/BottomHub';
 import RosterArc from '@/components/bots/RosterArc';
 import SelectedBotPanel from '@/components/bots/SelectedBotPanel';
+import { useRouter } from 'next/navigation';
+import { useBotSelection, useBrand } from '@/app/providers';
+import CreditsLink from '@/components/ui/CreditsLink';
 import SiteNav from '@/components/ui/SiteNav';
-import { BOTS, DEFAULT_BOT_ID, GAME_FILTERS, type BotGame } from '@/lib/bots';
-import { GLITCH_DURATION_MS, GLITCH_SWAP_AT_MS, STUDIO_URL } from '@/lib/constants';
+import { BOTS, GAME_FILTERS, type BotGame } from '@/lib/bots';
+import { GLITCH_DURATION_MS, GLITCH_SWAP_AT_MS } from '@/lib/constants';
 import { stageInput } from '@/lib/stageInput';
 
 type Filter = 'all' | BotGame;
 
-interface BotsHubProps {
-  /** Portrait URL per bot id, only for files that exist in public/bots/ (resolved server-side). */
-  avatars: Record<string, string | undefined>;
-  /** Signed-in user's photo, if public/profile.* exists. */
-  profileUrl?: string;
-}
-
-export default function BotsHub({ avatars, profileUrl }: BotsHubProps) {
+export default function BotsHub() {
+  const router = useRouter();
+  const { bots: avatars } = useBrand();
   const [filter, setFilter] = useState<Filter>('all');
-  const [selectedId, setSelectedId] = useState(DEFAULT_BOT_ID);
+  // Selection is app-wide (root-layout provider + sessionStorage), so it survives navigation.
+  const { selectedId, setSelectedId } = useBotSelection();
   // The model + right panel switch at the glitch midpoint; the arc moves immediately.
-  const [shownId, setShownId] = useState(DEFAULT_BOT_ID);
+  const [shownId, setShownId] = useState(selectedId);
   const [glitching, setGlitching] = useState(false);
   const timers = useRef<number[]>([]);
   const busy = useRef(false);
@@ -41,6 +40,12 @@ export default function BotsHub({ avatars, profileUrl }: BotsHubProps) {
     return () => t.forEach((id) => window.clearTimeout(id));
   }, []);
 
+  // Selection restored from storage (or changed elsewhere) while idle: show it without a glitch.
+  useEffect(() => {
+    if (!busy.current && selectedId !== shownId) setShownId(selectedId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId]);
+
   const select = useCallback((id: string) => {
     if (id === selectedRef.current || busy.current) return;
     busy.current = true;
@@ -54,7 +59,7 @@ export default function BotsHub({ avatars, profileUrl }: BotsHubProps) {
         busy.current = false;
       }, GLITCH_DURATION_MS),
     );
-  }, []);
+  }, [setSelectedId]);
 
   // Filtering away the selected bot selects the first bot that remains.
   useEffect(() => {
@@ -102,7 +107,7 @@ export default function BotsHub({ avatars, profileUrl }: BotsHubProps) {
   const shownIndex = BOTS.findIndex((b) => b.id === shownId) + 1;
 
   return (
-    <main className="hub-charcoal relative min-h-screen w-full overflow-x-hidden">
+    <main className="relative min-h-screen w-full overflow-x-hidden">
       <section ref={zoneRef} className="hub-top relative flex w-full flex-col min-[1024px]:block" aria-label="Bot roster">
         <div
           ref={canvasWrapRef}
@@ -111,19 +116,20 @@ export default function BotsHub({ avatars, profileUrl }: BotsHubProps) {
           <CharacterCanvas activeId={shown.modelId} />
         </div>
 
-        <SiteNav active="bots" profileUrl={profileUrl} />
+        <SiteNav />
+        <CreditsLink />
 
         {/* Left: roster header + filters */}
         <div
           className="relative z-10 order-1 px-[var(--hub-gutter)] pt-[96px] min-[1024px]:absolute min-[1024px]:left-[var(--hub-gutter)] min-[1024px]:top-[28.6%] min-[1024px]:w-[min(26vw,380px)] min-[1024px]:p-0"
         >
-          <p className="text-[16px] font-bold uppercase leading-none tracking-[0.16em] text-ink-subtle">The bot roster</p>
-          <h1 className="mt-[24px] text-[clamp(2.75rem,3.9vw,3.75rem)] font-extrabold leading-[0.98] tracking-[-0.04em] text-[#F7F7F5]">
+          <p className="text-[16px] font-bold uppercase leading-none tracking-[0.16em] text-[#D8D8DE]">The bot roster</p>
+          <h1 className="mt-[22px] text-[clamp(3.1rem,4.05vw,4.5rem)] font-extrabold leading-[0.96] tracking-[-0.045em] text-white">
             Choose your
             <br />
             next rival.
           </h1>
-          <p className="mt-[20px] text-[18.5px] leading-snug tracking-[-0.01em] text-ink-muted">
+          <p className="mt-[20px] text-[18.5px] leading-snug tracking-[-0.01em] text-[#B8B8C2]">
             Pick a bot. Play a round. Make a moment.
           </p>
           <div className="mt-[22px] flex flex-wrap gap-[clamp(10px,0.92vw,14px)]" role="radiogroup" aria-label="Filter by game">
@@ -155,19 +161,17 @@ export default function BotsHub({ avatars, profileUrl }: BotsHubProps) {
           <RosterArc bots={visibleBots} selectedId={selectedId} onSelect={select} />
         </div>
 
-        <p className="absolute bottom-[46px] left-[var(--hub-gutter)] z-10 hidden text-[13.5px] text-ink-subtle min-[1024px]:block">
+        <p className="absolute bottom-[46px] left-[var(--hub-gutter)] z-10 hidden text-[13.5px] text-[#9E9EA8] min-[1024px]:block">
           {visibleBots.length} {visibleBots.length === 1 ? 'bot' : 'bots'} · roster preview
         </p>
 
         {/* Right: selected bot */}
-        <div className="relative z-10 order-4 px-[var(--hub-gutter)] py-10 min-[1024px]:absolute min-[1024px]:left-[70.75vw] min-[1024px]:top-[21.5%] min-[1024px]:p-0">
+        <div className="relative z-10 order-4 px-[var(--hub-gutter)] py-10 min-[1024px]:absolute min-[1024px]:left-[71.5vw] min-[1024px]:top-[21.5%] min-[1024px]:p-0">
           <SelectedBotPanel
             bot={shown}
             index={shownIndex}
             glitching={glitching}
-            onPlay={() => {
-              window.location.href = STUDIO_URL;
-            }}
+            onPlay={() => router.push(`/play?bot=${shown.id}`)}
           />
         </div>
       </section>

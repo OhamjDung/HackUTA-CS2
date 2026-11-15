@@ -14,7 +14,7 @@ export interface Bot {
   modelId: CharacterId;
   /** Playstyle chips under the tagline. */
   tags: string[];
-  /** Portrait photo URL. Resolved server-side from public/bots/<id>.(jpg|jpeg|png|webp); silhouette when absent. */
+  /** Portrait photo URL. Resolved server-side from public/images/bots/<id>.(svg|webp|png|jpg); monogram when absent. */
   avatarUrl?: string;
 }
 
@@ -27,7 +27,7 @@ export const BOTS: Bot[] = [
 
 export const DEFAULT_BOT_ID = 'sparg0';
 
-/** Portrait photos: drop files in public/bots/<bot id>.<ext>; the user photo at public/profile.<ext>. */
+/** Portrait photos live in public/images/bots/<bot id>.<ext>; the user photo at public/images/avatars/user.<ext>. */
 export const AVATAR_EXTENSIONS = ['webp', 'jpg', 'jpeg', 'png'] as const;
 
 export const GAME_FILTERS: { id: 'all' | BotGame; label: string }[] = [
@@ -37,8 +37,8 @@ export const GAME_FILTERS: { id: 'all' | BotGame; label: string }[] = [
 ];
 
 export const SCENES: { id: string; title: string; subtitle: string; image: StaticImageData; alt: string; href: string }[] = [
-  { id: 'yours', title: 'Your games', subtitle: 'Upload a clip or demo', image: dust2, alt: 'Dust II bombsite', href: '#' },
-  { id: 'famous', title: 'Famous games', subtitle: 'Explore curated moments', image: mirage, alt: 'Mirage', href: '#' },
+  { id: 'yours', title: 'Your games', subtitle: 'Upload a clip or demo', image: dust2, alt: 'Dust II bombsite', href: '/scenes?tab=upload' },
+  { id: 'famous', title: 'Famous games', subtitle: 'Explore curated moments', image: mirage, alt: 'Mirage', href: '/scenes?tab=famous' },
 ];
 
 /** Placeholder rows until the leaderboard service is wired. */
@@ -47,3 +47,29 @@ export const LEADERBOARD_SAMPLE = [
   { rank: 2, name: 'Player Two', score: null as number | null },
   { rank: 3, name: 'Player Three', score: null as number | null },
 ];
+
+/** Curated scene browser (Scenes → Famous games). Placeholder set until the scene catalogue ships. */
+export interface CuratedScene {
+  id: string;
+  title: string;
+  game: BotGame;
+  setting: string;
+  blurb: string;
+  image?: StaticImageData;
+}
+
+export const CURATED_SCENES: CuratedScene[] = [
+  { id: 'dust2-a-retake', title: 'A-site retake', game: 'CS2', setting: 'Dust II', blurb: '3v2 retake through Long and Short.', image: dust2 },
+  { id: 'mirage-mid', title: 'Mid control', game: 'CS2', setting: 'Mirage', blurb: 'Win the Window duel, then split B.', image: mirage },
+  { id: 'dust2-awp-long', title: 'Long A AWP duel', game: 'CS2', setting: 'Dust II', blurb: 'Hold the doors against an aggressive push.', image: dust2 },
+  { id: 'mirage-b-anchor', title: 'B anchor hold', game: 'CS2', setting: 'Mirage', blurb: 'Survive the Apartments rush alone.', image: mirage },
+  { id: 'smash-last-stock', title: 'Last-stock comeback', game: 'Smash Bros', setting: 'Battlefield', blurb: 'One stock each, 150% behind.' },
+  { id: 'smash-edgeguard', title: 'Edgeguard drill', game: 'Smash Bros', setting: 'Final Destination', blurb: 'Read the recovery and close the stock.' },
+];
+
+export const LEADERBOARD_FULL = Array.from({ length: 10 }, (_, i) => ({
+  rank: i + 1,
+  name: `Player ${['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'][i]}`,
+  botId: BOTS[i % BOTS.length].id,
+  score: null as number | null,
+}));

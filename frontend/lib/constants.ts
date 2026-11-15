@@ -34,7 +34,7 @@ export const STUDIO = {
   inkSubtle: '#6F6F6A',
   hairline: '#1F1F1E',
   pillInactive: '#333331',
-  accent: '#FF3B1D',
+  accent: '#E4002B',
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -66,7 +66,7 @@ export const SCOPE_RADIUS_PX = 92;
 // Links (placeholders until the studio/demo routes exist)
 // ---------------------------------------------------------------------------
 
-export const STUDIO_URL = '#';
+export const STUDIO_URL = '/studio';
 export const DEMO_URL = '#';
 
 export const CHARACTERS: CharacterConfig[] = [

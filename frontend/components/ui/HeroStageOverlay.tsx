@@ -1,6 +1,7 @@
 'use client';
 
-import { DEMO_URL, STUDIO_URL } from '@/lib/constants';
+import Link from 'next/link';
+import { DEMO_URL } from '@/lib/constants';
 import type { CharacterConfig, CharacterId } from '@/types';
 import { ArrowUpRight } from './icons';
 
@@ -44,7 +45,7 @@ export default function HeroStageOverlay({
       </h1>
 
       {/* Right HUD column */}
-      <div data-hud className="flex flex-col gap-10 min-[900px]:absolute min-[900px]:bottom-[clamp(40px,4.9vw,75px)] min-[900px]:right-[clamp(40px,3.1vw,48px)] min-[900px]:top-[clamp(120px,23.5%,180px)] min-[900px]:w-[max(21.75rem,22.6vw)] min-[900px]:justify-between min-[900px]:gap-0">
+      <div data-hud className="flex flex-col gap-10 min-[900px]:absolute min-[900px]:bottom-[clamp(40px,4.9vw,75px)] min-[900px]:right-[clamp(40px,3.1vw,48px)] min-[900px]:top-[clamp(120px,23.5%,180px)] min-[900px]:w-[max(24rem,25.2vw)] min-[900px]:justify-between min-[900px]:gap-0">
         <div className="min-[900px]:pl-[7px]">
           <p
             key={shownId}
@@ -88,15 +89,15 @@ export default function HeroStageOverlay({
           </p>
 
           <div className="pointer-events-auto mt-[42px] flex flex-wrap gap-[14px] min-[900px]:flex-nowrap">
-            <a
-              href={STUDIO_URL}
-              className="group flex h-[48px] shrink-0 items-center gap-[12px] whitespace-nowrap rounded-full bg-ink pl-[21px] pr-[6px] text-[16px] font-medium tracking-[-0.01em] text-studio transition-colors hover:bg-black"
+            <Link
+              href="/bots"
+              className="group flex h-[48px] shrink-0 items-center gap-[12px] whitespace-nowrap rounded-full bg-[#F5F4F0] pl-[21px] pr-[6px] text-[16px] font-bold tracking-[-0.01em] text-[#111111] transition-colors hover:bg-white"
             >
-              Enter studio
+              Choose your bot
               <span className="flex h-[36px] w-[36px] items-center justify-center rounded-full bg-brand text-white transition-transform group-hover:rotate-45">
                 <ArrowUpRight size={16} strokeWidth={2} />
               </span>
-            </a>
+            </Link>
             <a
               href={DEMO_URL}
               className="flex h-[48px] shrink-0 items-center gap-[16px] whitespace-nowrap rounded-full border border-outline bg-transparent pl-[20px] pr-[19px] text-[16px] font-medium tracking-[-0.01em] text-ink transition-colors hover:border-ink"

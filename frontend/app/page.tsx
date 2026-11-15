@@ -5,23 +5,33 @@ import CharacterCanvas from '@/components/canvas/CharacterCanvas';
 import HeroStageOverlay from '@/components/ui/HeroStageOverlay';
 import RightScaleRuler from '@/components/ui/RightScaleRuler';
 import ThermalScopeReticle from '@/components/ui/ThermalScopeReticle';
-import TopNav from '@/components/ui/TopNav';
+import CreditsLink from '@/components/ui/CreditsLink';
+import SiteNav from '@/components/ui/SiteNav';
+import { preload } from 'react-dom';
 import {
   AUTO_SWAP_ENABLED_DEFAULT,
   AUTO_SWAP_INTERVAL_MS,
   CHARACTERS,
   GLITCH_DURATION_MS,
   GLITCH_SWAP_AT_MS,
+  CHARACTER_MAP,
   INITIAL_CHARACTER_ID,
+  TRANSCODER_JS,
+  TRANSCODER_WASM,
   stageXFraction,
 } from '@/lib/constants';
 import { stageInput } from '@/lib/stageInput';
 import type { CharacterId } from '@/types';
 
 export default function HomePage() {
+  // Basis transcoder + first model binary: preloaded only on the route that renders the stage.
+  preload(TRANSCODER_WASM, { as: 'fetch', crossOrigin: 'anonymous' });
+  preload(TRANSCODER_JS, { as: 'fetch', crossOrigin: 'anonymous' });
+  preload(CHARACTER_MAP[INITIAL_CHARACTER_ID].url, { as: 'fetch', crossOrigin: 'anonymous' });
+
   const [activeId, setActiveId] = useState<CharacterId>(INITIAL_CHARACTER_ID);
   const [pendingId, setPendingId] = useState<CharacterId | null>(null);
-  const [autoPlay, setAutoPlay] = useState(AUTO_SWAP_ENABLED_DEFAULT);
+  const [autoPlay] = useState(AUTO_SWAP_ENABLED_DEFAULT);
   const [thermalActive, setThermalActive] = useState(false);
   // Bumped when a glitch completes so the 6 s hold always starts from a clean frame.
   const [cycleKey, setCycleKey] = useState(0);
@@ -94,25 +104,12 @@ export default function HomePage() {
     };
   }, []);
 
-  const pressThermal = useCallback((on: boolean) => {
-    if (!on) {
-      stageInput.scopeAnchored = false;
-      setThermalActive(false);
-      return;
-    }
-    stageInput.scopeAnchored = false;
-    setThermalActive(true);
-  }, []);
-
   const pressThermalAt = useCallback((x: number, y: number) => {
     stageInput.scopeX = x;
     stageInput.scopeY = y;
     stageInput.scopeAnchored = true;
     setThermalActive(true);
   }, []);
-
-  // Top-nav button works by press-and-hold too (or as a state indicator).
-  const holdThermalFromNav = pressThermal;
 
   const onStagePointerDown = useCallback(
     (e: React.PointerEvent<HTMLElement>) => {
@@ -169,7 +166,7 @@ export default function HomePage() {
   const activeIndex = CHARACTERS.findIndex((c) => c.id === (pendingId ?? activeId));
 
   return (
-    <main className="relative min-h-screen w-full overflow-x-hidden bg-studio">
+    <main className="relative min-h-screen w-full overflow-x-hidden">
       <section
         ref={sectionRef}
         className="relative w-full pt-[64px] min-[900px]:pt-0 stage-h-full"
@@ -186,15 +183,8 @@ export default function HomePage() {
           <ThermalScopeReticle containerRef={canvasWrapRef} active={thermalActive} restPosition={scopeRest} />
         </div>
 
-        <TopNav
-          thermalActive={thermalActive}
-          onThermalHold={holdThermalFromNav}
-          characters={CHARACTERS}
-          activeId={pendingId ?? activeId}
-          onSelect={triggerSwap}
-          autoPlay={autoPlay}
-          onToggleAutoPlay={() => setAutoPlay((v) => !v)}
-        />
+        <SiteNav />
+        <CreditsLink />
 
         <HeroStageOverlay
           characters={CHARACTERS}

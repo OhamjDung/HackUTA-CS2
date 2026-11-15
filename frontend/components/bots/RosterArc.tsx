@@ -114,7 +114,7 @@ export default function RosterArc({ bots, selectedId, onSelect }: RosterArcProps
         const inView = slot >= 0 && slot < VISIBLE;
         const p = pos(Math.min(Math.max(slot, -0.6), VISIBLE - 0.4));
         const on = b.id === selectedId;
-        // Selected: photo + 4px charcoal gap + 3px red ring; inactive: photo + hairline.
+        // Selected: photo + 2px white inner ring + 2px dark gap + 2.5px #E4002B outer ring; inactive: photo + hairline.
         const size = on ? 104 : 86;
         return (
           <div
@@ -143,13 +143,18 @@ export default function RosterArc({ bots, selectedId, onSelect }: RosterArcProps
                 style={{
                   width: size,
                   height: size,
-                  padding: on ? 7 : 0,
-                  boxShadow: on ? 'inset 0 0 0 3px #FF3B1D' : '0 0 0 1.5px rgba(255,255,255,0.18)',
-                  background: on ? '#131316' : 'transparent',
+                  padding: on ? 6.5 : 0,
                 }}
               >
-                <span className="block h-full w-full overflow-hidden rounded-full">
-                  <Avatar url={b.avatarUrl} />
+                <span
+                  className="block h-full w-full overflow-hidden rounded-full transition-shadow duration-500"
+                  style={{
+                    boxShadow: on
+                      ? '0 0 0 2px rgba(255,255,255,0.9), 0 0 0 4px #0f0f12, 0 0 0 6.5px #E4002B'
+                      : '0 0 0 1.5px rgba(255,255,255,0.18)',
+                  }}
+                >
+                  <Avatar url={b.avatarUrl} name={b.name} />
                 </span>
               </span>
               <span className="flex flex-col">
@@ -172,17 +177,18 @@ export default function RosterArc({ bots, selectedId, onSelect }: RosterArcProps
 }
 
 /** Portrait photo (object-cover); a neutral silhouette until the file exists. */
-export function Avatar({ url }: { url?: string }) {
+/**
+ * Real portrait. If the image fails to load we fall back to a lettered monogram
+ * (never a generic silhouette).
+ */
+export function Avatar({ url, name }: { url?: string; name?: string }) {
   const [failed, setFailed] = useState(false);
   if (url && !failed) {
     return <img src={url} alt="" onError={() => setFailed(true)} className="h-full w-full rounded-full object-cover" />;
   }
   return (
-    <span className="flex h-full w-full items-end justify-center overflow-hidden rounded-full bg-gradient-to-b from-[#2A2A30] to-[#17171A]">
-      <svg viewBox="0 0 40 40" className="h-[86%] w-[86%] text-[#55555D]" aria-hidden>
-        <circle cx="20" cy="15" r="7.5" fill="currentColor" />
-        <path d="M5 40c1.5-9 7.5-14 15-14s13.5 5 15 14Z" fill="currentColor" />
-      </svg>
+    <span className="flex h-full w-full items-center justify-center rounded-full bg-[#1d1d22] text-[0.9em] font-extrabold uppercase tracking-[-0.02em] text-white/85">
+      {(name ?? '?').slice(0, 2)}
     </span>
   );
 }

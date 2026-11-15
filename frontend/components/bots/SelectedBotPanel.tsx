@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import type { Bot } from '@/lib/bots';
 import { ArrowUpRight } from '@/components/ui/icons';
 
@@ -15,27 +16,27 @@ interface SelectedBotPanelProps {
 export default function SelectedBotPanel({ bot, index, glitching, onPlay }: SelectedBotPanelProps) {
   return (
     <div data-right-col>
-      <p className="font-mono text-[16.5px] font-bold uppercase leading-none tracking-[0.08em] text-[#E4E4E8]">
+      <p className="font-mono text-[16px] font-bold uppercase leading-none tracking-[0.06em] text-[#E4E4E8] [word-spacing:-0.3em]">
         {String(index).padStart(2, '0')} / Selected bot
       </p>
 
       <h2
         key={bot.id}
-        className={`mt-[26px] text-[clamp(3.5rem,5.85vw,5.6rem)] font-extrabold leading-[0.92] tracking-[-0.04em] text-[#F7F7F5] ${
+        className={`mt-[22px] text-[clamp(3.6rem,5.2vw,5rem)] font-extrabold leading-[0.98] tracking-[-0.045em] text-white ${
           glitching ? 'hud-flicker' : ''
         }`}
         aria-live="polite"
       >
         {bot.name}
       </h2>
-      <p className="mt-[20px] text-[20px] leading-tight tracking-[-0.01em] text-ink-muted">
+      <p className="mt-[16px] text-[20px] leading-tight tracking-[-0.01em] text-[#B8B8C2]">
         {bot.game} · Player-inspired bot
       </p>
-      <p className="mt-[28px] text-[20.5px] leading-tight tracking-[-0.01em] text-ink-muted">
+      <p className="mt-[22px] text-[20px] leading-tight tracking-[-0.01em] text-[#B8B8C2]">
         Your next challenger is ready.
       </p>
 
-      <ul className="mt-[25px] flex flex-wrap gap-[16px]" aria-label="Playstyle">
+      <ul className="mt-[22px] flex flex-wrap gap-[16px]" aria-label="Playstyle">
         {bot.tags.map((t) => (
           <li
             key={t}
@@ -49,7 +50,7 @@ export default function SelectedBotPanel({ bot, index, glitching, onPlay }: Sele
       <button
         type="button"
         onClick={onPlay}
-        className="group mt-[48px] flex h-[62px] w-[256px] cursor-pointer items-center justify-between rounded-full bg-gradient-to-b from-[#FFFFFF] via-[#F5F4F0] to-[#E5E4DF] pl-[70px] pr-[10px] text-[21px] font-bold tracking-[-0.01em] text-[#111111] shadow-[0_6px_20px_rgba(0,0,0,0.45),inset_0_1px_0_#FFFFFF] transition-[filter] hover:brightness-[1.04]"
+        className="group mt-[38px] flex h-[62px] w-[256px] cursor-pointer items-center justify-between rounded-full bg-gradient-to-b from-[#FFFFFF] via-[#F5F4F0] to-[#E5E4DF] pl-[70px] pr-[10px] text-[21px] font-bold tracking-[-0.01em] text-[#111111] shadow-[0_6px_20px_rgba(0,0,0,0.45),inset_0_1px_0_#FFFFFF] transition-[filter] hover:brightness-[1.04]"
       >
         Play bot
         <span className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-brand transition-transform group-hover:translate-x-0.5">
@@ -59,13 +60,13 @@ export default function SelectedBotPanel({ bot, index, glitching, onPlay }: Sele
         </span>
       </button>
 
-      <a
-        href="#scenes"
-        className="mt-[30px] inline-flex items-center gap-[8px] border-b-[1.5px] border-ink pb-[3px] text-[18.5px] font-medium leading-none tracking-[-0.01em] text-ink"
+      <Link
+        href={`/scenes?bot=${bot.id}`}
+        className="mt-[26px] inline-flex items-center gap-[8px] border-b-[1.5px] border-ink pb-[3px] text-[18.5px] font-medium leading-none tracking-[-0.01em] text-ink"
       >
         Try a scene
         <ArrowUpRight size={17} strokeWidth={1.8} />
-      </a>
+      </Link>
     </div>
   );
 }
