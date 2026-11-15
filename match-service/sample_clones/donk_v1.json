@@ -1,0 +1,12 @@
+{
+  "clone_id": "donk_v1",
+  "display_name": "donk",
+  "source": "pro",
+  "stand_in_bot": "donk",
+  "reaction_ms": null,
+  "aim_skill": null,
+  "aggression": null,
+  "weapons": [],
+  "positions": {},
+  "model": null
+}

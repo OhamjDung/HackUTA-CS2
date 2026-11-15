@@ -1,0 +1,12 @@
+{
+  "clone_id": "broky_v1",
+  "display_name": "broky",
+  "source": "pro",
+  "stand_in_bot": "broky",
+  "reaction_ms": null,
+  "aim_skill": null,
+  "aggression": null,
+  "weapons": [],
+  "positions": {},
+  "model": null
+}

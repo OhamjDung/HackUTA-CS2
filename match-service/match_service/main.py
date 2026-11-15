@@ -1,119 +1,33 @@
-"""Mock match service.
+"""Match service.
 
-Implements the Server API from the Interface specs doc, but fakes the CS2 server:
-a match steps through starting -> ready -> live -> ended on timers, with random
-round results. Swap the simulator for real server control later; the endpoints stay.
+Implements the Server API (README.md). The endpoints are the same whatever runs the match:
+- MATCH_BACKEND=mock (default): no game; matches are simulated on timers.
+- MATCH_BACKEND=cs2: a real CS2 with CS2-Bot-Improver, controlled through its console, with events
+  from CS2's Game State Integration. See backends/cs2.py.
 """
 
-import asyncio
-import json
 import logging
-import os
-import random
 import uuid
 from contextlib import asynccontextmanager
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from pathlib import Path
 
 import httpx
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
-from .models import (
-    ROUNDS_TO_WIN,
-    TEAM_SIZE,
-    Clone,
-    Event,
-    Match,
-    MatchCreate,
-    MatchPlayer,
-    Server,
-)
+from .backends.cs2 import Cs2Backend
+from .backends.mock import MockBackend
+from .console import ConsoleChannel, NetconChannel
+from .core import MatchRecord, Settings, load_clones, now
+from .models import TEAM_SIZE, Clone, Event, Match, MatchCreate, MatchPlayer
 
 log = logging.getLogger("match_service")
 
-DEFAULT_CLONES_DIR = Path(__file__).resolve().parent.parent / "sample_clones"
 
-
-@dataclass
-class Settings:
-    start_seconds: float = 3.0
-    warmup_seconds: float = 5.0
-    round_seconds: float = 3.0
-    server_ip: str = "127.0.0.1"
-    base_port: int = 27015
-    public_url: str = "http://localhost:8000"
-    clones_dir: Path = DEFAULT_CLONES_DIR
-
-    @classmethod
-    def from_env(cls) -> "Settings":
-        env = os.environ
-        return cls(
-            start_seconds=float(env.get("MOCK_START_SECONDS", cls.start_seconds)),
-            warmup_seconds=float(env.get("MOCK_WARMUP_SECONDS", cls.warmup_seconds)),
-            round_seconds=float(env.get("MOCK_ROUND_SECONDS", cls.round_seconds)),
-            server_ip=env.get("MOCK_SERVER_IP", cls.server_ip),
-            base_port=int(env.get("MOCK_BASE_PORT", cls.base_port)),
-            public_url=env.get("MOCK_PUBLIC_URL", cls.public_url).rstrip("/"),
-            clones_dir=Path(env.get("CLONES_DIR", DEFAULT_CLONES_DIR)),
-        )
-
-
-@dataclass
-class MatchRecord:
-    match: Match
-    callback_url: str | None
-    mock_fail: bool
-    events: list[Event] = field(default_factory=list)
-    task: asyncio.Task | None = None
-
-
-def load_clones(clones_dir: Path) -> dict[str, Clone]:
-    """Read clone profiles (<clone_id>.json, the format in the specs doc, section 1)."""
-    clones: dict[str, Clone] = {}
-    for path in sorted(clones_dir.glob("*.json")):
-        data = json.loads(path.read_text())
-        clone = Clone(
-            clone_id=data["clone_id"],
-            display_name=data["display_name"],
-            source=data["source"],
-        )
-        clones[clone.clone_id] = clone
-    return clones
-
-
-def now() -> datetime:
-    return datetime.now(timezone.utc)
-
-
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(settings: Settings | None = None, channel: ConsoleChannel | None = None) -> FastAPI:
     settings = settings or Settings.from_env()
     matches: dict[str, MatchRecord] = {}
-    used_ports: set[int] = set()
     http: dict[str, httpx.AsyncClient] = {}
-
-    @asynccontextmanager
-    async def lifespan(app: FastAPI):
-        http["client"] = httpx.AsyncClient(timeout=5.0)
-        yield
-        for record in matches.values():
-            if record.task and not record.task.done():
-                record.task.cancel()
-        await http["client"].aclose()
-
-    app = FastAPI(
-        title="Match service (mock)",
-        version="0.1.0",
-        description="Server API from the Interface specs doc, with a simulated CS2 server.",
-        lifespan=lifespan,
-    )
-    # The UI and lobby run on other origins during the hackathon.
-    app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
-
-    def clones() -> dict[str, Clone]:
-        # Re-read on each call so new profiles from AR show up without a restart.
-        return load_clones(settings.clones_dir)
 
     async def emit(record: MatchRecord, event: str, data: dict) -> None:
         ev = Event(match_id=record.match.match_id, event=event, data=data, sent_at=now())
@@ -125,50 +39,36 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         except httpx.HTTPError as exc:
             log.warning("callback to %s failed: %s", record.callback_url, exc)
 
-    def free_port() -> int:
-        port = settings.base_port
-        while port in used_ports:
-            port += 1
-        used_ports.add(port)
-        return port
+    if settings.backend == "mock":
+        backend = MockBackend(settings, emit)
+    elif settings.backend == "cs2":
+        channel = channel or NetconChannel(settings.cs2_console_host, settings.cs2_console_port)
+        backend = Cs2Backend(settings, emit, channel)
+    else:
+        raise ValueError(f"Unknown MATCH_BACKEND {settings.backend!r}; use 'mock' or 'cs2'")
 
-    def release(match: Match) -> None:
-        if match.server:
-            used_ports.discard(match.server.port)
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        http["client"] = httpx.AsyncClient(timeout=5.0)
+        yield
+        for record in matches.values():
+            if record.task and not record.task.done():
+                record.task.cancel()
+        await http["client"].aclose()
 
-    async def simulate(record: MatchRecord) -> None:
-        m = record.match
-        await asyncio.sleep(settings.start_seconds)
-        if record.mock_fail:
-            m.status, m.error = "failed", "Mock failure: the server did not start"
-            await emit(record, "match.failed", {"error": m.error})
-            return
+    app = FastAPI(
+        title=f"Match service ({backend.name})",
+        version="0.2.0",
+        description="Server API from the Interface specs doc. Backend: " + backend.name,
+        lifespan=lifespan,
+    )
+    # The UI and lobby run on other origins during the hackathon.
+    app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+    app.state.backend = backend
 
-        port = free_port()
-        m.server = Server(ip=settings.server_ip, port=port)
-        m.join_link = f"steam://connect/{settings.server_ip}:{port}"
-        m.status = "ready"
-        await emit(record, "match.ready", {"server": m.server.model_dump(), "join_link": m.join_link})
-
-        await asyncio.sleep(settings.warmup_seconds)
-        m.status = "live"
-        await emit(record, "match.live", {})
-
-        rng = random.Random(m.match_id)
-        to_win = ROUNDS_TO_WIN[m.mode]
-        while max(m.score.CT, m.score.T) < to_win:
-            await asyncio.sleep(settings.round_seconds)
-            winner = rng.choice(["CT", "T"])
-            setattr(m.score, winner, getattr(m.score, winner) + 1)
-            m.round += 1
-            await emit(record, "round.ended", {"round": m.round, "winner": winner, "score": m.score.model_dump()})
-
-        m.status = "ended"
-        m.demo_url = f"{settings.public_url}/demos/{m.match_id}.dem"
-        release(m)
-        winner = "CT" if m.score.CT > m.score.T else "T"
-        await emit(record, "match.ended", {"reason": "finished", "winner": winner,
-                                           "score": m.score.model_dump(), "demo_url": m.demo_url})
+    def clones() -> dict[str, Clone]:
+        # Re-read on each call so new profiles show up without a restart.
+        return load_clones(settings.clones_dir)
 
     def get_record(match_id: str) -> MatchRecord:
         record = matches.get(match_id)
@@ -182,6 +82,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.post("/matches", status_code=201)
     async def create_match(body: MatchCreate):
+        if backend.busy():
+            raise HTTPException(409, "CS2 is already running a match. Stop it first.")
         available = clones()
         errors: list[str] = []
 
@@ -202,6 +104,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 errors.append(f"Team {team} has {count} players; {body.mode} allows {size}")
             if count == 0:
                 errors.append(f"Team {team} is empty")
+        errors += backend.validate(body, available, list(matches.values()))
         if errors:
             raise HTTPException(422, errors)
 
@@ -215,7 +118,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         record = MatchRecord(match=match, callback_url=str(body.callback_url) if body.callback_url else None,
                              mock_fail=body.mock_fail)
         matches[match.match_id] = record
-        record.task = asyncio.create_task(simulate(record))
+        backend.start(record, available)
         return {"match_id": match.match_id, "status": match.status}
 
     @app.get("/matches/{match_id}", response_model=Match)
@@ -228,17 +131,40 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         m = record.match
         if m.status in ("ended", "failed"):
             raise HTTPException(409, f"Match is already {m.status}")
-        if record.task:
-            record.task.cancel()
+        await backend.stop(record)
         m.status = "ended"
-        release(m)
         await emit(record, "match.ended", {"reason": "stopped", "score": m.score.model_dump(), "demo_url": None})
         return {"status": m.status}
 
-    # Mock only: lets callers see what was sent to their callback_url without running a receiver.
+    # Not in the spec: lets callers see what was sent to their callback_url without running a receiver.
     @app.get("/matches/{match_id}/events", response_model=list[Event])
     async def list_events(match_id: str):
         return get_record(match_id).events
+
+    @app.get("/demos/{match_id}.dem")
+    async def get_demo(match_id: str):
+        get_record(match_id)
+        path = backend.demo_path(match_id)
+        if not path or not path.is_file():
+            raise HTTPException(404, "No recording for this match" +
+                                ("" if path else " (this backend does not record, or CS2_DEMO_DIR is not set)"))
+        return FileResponse(path, media_type="application/octet-stream", filename=f"{match_id}.dem")
+
+    # CS2's Game State Integration posts here (see gsi/ for the config file). cs2 backend only.
+    @app.post("/gsi", include_in_schema=backend.name == "cs2")
+    async def game_state(request: Request):
+        if backend.name != "cs2":
+            raise HTTPException(404, "Game state is only used by the cs2 backend")
+        payload = await request.json()
+        if (payload.get("auth") or {}).get("token") != settings.gsi_token:
+            raise HTTPException(401, "Wrong or missing GSI token")
+        await backend.handle_gsi(payload)
+        return {"ok": True}
+
+    # Which backend runs, and for cs2: can we reach the console, and when did game state last arrive.
+    @app.get("/health")
+    async def health():
+        return await backend.health()
 
     return app
 

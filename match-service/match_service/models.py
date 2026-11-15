@@ -17,6 +17,8 @@ class Clone(BaseModel):
     clone_id: str
     display_name: str
     source: Literal["user", "pro"]
+    # Built-in CS2-Bot-Improver bot that plays this clone until CloneDirector works (SPEC.md 5.4).
+    stand_in_bot: str | None = None
 
 
 class PlayerIn(BaseModel):
