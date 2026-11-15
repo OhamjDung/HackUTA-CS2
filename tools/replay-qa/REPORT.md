@@ -1,5 +1,31 @@
 # Replay QA report — 14 November 2026
 
+## Fixes (added after the QA, same day)
+
+Ashirwad fixed all twelve findings in `match-service/` (QA-1 to QA-12 below):
+
+- QA-1: unreadable, empty or missing route files count as unavailable (logged), in `route()`,
+  `closest()`, the outline and the mock.
+- QA-2: positions that aren't finite numbers are dropped at `gsi_players()` and `Trace.add()`.
+- QA-3: a player's death ends their path for the round.
+- QA-4: stopping a match finishes its trace (`live_round` cleared) and saves it to `TRACE_DIR`,
+  in both backends.
+- QA-5: the mock's `demo_url` is `null`, as the cs2 backend's is with recording off.
+- QA-6 to QA-8: the replay page drops replies for an older selection, clears its panels when a
+  match has no usable round, and shows request errors on the page.
+- QA-9: the play page keeps the match in the address (`?match=`) and follows it after a reload.
+- QA-10: selects, grid cells and tables fit a 390 px screen; wide tables scroll in their card.
+- QA-11: the replay scrubber and speed select have accessible names.
+- QA-12: the proof page labels aim as a base-bot setting and shows the failed identity test.
+
+Rerun after the fixes:
+- `test_edges.py`: 11 pass. The eight strict expected failures now run as ordinary tests.
+- Match service suite: 67 pass.
+- `browser.cjs`: 31 of 31 checks pass, with no page errors. Its proof check was updated, because
+  the proof page now fills its clone and default-bot columns from a match.
+
+The findings below are the original QA record.
+
 The mock demo is usable on desktop for the normal path. Independent QA found replay failure
 handling and stale selection defects, narrow-screen overflow, and several trace edge cases.
 **No implementation was changed.** There are no confirmed normal-path blockers. Suggested owner

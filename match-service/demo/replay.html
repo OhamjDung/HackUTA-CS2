@@ -180,10 +180,23 @@ function drawVs(t) {
   if (vs.br) vs.br.draw(vs.bot ? [{ ...vs.bot, diedAt: vs.bot.died_at, focus: true }] : [], t);
 }
 
+// Clear the real-vs-bot panels, so nothing from an earlier selection stays on screen.
+function vsClear(message, isError = false) {
+  vs.real = vs.bot = null;
+  for (const id of ["real-title", "real-label", "bot-title", "bot-label", "score"]) $(id).textContent = "";
+  $("real-empty").textContent = message || "Pick a match, round and bot.";
+  $("bot-empty").textContent = "";
+  $("vs-hint").innerHTML = isError ? `<span class="error">${esc(message)}</span>` : "";
+  vsPlayer.setMax(20); vsPlayer.set(0);
+}
+
+let vsGen = 0;  // each selection change bumps this; a reply for an older selection is dropped
 async function vsMatchChanged() {
-  const id = $("vs-match").value;
-  if (!id) return;
-  const trace = await getTrace(id);
+  const id = $("vs-match").value, gen = ++vsGen;
+  if (!id) return vsClear();
+  let trace;
+  try { trace = await getTrace(id); } catch (e) { if (gen === vsGen) vsClear(`Could not load match ${id}: ${e.message}`, true); return; }
+  if (gen !== vsGen) return;
   $("vs-source").innerHTML = trace.source === "simulated"
     ? `<span class="pill warn" title="Mock match: each bot walked a real recorded route">simulated match</span>`
     : `<span class="pill good">from CS2 game state</span>`;
@@ -194,7 +207,10 @@ async function vsMatchChanged() {
 }
 
 async function vsRoundChanged() {
-  const trace = await getTrace($("vs-match").value);
+  const id = $("vs-match").value, gen = ++vsGen;
+  let trace;
+  try { trace = await getTrace(id); } catch (e) { if (gen === vsGen) vsClear(`Could not load match ${id}: ${e.message}`, true); return; }
+  if (gen !== vsGen) return;
   const r = trace.rounds.find(r => r.round === +$("vs-round").value);
   const bots = (r ? r.players : []).filter(p => p.clone_id);
   $("vs-player").innerHTML = bots.map(p => `<option>${esc(p.name)}</option>`).join("");
@@ -202,9 +218,18 @@ async function vsRoundChanged() {
 }
 
 async function vsCompare() {
-  const id = $("vs-match").value, round = $("vs-round").value, player = $("vs-player").value;
-  if (!id || !round || !player) return;
-  const c = await api(`/matches/${id}/compare?round=${round}&player=${encodeURIComponent(player)}`);
+  const id = $("vs-match").value, round = $("vs-round").value, player = $("vs-player").value, gen = ++vsGen;
+  if (!id || !round || !player) {
+    return vsClear(id && !$("vs-round").options.length ? "This match has no round with bot positions yet." : "");
+  }
+  let c;
+  try {
+    c = await api(`/matches/${id}/compare?round=${round}&player=${encodeURIComponent(player)}`);
+  } catch (e) {
+    if (gen === vsGen) vsClear(`Could not compare ${player} in round ${round}: ${e.message}. Pick again to retry.`, true);
+    return;
+  }
+  if (gen !== vsGen) return;
   vs.bot = c.bot;
   vs.real = c.real ? { name: c.real.recording.split("_")[0], team: c.real.side, path: c.real.path } : null;
   vs.rr = vs.rr || realRadar(); vs.br = vs.br || botRadar();
@@ -232,16 +257,30 @@ let cc = { round: null, radar: null };
 const ccPlayer = new Player($("cc-player-ctl"), t => cc.radar && cc.round &&
   cc.radar.draw(cc.round.players.map(p => ({ ...p, diedAt: p.died_at })), t));
 
+function ccClear(message, isError = false) {
+  cc.round = null;
+  $("cc-empty").innerHTML = isError ? `<span class="error">${esc(message)}</span>` : esc(message || "Pick a match and round.");
+  $("cc-table").innerHTML = `<tr><td class="muted">${esc(message || "Pick a round.")}</td></tr>`;
+  ccPlayer.setMax(20); ccPlayer.set(0);
+  if (cc.radar) cc.radar.draw([], 0);
+}
+
+let ccGen = 0;
 async function ccMatchChanged() {
-  const id = $("cc-match").value;
-  if (!id) return;
-  $("cc-round").innerHTML = roundOptions(await getTrace(id));
+  const id = $("cc-match").value, gen = ++ccGen;
+  if (!id) return ccClear();
+  try { $("cc-round").innerHTML = roundOptions(await getTrace(id)); }
+  catch (e) { if (gen === ccGen) ccClear(`Could not load match ${id}: ${e.message}`, true); return; }
+  if (gen !== ccGen) return;
   ccRoundChanged();
 }
 async function ccRoundChanged() {
-  const trace = await getTrace($("cc-match").value);
+  const id = $("cc-match").value, gen = ++ccGen;
+  let trace;
+  try { trace = await getTrace(id); } catch (e) { if (gen === ccGen) ccClear(`Could not load match ${id}: ${e.message}`, true); return; }
+  if (gen !== ccGen) return;
   cc.round = trace.rounds.find(r => r.round === +$("cc-round").value);
-  if (!cc.round) return;
+  if (!cc.round) return ccClear("This match has no round with bot positions yet.");
   cc.radar = cc.radar || new Radar($("cc-radar"), OUT);
   $("cc-empty").textContent = "";
   const rows = await Promise.all(cc.round.players.map(async p => {
@@ -252,29 +291,59 @@ async function ccRoundChanged() {
     }
     return `<tr><td class="${p.team === "CT" ? "ct" : "t"}"><b>${esc(p.name)}</b></td><td>${p.team}</td><td>${label || '<span class="muted">—</span>'}</td></tr>`;
   }));
+  if (gen !== ccGen) return;
   $("cc-table").innerHTML = `<tr><th>Bot</th><th>Side</th><th>Route (named after the closest real round)</th></tr>` + rows.join("");
   ccPlayer.setMax(Math.max(20, ...cc.round.players.map(pathEnd)));
   ccPlayer.set(0);
 }
 
 // --- Recorded rounds --------------------------------------------------------------------------
-let rr = { radar: null, route: null, routes: [] };
+let rr = { radar: null, route: null, routes: [], clone: null, gen: 0 };
 const rPlayer = new Player($("r-player-ctl"), t => rr.radar && rr.route &&
   rr.radar.draw([{ name: rr.route.recording.split("_")[0], team: rr.route.side, path: rr.route.path, focus: true }], t));
 
+function rClear(message, isError = false) {
+  rr.route = null;
+  $("r-table").innerHTML = `<tr><td class="${isError ? "error" : "muted"}">${esc(message)}</td></tr>`;
+  if (rr.radar) rr.radar.draw([], 0);
+  rPlayer.setMax(20); rPlayer.set(0);
+}
+
+// The route list and the route file load one after the other; the player can change the
+// selection in between, so each step checks that its reply still matches what is selected.
 async function rCloneChanged() {
-  rr.routes = await api(`/replay/clones/${$("r-clone").value}/routes`);
+  const clone = $("r-clone").value, gen = ++rr.gen;
+  rr.clone = null; rr.routes = [];
+  $("r-route").innerHTML = "";
+  rClear("Loading…");
+  try {
+    const routes = await api(`/replay/clones/${encodeURIComponent(clone)}/routes`);
+    if (gen !== rr.gen) return;
+    rr.routes = routes; rr.clone = clone;
+  } catch (e) {
+    if (gen === rr.gen) rClear(`Could not load ${clone}'s rounds: ${e.message}`, true);
+    return;
+  }
   rSideChanged();
 }
 function rSideChanged() {
+  if (rr.clone !== $("r-clone").value) return;  // the route list for this player is still loading
   const list = rr.routes.filter(r => r.side === $("r-side").value);
   $("r-route").innerHTML = list.map(r => `<option value="${esc(r.recording)}">match ${r.match_id} round ${r.round} · ${esc(r.label)}</option>`).join("");
   rRouteChanged();
 }
 async function rRouteChanged() {
-  const rec = $("r-route").value;
-  if (!rec) return;
-  rr.route = await api(`/replay/clones/${$("r-clone").value}/routes/${rec}`);
+  const clone = rr.clone, rec = $("r-route").value, gen = ++rr.gen;
+  if (!clone || !rec) return rClear(clone ? "No recorded round on this side." : "Loading…");
+  let route;
+  try {
+    route = await api(`/replay/clones/${encodeURIComponent(clone)}/routes/${encodeURIComponent(rec)}`);
+  } catch (e) {
+    if (gen === rr.gen) rClear(`Could not load ${rec}: ${e.message}`, true);
+    return;
+  }
+  if (gen !== rr.gen) return;
+  rr.route = route;
   rr.radar = rr.radar || new Radar($("r-radar"), OUT);
   const r = rr.route;
   $("r-table").innerHTML = [["Route", r.label], ["Route key", r.route_key], ["Buy", r.buy_type],

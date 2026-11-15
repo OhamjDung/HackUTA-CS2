@@ -185,9 +185,9 @@ class Player {
     this.onTime = onTime; this.t = 0; this.max = 20; this.speed = 1; this.playing = false;
     root.innerHTML = `<div class="row">
         <button data-play>▶ Play</button>
-        <select data-speed><option value="1">1×</option><option value="2" selected>2×</option><option value="4">4×</option></select>
-        <input type="range" data-scrub min="0" max="1000" value="0" style="flex:1;min-width:160px">
-        <span class="muted small" data-clock style="min-width:90px;text-align:right">0.0 s</span>
+        <select data-speed aria-label="Playback speed"><option value="1">1×</option><option value="2" selected>2×</option><option value="4">4×</option></select>
+        <input type="range" data-scrub min="0" max="1000" value="0" aria-label="Replay time" style="flex:1;min-width:120px">
+        <span class="muted small" data-clock aria-live="off" style="min-width:90px;text-align:right">0.0 s</span>
       </div>`;
     this.btn = root.querySelector("[data-play]");
     this.scrub = root.querySelector("[data-scrub]");
@@ -203,6 +203,7 @@ class Player {
     this.t = t;
     this.scrub.value = Math.round(t / this.max * 1000);
     this.clock.textContent = `${t.toFixed(1)} / ${this.max.toFixed(0)} s`;
+    this.scrub.setAttribute("aria-valuetext", `${t.toFixed(1)} of ${this.max.toFixed(0)} seconds`);
     this.onTime(t);
   }
   toggle() {

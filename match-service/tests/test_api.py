@@ -52,7 +52,7 @@ def test_match_runs_to_the_end(client):
     assert max(m["score"]["CT"], m["score"]["T"]) == 9  # wingman: first to 9
     assert m["round"] == m["score"]["CT"] + m["score"]["T"]
     assert m["join_link"] == "steam://connect/127.0.0.1:27015"
-    assert m["demo_url"].endswith(f"/demos/{match_id}.dem")
+    assert m["demo_url"] is None  # the mock records nothing
     assert {p["display_name"] for p in m["players"] if p["is_clone"]} == {"Ash", "Pro AWPer (sample)"}
 
     events = [e["event"] for e in client.get(f"/matches/{match_id}/events").json()]

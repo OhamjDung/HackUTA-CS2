@@ -136,7 +136,7 @@ async function show(id) {
     ["Source matches", (c.source_games || []).map(g => g.match_id).join(", ")],
     ["Weapons, most used first", (c.weapons || []).join(", ")],
     ["Aggression (0–1)", c.aggression],
-    ["Aim skill (0–1)", c.aim_skill],
+    ["Aim skill setting (0–1)", c.aim_skill == null ? "not set" : `${c.aim_skill}: a base-bot setting, not a measured rating of the player's aim`],
     ["Reaction time", c.reaction_ms == null ? "not measured" : `${c.reaction_ms} ms`],
     ["Learned model", c.model || "none promoted (first run failed the identity tests)"],
   ].map(([k, v]) => `<tr><th>${k}</th><td>${esc(v)}</td></tr>`).join("");

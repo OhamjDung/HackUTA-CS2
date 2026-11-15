@@ -83,7 +83,7 @@ Failed callbacks are logged and not retried.
 | `MOCK_WARMUP_SECONDS` | 5 | Time in `ready` before `live` |
 | `MOCK_ROUND_SECONDS` | 3 | Time per round |
 | `MOCK_SERVER_IP`, `MOCK_BASE_PORT` | `127.0.0.1`, 27015 | What goes in `server` and `join_link` |
-| `MOCK_PUBLIC_URL` | `http://localhost:8000` | Base of `demo_url` |
+| `MOCK_PUBLIC_URL` | `http://localhost:8000` | Base of `demo_url` when CS2 records a match. The mock records nothing, so its `demo_url` is `null` |
 | `CLONES_DIR` | `sample_clones/` | Where clone profiles are read from |
 
 ## Demo pages

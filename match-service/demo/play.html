@@ -70,6 +70,16 @@ async function setup() {
   checkboxes($("enemies"), "enemy", ["broky_v1"]);
   checkboxes($("mates"), "mate", []);
   $("start").onclick = start;
+  const want = param("match");  // after a reload, follow the match this page started
+  if (want) attach(want);
+}
+
+function attach(id) {
+  matchId = id;
+  history.replaceState(null, "", `?match=${encodeURIComponent(id)}`);
+  $("match").hidden = false; $("mid").textContent = matchId;
+  $("stop").onclick = () => api(`/matches/${matchId}/stop`, { method: "POST" }).then(tick).catch(e => alert(e.message));
+  tick();
 }
 
 async function start() {
@@ -82,10 +92,7 @@ async function start() {
     clones: [...enemies.map(id => ({ clone_id: id, team: other })), ...mates.map(id => ({ clone_id: id, team: side }))] };
   try {
     const res = await api("/matches", { method: "POST", body });
-    matchId = res.match_id;
-    $("match").hidden = false; $("mid").textContent = matchId;
-    $("stop").onclick = () => api(`/matches/${matchId}/stop`, { method: "POST" }).catch(e => alert(e.message));
-    tick();
+    attach(res.match_id);
   } catch (e) { $("err").textContent = e.message; }
 }
 
@@ -115,7 +122,12 @@ async function tick() {
       : "Waiting for the first round…");
     $("feed").innerHTML = events.slice().reverse().map(e => `<div><b>${esc(e.event)}</b> ${esc(JSON.stringify(e.data))}</div>`).join("");
     if (m.status === "ended" || m.status === "failed") return;
-  } catch (e) { $("err").textContent = e.message; }
+  } catch (e) {
+    $("err").textContent = e.message;
+    if (/not found|no match/i.test(e.message)) {  // e.g. a stale ?match= after the service restarted
+      $("match").hidden = true; history.replaceState(null, "", location.pathname); return;
+    }
+  }
   timer = setTimeout(tick, 500);
 }
 

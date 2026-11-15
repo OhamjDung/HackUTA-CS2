@@ -12,6 +12,7 @@ Written from zero: no existing tool reads these files for a web view.
 """
 
 import json
+import logging
 import math
 import random
 import time
@@ -19,6 +20,8 @@ from functools import lru_cache
 from pathlib import Path
 
 import brotli
+
+log = logging.getLogger("match_service.replay")
 
 SAMPLE_HZ = 8  # path points per second sent to the browser
 TICKRATE = 64
@@ -58,7 +61,10 @@ class RouteLibrary:
         file = (self.dir / meta["file"]).resolve()
         if self.dir.resolve() not in file.parents or not file.is_file():
             return None
-        return {**{k: v for k, v in meta.items() if k != "file"}, "path": _read_path(file, file.stat().st_mtime)}
+        path = _read_path(file, file.stat().st_mtime)
+        if not path:
+            return None  # unreadable or empty recording: treat as unavailable
+        return {**{k: v for k, v in meta.items() if k != "file"}, "path": path}
 
     def outline(self) -> dict:
         """Grid cells any recorded route passed through: a rough map shape, drawn under the paths."""
@@ -88,6 +94,8 @@ class RouteLibrary:
             if r["side"] != side:
                 continue
             full = self.route(clone_id, r["recording"])
+            if not full:
+                continue  # missing, empty or unreadable file
             real = [(x, y) for _, x, y in full["path"]][::2]
             score = (_mean_nearest(bot, real) + _mean_nearest(real, bot)) / 2
             if best is None or score < best["score"]:
@@ -109,13 +117,22 @@ def _read_json(path: Path, mtime: float) -> dict | None:
 
 @lru_cache(maxsize=512)
 def _read_path(file: Path, mtime: float) -> list[list[float]]:
-    data = json.loads(brotli.decompress(file.read_bytes()))
-    step = TICKRATE // SAMPLE_HZ
-    out = []
-    for i, tick in enumerate(data.get("Ticks", [])[::step]):
-        pre = tick.get("Pre") or {}
-        out.append([round(i / SAMPLE_HZ, 3), round(pre.get("OriginX", 0.0), 1), round(pre.get("OriginY", 0.0), 1)])
-    return out
+    """A recording's path at SAMPLE_HZ, or [] if the file can't be read (logged, not raised)."""
+    try:
+        data = json.loads(brotli.decompress(file.read_bytes()))
+        ticks = data.get("Ticks") or []
+        step = TICKRATE // SAMPLE_HZ
+        out = []
+        for i, tick in enumerate(ticks[::step]):
+            pre = tick.get("Pre") or {}
+            x, y = float(pre.get("OriginX", 0.0)), float(pre.get("OriginY", 0.0))
+            if not (math.isfinite(x) and math.isfinite(y)):
+                raise ValueError(f"nonfinite position at sample {i}")
+            out.append([round(i / SAMPLE_HZ, 3), round(x, 1), round(y, 1)])
+        return out
+    except (OSError, ValueError, TypeError, AttributeError, brotli.error) as exc:
+        log.warning("route file %s is unreadable: %s", file.name, exc)
+        return []
 
 
 # --- Match traces ---------------------------------------------------------------------------------
@@ -134,10 +151,12 @@ class Trace:
 
     def add(self, round_no: int, t: float, name: str, team: str, x: float, y: float,
             clone_id: str | None = None, alive: bool = True) -> None:
-        if t > self.MAX_SECONDS:
-            return
+        if t > self.MAX_SECONDS or not all(math.isfinite(v) for v in (t, x, y)):
+            return  # game state can't place this sample; skip it rather than store NaN
         player = self.rounds.setdefault(round_no, {}).setdefault(
             name, {"team": team, "clone_id": clone_id, "path": [], "died_at": None})
+        if player["died_at"] is not None:
+            return  # death ends the player's path for the round (no respawn in these modes)
         path = player["path"]
         if not alive:
             if player["died_at"] is None and path:
@@ -164,6 +183,12 @@ class Trace:
         return {"match_id": self.match_id, "map": self.map, "source": self.source, "bots": self.bots,
                 "live_round": self.live_round, "rounds": rounds}
 
+    def finish(self, folder: Path | None) -> None:
+        """The match is over (finished or stopped): no round is live; save if a folder is set."""
+        self.live_round = None
+        if folder:
+            self.save(folder)
+
     def save(self, folder: Path) -> None:
         folder.mkdir(parents=True, exist_ok=True)
         data = self.to_json(now=float("inf"))
@@ -181,6 +206,8 @@ def gsi_players(payload: dict) -> list[dict]:
         try:
             x, y, _ = (float(v) for v in str(p.get("position", "")).split(","))
         except ValueError:
+            continue
+        if not (math.isfinite(x) and math.isfinite(y)):
             continue
         health = (p.get("state") or {}).get("health", 100)
         out.append({"key": key, "name": p.get("name") or key, "team": p.get("team"),
@@ -204,6 +231,8 @@ def simulated_round(library: RouteLibrary, trace: Trace, round_no: int, players:
             continue
         cid, meta = rng.choice(choices)
         route = library.route(cid, meta["recording"])
+        if not route:
+            continue
         dx, dy = rng.uniform(-40, 40), rng.uniform(-40, 40)
         for t, x, y in route["path"]:
             trace.add(round_no, t, p.display_name, p.team, x + dx, y + dy, p.clone_id)

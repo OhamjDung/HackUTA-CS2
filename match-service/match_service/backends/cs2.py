@@ -100,6 +100,8 @@ class Cs2Backend:
     async def stop(self, record: MatchRecord) -> None:
         if record.task:
             record.task.cancel()
+        if record.trace is not None:
+            record.trace.finish(self.s.trace_dir)
         try:
             await self.ch.send(self._record_stop() + ["bot_kick"])  # stop recording, remove the bots
         except (OSError, asyncio.TimeoutError) as exc:
@@ -325,9 +327,7 @@ class Cs2Backend:
             log.warning("could not stop recording: %s", exc)
         m.status = "ended"
         if record.trace is not None:
-            record.trace.live_round = None
-            if self.s.trace_dir:
-                record.trace.save(self.s.trace_dir)
+            record.trace.finish(self.s.trace_dir)
         if self.s.cs2_record != "off":
             m.demo_url = f"{self.s.public_url}/demos/{m.match_id}.dem"
         winner = "CT" if m.score.CT > m.score.T else "T" if m.score.T > m.score.CT else None

@@ -15,8 +15,8 @@ uv run python -m pytest -q
 uv run python -m pytest ../tools/replay-qa/test_edges.py -q
 ```
 
-The edge suite has strict `xfail` cases for confirmed bugs: an unexpected pass fails the suite
-so an owner can remove the marker after fixing the implementation. `--runxfail` exposes every
+The edge suite first had strict `xfail` cases for the confirmed bugs. They were fixed and now run as
+ordinary tests (see the top of REPORT.md). Before the fixes, `--runxfail` exposed every
 underlying failure. Temporary synthetic route fixtures never alter committed clone data.
 The real-route check reads all 159 files, including coordinates, time sampling and side metadata.
 

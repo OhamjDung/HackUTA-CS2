@@ -58,7 +58,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Map-geometry check of generated review paths | Ashirwad | Done. Checks all 8 development cases: all 32 paths pass, real paths included; 15 of 24 generated paths mostly stand still. Automated check only; a person must still review paths. Not run in CS2. 12 CPU tests pass | `clone-model/map_review.py`, `clone-model/results/generated-path-map-review.md` | 2026-11-14 |
 | Generated-path playback candidates (8.5 steps 5-7, candidates only) | Ashirwad | In progress. Converter, gates and provenance written; 13 synthetic tests pass (30 pipeline tests). One real development case converted with a hand-made check file (no geometry check). Output is a candidate for a person to review, never promoted; not run in CS2 | `clone-pipeline/clone_pipeline/generated.py` | 2026-11-14 |
 | Offline weapon-role and habit audit | Ashirwad (Codex) | Done offline. Audited 141 build rounds, froze policy/method, then described 39 holdout rounds once. 11 audit and 27 pipeline tests pass; actual CLI candidates built from seven raw demos. All 141 same-input route files unchanged and readable by the service. Candidate review only; no CS2 or playable-clone promotion. | `tools/habit-audit/`, `clone-pipeline/`; ignored `data/habit-audit/` | 2026-11-14 |
-| Independent mock replay QA | Ashirwad (Codex) | Done on separate branch `friend/replay-qa` (d04dbf8). Existing 47 service tests pass; edge checks 3 pass/8 expected failures; Chromium checks 22 pass/9 desired-behavior failures. Twelve findings reported; implementation unchanged. | `tools/replay-qa/` on `friend/replay-qa` | 2026-11-14 |
+| Independent mock replay QA, and fixes | Ashirwad (Codex QA; fixes by Ashirwad) | Done. All 12 findings fixed in `match-service/`: edge suite 11 pass (the 8 expected failures now pass), browser harness 31 of 31 with no page errors, 73 match service tests pass on the merged main. Mock only. | `tools/replay-qa/`, `match-service/` | 2026-11-14 |
 | Offline generated-path review export | Arjun (Codex) | Done. Eight development cases exported on A100 (24 generated paths plus real paths), JSON checked and plots inspected; 12 CPU tests pass. No route promotion. | `clone-model/review.py` | 2026-11-14 |
 | Replay page: real player next to clone | Unassigned | In progress (demo version by Ashirwad: 2D map from positions, no video; a generated-path tab shows the model's offline development review files, run against the mock in a browser) | `match-service/demo/replay.html`, `match-service/match_service/generated.py` | 2026-11-14 |
 | Clone profile page | Unassigned | Not started | Not decided | 2026-11-14 |
@@ -255,6 +255,24 @@ Checked on 2026-11-14.
   (`EntityFlags` 0 or 2), because `recording.py` sets that flag from vertical speed; Tom's real
   recording had 65665. In 5 of the 8 development cases the own-identity path stands still after its
   first point. Not run in CS2.
+- Replay QA fixes (Ashirwad, 2026-11-14), all 12 findings in `tools/replay-qa/REPORT.md`:
+  - Unreadable, empty or missing route files count as unavailable.
+  - Positions that aren't finite numbers are dropped from traces.
+  - Death ends a player's path for the round.
+  - A stopped match finishes and saves its trace.
+  - The mock's `demo_url` is `null`.
+  - The replay page drops stale replies, clears empty panels and shows request errors.
+  - The play page follows its match after a reload (`?match=`).
+  - The pages fit a 390 px screen.
+  - The replay controls have accessible names.
+  - The proof page labels aim as a base-bot setting.
+
+  Ran against the mock: `tools/replay-qa/test_edges.py` 11 pass (the 8 strict expected failures now
+  run as ordinary tests); 67 match service tests pass; `browser.cjs` with Playwright 1.49.1 /
+  Chromium 131: 31 of 31 checks, no page errors (its proof check was updated for today's proof page;
+  the one failed response is the harness's own injected 500). A 390 px replay screenshot was looked
+  at: no sideways overflow. Re-run after merging with main (Tom's demo-page changes included): 73
+  match service tests, 11 edge tests, browser harness 31 of 31, no page errors.
 - Every GitHub repository in section 4 exists. Stars, licenses, and update dates come from GitHub.
 - The OpenCS2 counts in section 7 come from queries against its index tables.
 - The match service's cs2 backend, against a fake console and hand-written game state updates
@@ -940,7 +958,8 @@ The same steps run on the clone's own recorded match, to produce the clone's sid
 - Modes: `competitive` (5 per team, first to 13 rounds) and `wingman` (2 per team, first to 9).
 - A match moves through `starting`, `ready`, `live`, `ended`. The service can send each change to a
   callback address.
-- When a match ends, it gives a `demo_url`: the address of the match recording.
+- When a match ends, it gives a `demo_url`: the address of the match recording, or `null` when
+  nothing was recorded (the mock, and CS2 with recording off).
 
 **Today it is a mock.** No CS2 match starts. Round winners are random.
 
@@ -1040,7 +1059,7 @@ of the replay.
   Per-character rim-light/HUD accent sync (`rimColor`/`accentColor`); `scripts/verify-models.mjs`
   gates artist GLB drops (size, Idle clip, skins, meshopt).
 
-**Independent QA (2026-11-14):** `tools/replay-qa/REPORT.md` records unresolved replay selection races, stale empty/error panels, play-page reload loss, narrow-screen overflow, unnamed playback controls, and proof-label limits. Synthetic tests also expose missing/corrupt/empty route handling, nonfinite coordinates, post-death samples and mock trace finalization/download placeholders. QA owns only the report/harness; the service implementation remains with its owner and is not fixed by this report.
+**Independent QA (2026-11-14):** `tools/replay-qa/REPORT.md` records unresolved replay selection races, stale empty/error panels, play-page reload loss, narrow-screen overflow, unnamed playback controls, and proof-label limits. Synthetic tests also expose missing/corrupt/empty route handling, nonfinite coordinates, post-death samples and mock trace finalization/download placeholders. All twelve were fixed the same day (section 3, "Replay QA fixes"). QA owns only the report/harness; the service implementation remains with its owner and is not fixed by this report.
 
 ### 9.4 Sponsor services
 
@@ -1404,6 +1423,8 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-14, Ashirwad: merged the habit audit and replay QA branches into main, and fixed all 12 findings in `match-service/`. The mock's `demo_url` is now `null`, like the cs2 backend with recording off. Stopped matches save their traces, and the replay and play pages handle stale, empty and failed requests. The edge test now counts distinct route files, since `donkL`/`brokyL` reuse the `_v1` files. Re-run on the merged main, mock only: 73 match service tests, 11 edge tests, browser harness 31/31; 47 pipeline, 11 habit audit and 44 model tests pass.
 
 - 2026-11-14, Ashirwad (Codex): completed independent mock replay QA with reproducible browser/edge harnesses, ignored screenshots/logs and a prioritized report; 47 existing tests pass, 3 added checks pass and 8 expected failures record unresolved edge defects. Service/frontend implementations and APIs unchanged.
 

@@ -1,4 +1,5 @@
-"""Independent edge checks; strict xfails document confirmed defects, not fixes."""
+"""Independent edge checks. The QA-1 to QA-5 cases were strict expected failures in REPORT.md;
+they are fixed and now run as ordinary tests."""
 import asyncio
 import json
 import math
@@ -29,17 +30,17 @@ def library(tmp_path, content=None, missing=False):
 
 def test_all_committed_routes_are_finite_monotonic_8hz_and_same_side():
     lib = RouteLibrary(ROOT/'clones')
-    n = 0
+    files = set()  # donkL/brokyL reuse the _v1 route files, so count distinct files
     for cid in lib.clone_ids():
         for meta in lib.routes(cid):
+            files.add(meta['file'])
             route = lib.route(cid, meta['recording'])
             assert route['side'] == meta['side']
             assert len(route['path']) > 1
             for i, point in enumerate(route['path']):
                 assert all(math.isfinite(v) for v in point)
                 assert point[0] == i / 8
-            n += 1
-    assert n == 159
+    assert len(files) == 159
 
 
 def test_invalid_ids_and_nonexistent_match():
@@ -49,28 +50,28 @@ def test_invalid_ids_and_nonexistent_match():
         assert c.post('/matches/nonexistent/stop').status_code == 404
 
 
-@pytest.mark.xfail(strict=True, reason='QA-1: closest crashes when a listed route file is missing')
+# QA-1 (fixed): was a strict expected failure in the QA report.
 def test_missing_route_is_skipped_by_closest(tmp_path):
     lib = library(tmp_path, missing=True)
     assert lib.closest('sample', 'T', [[0,0,0],[1,1,1],[2,2,2]]) is None
 
 
-@pytest.mark.xfail(strict=True, reason='QA-1: closest divides/mins empty recording paths')
+# QA-1 (fixed): was a strict expected failure in the QA report.
 def test_empty_route_is_skipped_by_closest(tmp_path):
     assert library(tmp_path).closest('sample', 'T', [[0,0,0],[1,1,1],[2,2,2]]) is None
 
 
-@pytest.mark.xfail(strict=True, reason='QA-1: malformed Brotli route escapes as an exception')
+# QA-1 (fixed): was a strict expected failure in the QA report.
 def test_corrupt_route_is_unavailable_instead_of_crashing(tmp_path):
     assert library(tmp_path, content=b'bad').route('sample','sample_t') is None
 
 
-@pytest.mark.xfail(strict=True, reason='QA-2: trace admits NaN and Infinity from GSI')
+# QA-2 (fixed): was a strict expected failure in the QA report.
 def test_nonfinite_gsi_positions_are_rejected():
     assert gsi_players({'allplayers':{'a':{'position':'nan, inf, 0'}}}) == []
 
 
-@pytest.mark.xfail(strict=True, reason='QA-2: trace retains nonfinite coordinates')
+# QA-2 (fixed): was a strict expected failure in the QA report.
 def test_nonfinite_trace_points_are_rejected():
     t = Trace('sample','de_mirage','gsi')
     t.add(1,0,'a','T',float('nan'),0)
@@ -84,7 +85,7 @@ def test_duplicate_and_out_of_order_trace_samples_do_not_reverse_time():
     assert [p[0] for p in t.to_json()['rounds'][0]['players'][0]['path']] == [0,.12,.25]
 
 
-@pytest.mark.xfail(strict=True, reason='QA-3: alive updates resume a dead player path')
+# QA-3 (fixed): was a strict expected failure in the QA report.
 def test_death_is_terminal_in_one_round():
     t = Trace('sample','de_mirage','gsi')
     t.add(1,0,'a','T',0,0)
@@ -95,7 +96,7 @@ def test_death_is_terminal_in_one_round():
     assert player['path'] == [[0,0,0]]
 
 
-@pytest.mark.xfail(strict=True, reason='QA-4: mock stop leaves live_round set and trace unsaved')
+# QA-4 (fixed): was a strict expected failure in the QA report.
 def test_stopped_mock_trace_is_finalized_and_saved(tmp_path):
     async def run():
         async def emit(*args): pass
@@ -110,7 +111,7 @@ def test_stopped_mock_trace_is_finalized_and_saved(tmp_path):
     asyncio.run(run())
 
 
-@pytest.mark.xfail(strict=True, reason='QA-5: mock announces recording URL despite never recording')
+# QA-5 (fixed): was a strict expected failure in the QA report.
 def test_finished_mock_has_no_downloadable_demo_url(tmp_path):
     async def run():
         async def emit(*args): pass

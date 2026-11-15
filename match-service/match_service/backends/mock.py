@@ -38,6 +38,8 @@ class MockBackend:
     async def stop(self, record: MatchRecord) -> None:
         if record.task:
             record.task.cancel()
+        if record.trace is not None:
+            record.trace.finish(self.s.trace_dir)
         self._release(record.match)
 
     async def health(self) -> dict:
@@ -88,10 +90,8 @@ class MockBackend:
             await self.emit(record, "round.ended", {"round": m.round, "winner": winner, "score": m.score.model_dump()})
 
         m.status = "ended"
-        m.demo_url = f"{self.s.public_url}/demos/{m.match_id}.dem"
-        trace.live_round = None
-        if self.s.trace_dir:
-            trace.save(self.s.trace_dir)
+        m.demo_url = None  # the mock records nothing, like the cs2 backend with CS2_RECORD=off
+        trace.finish(self.s.trace_dir)
         self._release(m)
         winner = "CT" if m.score.CT > m.score.T else "T"
         await self.emit(record, "match.ended", {"reason": "finished", "winner": winner,
