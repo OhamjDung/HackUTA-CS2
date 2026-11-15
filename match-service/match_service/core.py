@@ -84,6 +84,9 @@ class Settings:
     # Death coach (coach.py): advice in CS2 chat and in the user's voice after the person dies. Off unless
     # set; from_env turns it on (COACH=off turns it off) and reads keys from match-service/.env too.
     coach: CoachSettings = field(default_factory=lambda: CoachSettings(enabled=False))
+    # MATCH_LOG_FILE: also write the service's own log lines (coach, CS2 backend, outgoing HTTP) to this
+    # file, at INFO. start-cs2.ps1 sets it to data/logs/match-service.log so the logs can be sent back.
+    log_file: Path | None = None
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -124,6 +127,7 @@ class Settings:
             cs2_settle_seconds=float(env.get("CS2_SETTLE_SECONDS", cls.cs2_settle_seconds)),
             puzzle_settle_seconds=float(env.get("CS2_PUZZLE_SETTLE_SECONDS", cls.puzzle_settle_seconds)),
             coach=CoachSettings.from_env(dict(env), env_file=ENV_FILE),
+            log_file=Path(env["MATCH_LOG_FILE"]) if env.get("MATCH_LOG_FILE") else None,
         )
 
 
