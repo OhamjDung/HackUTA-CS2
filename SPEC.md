@@ -58,7 +58,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Donk-only model (`donk.py`): CS-NET specialised to donk with LoRA and a KL anchor to the base | Arjun (Claude) | Done, **failed its pass rule** (run once on a Colab A100). Teacher-forced loss 0.44% better than the base on dev-A, but free-running paths on dev-B were worse (mean error 180.4 vs 172.7; 95% range of the difference 2.8 to 12.6) and broke human limits slightly more (0.64% vs 0.46% of steps). Backwards walking and turning moved towards donk. Overfit after 100 steps. Weights not saved. | `clone-model/donk.py`, `clone-model/results/donk-a100.md` | 2026-11-15 |
 | Donk model self-trained on imagined play (`imagine.py`): expert iteration with a best-of-8 judge against donk's real path and the human limits | Arjun (Claude) | Done, **passed its rule** on test-C (run once, Colab A100, 47.5 min). Generated paths 11.3% closer to donk's than the generic model's (147.6 vs 166.4; 95% range of the difference -27.3 to -10.2); human-limit breaks 0.05% vs 0.55%; backwards share 5.4% (donk 5.0%, generic 9.6%). View turning moved further from donk's. Not in CS2 yet. Adapter in the GitHub release `donk-imagined-v1` (https://github.com/OhamjDung/HackUTA-CS2/releases/tag/donk-imagined-v1; zip sha256 b6838e89…5f5d93585b), not in git. | `clone-model/imagine.py`, `clone-model/results/imagine-a100.md` | 2026-11-15 |
 | Training-only game-sense proxy measurements | Arjun (Codex) | Done as offline proxies:82 rounds, 5 tests pass. No actual audibility/causality or runtime control claims. | `clone-model/gamesense_audit.py`, `clone-model/results/round4-training-proxies.json` | 2026-11-15 |
-| Round4 development training ablation (both players) | Arjun (Codex) | In progress. Path/view/tempo + offline speed/proximity noise-proxy judge, two diverse futures, player selection and dev-only output implemented. 52 CPU tests pass, 5 optional tests skipped; Broky GPU smoke produced four kept futures and completed optimizer updates. Full runs next. Causal hearing, utility planning and runtime fixes remain unimplemented. | `clone-model/round4.py` | 2026-11-15 |
+| Round4 development training ablation (both players) | Arjun (Codex) | In progress on A100-40GB. Donk completed four iterations; broky running. Conservative report separates each metric from joint selection and never labels development as final validation. 60 tests pass, 5 optional Open3D tests skipped. Causal hearing, utility planning and runtime fixes remain unimplemented. | `clone-model/round4.py`, `clone-model/round4_report.py`, section 8.13 | 2026-11-15 |
 | Round 4 game-sense research recovery and MVP continuation | Arjun (Codex) | Done as recovered research/design and handoffs; implementation and new training NOT run. Includes both players, Tom self-kill diagnosis and explicit remaining gates. | `clone-model/ROUND4_GAME_SENSE.md`, `clone-model/research/`, `handoffs/mvp-round4-continuation.md` | 2026-11-15 |
 | Claude continuation handoff | Arjun (Codex) | Done and consumed. Claude read it on 2026-11-14 and removed the folder, as its own instructions said. | removed (`handoffs/claude-continuation/`) | 2026-11-14 |
 | Handoff of the remaining work (`handoffs/remaining-work.md`) | Arjun (Claude) | Done. Lists what is left to finish the spec, the critical path to the MVP (tasks 1 to 4 need Tom's PC), and a paste-in prompt per task. The recipient deletes the file when their tasks are done. | `handoffs/remaining-work.md` | 2026-11-14 |
@@ -1012,6 +1012,23 @@ view-turn distribution moved further from donk's, because the judge scored posit
 CS2, no combat, no people panel. Details: `clone-model/results/imagine-a100.md`. Weights: GitHub
 release `donk-imagined-v1` (https://github.com/OhamjDung/HackUTA-CS2/releases/tag/donk-imagined-v1), with loading steps in its notes.
 
+### 8.13 Round4 game-sense development ablation (2026-11-15)
+
+Protocol: `clone-model/ROUND4_RUN_PROTOCOL.md`; source23292e9. Runs on the existing A100-SXM4-40GB,
+independently for donk and broky from the generic base. Adds view, own-player movement tempo,
+offline speed/proximity noise-proxy ranking and up to two distinct imagined futures. Dev-only:
+no consumed final set is scored, no adapter promoted into CS2. Donk has completed four iterations;
+broky is running. Record final outcomes here after completion, not from partial logs.
+
+`round4_report.py` rejects final/nonfinite or absent selected results, reports path/view/tempo/limits
+individually and always marks gameplay fixes and deployment unestablished. Joint-score improvement
+can conceal a component regression. A selected development checkpoint is not a passing final clone.
+60 learned-model tests pass, including real tiny-backbone training wiring; five local Open3D tests skip.
+Tom's self-kill prompt now explicitly requires profile/control ownership evidence and forbids changing
+control mid-primed-grenade. Runtime, causal observations/hearing, utility and whole-round adaptation
+remain separate work. The recovered plan has been corrected where it claimed no converter existed
+or treated historical bot-hearing rules as installed CS2 behavior.
+
 ## 9. Architecture
 
 ```
@@ -1519,6 +1536,8 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-15, Arjun (Codex): added conservative per-component Round4 completion reporting and corrected recovered runtime/CS2-hearing assumptions. Tom self-kill diagnosis now requires control ownership and safe grenade-state comparisons. 60 tests pass, 5 optional Open3D skips. Donk GPU run completed; broky training is active, final outcomes pending.
 
 - 2026-11-15, Arjun (Codex): measured player-specific game-sense proxies on82 eligible training-only rounds (40 donk/42 broky), with explicit missing sound coverage and consumed/dev exclusion. Five audit tests pass. Recorded the exact active Round4 development protocol; donk first candidate was rejected for increased human-limit violations. Both-player jobs are running/queued, not validated.
 

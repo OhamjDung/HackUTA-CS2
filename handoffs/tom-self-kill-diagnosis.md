@@ -89,3 +89,12 @@ Write `handoffs/tom-self-kill-findings.md` with:
 
 Then update `SPEC.md` (status row "Self-kill diagnosis", change log line) in the same commit, delete this
 prompt file in that commit, and push.
+
+
+## Round4 training follow-up (2026-11-15, Arjun/Codex)
+
+Two offline neural development runs (donk and broky) are separate from the live playback layer. Do not assume a new model checkpoint is installed or that retraining caused/fixed these deaths. Record exact profile, driver, plugin version, route source and installed DLL hashes in your findings.
+
+After collecting non-invasive death timelines, propose a controlled routes-on/routes-off/native comparison to Tom. If the same bot reacts to sounds with routes off and fails during recorded playback, that isolates controller ownership as the likely adaptability problem. It is evidence to investigate, not proof of a precise mechanism. Keep side, spawn, economy, opponents and scenario comparable; report confounders.
+
+Do not change route mode in the middle of a primed grenade: the command itself stops playback and can confound or create the suspected problem. Arrange mode changes before a controlled round with Tom's approval, with no active grenade state. Do not send console record over netcon. Capture input ownership, attack/release state and the five seconds before the death. Diagnose first, then propose a minimal fix and regression scenario; do not patch live code in this diagnosis task.
