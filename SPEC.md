@@ -54,7 +54,10 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Diagnosis of the failed neural identity model | Arjun (Claude) | Done. Adapters judged not usable: no change in 64% to 72% of test windows. Not offered as bots. | `clone-model/results/diagnosis-2026-11-14.md` | 2026-11-14 |
 | Second learned-identity experiment (`v2.py`): many identities, identity at every step, likelihood "who is it?" test | Arjun (Claude) | Done. **Held-back test passed once**: 8 of 10 players had the true identity in their team's top 2 (rule: 6), 6 of 10 ranked first; donk 1st, broky 3rd (fails individually). Caveat: for 6 of 10 players, no identity fits the real moves slightly better than their own. Scores recorded moves only; generates no play. Weights saved on Arjun's PC (checksum matched); not committed. | `clone-model/v2.py`, `clone-model/results/second-a100.md` | 2026-11-14 |
 | Human limits measured from elite pros (`limits.py`) | Arjun (Claude) | Done. 80 player-matches, 50 pros, 8 non-held-back Mirage matches: turn speed, acceleration, flick time, backwards walking, per-step limits at 4 Hz. 5 tests pass. Also measures any recorded bot match. | `clone-pipeline/clone_pipeline/limits.py`, `clone-model/results/human-limits.csv` | 2026-11-15 |
-| Round 3 design: human limits and perception-first evaluation | Arjun (Claude) | Step 1 built, **not run in CS2**: clone bot entries get human aim settings (simulated 45° flick 0.34 s, peak under 1,200 °/s); `donkL`/`brokyL` no longer use the restlessness and crouch-at-burst rules; `limits check` tests a bot in a recording against 9 limits that all 80 real pro player-matches pass. Tests: 55 pipeline, 3 tool, 30 C#. Tom's test steps in `handoffs/tom-human-aim-test.md`. Steps 2 to 4 design only. | `clone-model/ROUND3_DESIGN.md`, `clone-director/tools/add_clone_bot_entries.py`, `clone-pipeline/references/human_limits.json` | 2026-11-15 |
+| Round 3 design: human limits and perception-first evaluation | Arjun (Claude) | Step 1 built, **not run in CS2**: the `donkL2`/`brokyL2` bot entries get human aim settings (simulated 45° flick 0.34 s, peak under 1,200 °/s) and those two clones do not use the restlessness and crouch-at-burst rules (changed by Tom 2026-11-15: step 1 first applied to `donkL`/`brokyL` and all four entries; those are back to plain entries and five rules so versions can be compared); `limits check` tests a bot in a recording against 9 limits that all 80 real pro player-matches pass. Tests: 55 pipeline, 3 tool, 30 C#. Tom's test steps in `handoffs/tom-human-aim-test.md`. Steps 2 to 4 design only. | `clone-model/ROUND3_DESIGN.md`, `clone-director/tools/add_clone_bot_entries.py`, `clone-pipeline/references/human_limits.json` | 2026-11-15 |
+| Clone versions `donkL2` and `brokyL2` (Round 3 step 1 as separate clones) | Tom (with Claude) | Done as files and code; **not run in CS2 by this agent**. Same routes and quirks as `donkL`/`brokyL`, without the restlessness and crouch rules; `add_clone_bot_entries.py` gives only these two human aim settings. `donkL`/`brokyL` are back to five rules and plain bot entries. The bot entries must be re-installed with the tool before the L2 clones can join. 3 tool tests pass. | `clones/donkL2.json`, `clones/brokyL2.json`, `clone-director/tools/add_clone_bot_entries.py` | 2026-11-15 |
+| CloneDirector: enemy-contact hand-off and death log line | Tom (with Claude) | Code written; **not built, not tested, not run in CS2 by this agent** (the C# projects do not build on Tom's PC: `libs/BotControllerApi.dll` is missing). Route playback stops when a living enemy is within 900 units; each clone death writes a `DEATH` log line. One C# test added, not run. | `clone-director/CloneDirectorPlugin.cs`, `clone-director/Core/Combat.cs` | 2026-11-15 |
+| Match service: no random extra bot with one clone; stays reachable on Windows | Tom (with Claude) | Done against fakes: 77 of 78 match service tests pass on Tom's PC (5 new in `test_settle.py`; the one failure is the symlink test, which needs a Windows privilege). Not confirmed in CS2 by this agent. `start-cs2.ps1` now starts uvicorn on the selector event loop. | `match-service/match_service/backends/cs2.py`, `match-service/match_service/loop.py`, `match-service/start-cs2.ps1` | 2026-11-15 |
 | Donk-only model (`donk.py`): CS-NET specialised to donk with LoRA and a KL anchor to the base | Arjun (Claude) | Done, **failed its pass rule** (run once on a Colab A100). Teacher-forced loss 0.44% better than the base on dev-A, but free-running paths on dev-B were worse (mean error 180.4 vs 172.7; 95% range of the difference 2.8 to 12.6) and broke human limits slightly more (0.64% vs 0.46% of steps). Backwards walking and turning moved towards donk. Overfit after 100 steps. Weights not saved. | `clone-model/donk.py`, `clone-model/results/donk-a100.md` | 2026-11-15 |
 | Donk model self-trained on imagined play (`imagine.py`): expert iteration with a best-of-8 judge against donk's real path and the human limits | Arjun (Claude) | Done, **passed its rule** on test-C (run once, Colab A100, 47.5 min). Generated paths 11.3% closer to donk's than the generic model's (147.6 vs 166.4; 95% range of the difference -27.3 to -10.2); human-limit breaks 0.05% vs 0.55%; backwards share 5.4% (donk 5.0%, generic 9.6%). View turning moved further from donk's. Not in CS2 yet. Adapter in the GitHub release `donk-imagined-v1` (https://github.com/OhamjDung/HackUTA-CS2/releases/tag/donk-imagined-v1; zip sha256 b6838e89…5f5d93585b), not in git. | `clone-model/imagine.py`, `clone-model/results/imagine-a100.md` | 2026-11-15 |
 | Training-only game-sense proxy measurements | Arjun (Codex) | Done as offline proxies:82 rounds, 5 tests pass. No actual audibility/causality or runtime control claims. | `clone-model/gamesense_audit.py`, `clone-model/results/round4-training-proxies.json` | 2026-11-15 |
@@ -303,6 +306,12 @@ Checked on 2026-11-14.
   (`clone-director/tools/add_clone_bot_entries.py`). donk_v1 (CT) vs donkL (T) then ran in one match under
   those names. **Not confirmed:** purchases, combat hand-off, donkL's jump quirk (one 70 s sample per bot gave
   8.6 and 14.6 jumps a minute, but the method is confounded and says nothing). **Step 4 not run:** `-Record tv` untried.
+- Tom's PC, 2026-11-15 (Claude): `uv run python -m pytest` in `match-service/`: 77 pass, 1 fails.
+  The failure is `test_generated.py::test_path_traversal_is_refused`, which makes a symlink and stops
+  with `WinError 1314` (Windows needs a privilege for that); it is not a fault in the service. The 5
+  new tests in `tests/test_settle.py` pass: the extra bot is kicked by name before the quota is set,
+  nothing is kicked when the clone's bot is missing or a name is unusual, and two clones set the quota
+  to 2. The game is a fake in these tests. `clone-director/tools`: 3 tests pass.
 - Every GitHub repository in section 4 exists. Stars, licenses, and update dates come from GitHub.
 - The OpenCS2 counts in section 7 come from queries against its index tables.
 - The match service's cs2 backend, against a fake console and hand-written game state updates
@@ -370,6 +379,14 @@ Checked on 2026-11-14.
 - Whether CS2 sends bot positions to the service when the local player joins a team instead of
   spectating. Positions arrived in the bot-vs-bot spectator run.
 - Why `bot_add_ct "donk"` once added other bots straight after `bot_kick`.
+- The 2026-11-15 changes in CS2: the extra-bot cleanup (`_settle_bots`) in a person-vs-clone match,
+  the selector event loop keeping the service reachable, the 900-unit enemy-contact hand-off, the
+  `DEATH` log line, and `donkL2`/`brokyL2` joining with human aim. The code comments say the random
+  extra bot and the `WinError 64` stop were seen on Tom's PC; the fixes were not confirmed there by
+  the agent that committed them.
+- The CloneDirector C# build and tests after the 2026-11-15 changes. `dotnet test` on Tom's PC stops
+  at the missing `clone-director/libs/BotControllerApi.dll`, so `EnemyContactUsesThreeDimensionalDistance`
+  and the earlier 30 tests were not run on this code.
 - Scoring the bot positions collected in a real CS2 match against the held-back reference.
 - CounterStrikeSharp loading MatchBridge, `Server.NextFrame` running
   the commands, and `matchbridge_jointeam` moving the player.
@@ -598,8 +615,8 @@ built on CounterStrikeSharp, the C# plugin framework that CS2-Bot-Improver insta
    took each route on that side at that money level. It then picks the segment of that label whose
    start is nearest to the bot's spawn point.
 4. **Playback.** When the round goes live, the plugin calls `LoadReplay` and `StartReplay`.
-5. **Hand-off.** The plugin calls `StopReplay` when the segment ends, when the bot takes damage, or
-   when an enemy fires nearby. CS2-Bot-Improver's own logic then fights and plays the objective,
+5. **Hand-off.** The plugin calls `StopReplay` when the segment ends, when the bot takes damage,
+   when an enemy fires nearby, or when an enemy comes close. CS2-Bot-Improver's own logic then fights and plays the objective,
    using the clone's personality numbers.
 6. **Round ends.** The plugin writes a log line: clone, route label, segment source, hand-off reason.
 
@@ -614,7 +631,13 @@ $2,000-3,999 force, and $4,000 or more full. These are unvalidated approximation
 equipment-value labels. Only routes matching side, source, and buy type are eligible. Route-label
 shares are renormalized over eligible labels, then the nearest starting position is selected.
 Enemy shots within 1,200 engine distance units stop playback, without a visibility check. Damage
-dealt or taken also stops it. Completion, death, pawn replacement, mode change, disconnect, map
+dealt or taken also stops it. Added 2026-11-15 (Tom, not built or run): a living enemy within 900
+units stops playback with the reason `enemy close` (`Combat.EnemyContactRadius`; 3D distance, no
+visibility check, so it also fires through walls; a starting value to tune), because a route never
+looks at enemies and a clone could die before a shot or damage stopped it. Each clone death writes a
+`DEATH` line to the CounterStrikeSharp log: clone id, slot, killer (`self`, `none` or a name), weapon
+(`world` with no attacker is a fall, `planted_c4` the bomb, `inferno` fire), whether the route was
+still playing, the last hand-off reason and the position. Completion, death, pawn replacement, mode change, disconnect, map
 change, and unload are handled. The last route and first hand-off reason stay visible until the
 next round. A failed stop is reported and prevents starting another route or purchase plan.
 
@@ -900,6 +923,13 @@ A clone with quirks has `L` after the player's name: `donkL`, `brokyL`. It reuse
 routes and purchases, sets `stand_in_bot` to the installed bot name, and adds the fields `learned`,
 `quirks`, `quirk_controls`, and `quirk_reference`. Code that reads only the older fields is unaffected.
 
+A later version of a quirk clone gets a number: `donkL2`, `brokyL2` (2026-11-15). An earlier version
+is not changed once teammates have watched it, so versions can be compared. `L2` is `L` without the
+restlessness and crouch rules (kept in the profile under `quirk_controls_disabled` with the reason),
+and its bot entry has the human aim settings of section 8.10. Each version needs its own bot entry:
+add the id to `COPIES` (and to `HUMAN_AIM_IDS` for human aim) in
+`clone-director/tools/add_clone_bot_entries.py` and run the tool again.
+
 **The quirk test.** It replaces per-window path error as the identity test. The rule was fixed
 before anything was scored with it, and it is looser than the first test, which required the
 player's own identity to beat every alternative outright:
@@ -982,6 +1012,8 @@ Full design: `clone-model/ROUND3_DESIGN.md`. Summary:
   it, likeness 1 to 7, robotic moments), with real donk as the control; tier 3 automatic proxies,
   including the earlier similarity score. A clone ships only if tiers 1 and 2 pass. Pass rules are in the
   design and fixed now.
+- **Where step 1 lives (2026-11-15):** in the clones `donkL2` and `brokyL2` only. `donkL` and
+  `brokyL` keep the unlimited aim and all five rules, as the version Arjun watched.
 - **Order:** step 1 fixes the live bot's aim settings and rules (no training); step 2 lets the model
   generate routes; step 3 trains `v3`; step 4 tests. No unused donk Mirage match is left for a final
   test; the design recommends the people panel as the final test.
@@ -1126,6 +1158,17 @@ setup steps.
   after 20 s otherwise. That shows a bot with the right name, not CloneDirector's attachment.
   `de_mirage` only. `start-cs2.ps1 -Bots clone` installs MatchBridge and sets this up.
 - `clone_id` and `stand_in_bot` must be plain names; profiles that break this are skipped.
+- Extra bots (2026-11-15, tested against a fake game only). The bot base keeps a bot quota of 2, so
+  a match with one clone, as when a person plays a clone, got a random second bot. After the bots are
+  added the service (`_settle_bots`) reads `status` until every clone's bot is listed (up to
+  `CS2_SETTLE_SECONDS`, default 6), then sends `bot_kick "<name>"` for each other bot and
+  `bot_quota <number of clones>` in one batch, kicks first. `bot_quota 0` would remove every bot and a
+  lower quota alone removes a random one. It changes nothing if a clone's bot is missing or another
+  bot's name is not a plain name. No endpoint or message changed.
+- Event loop (2026-11-15). On Windows `start-cs2.ps1` starts uvicorn with
+  `--loop match_service.loop:selector_loop`. With the default loop, a reset connection could close
+  the listening socket (`WinError 64`, "Accept failed on a socket"): the process stayed alive, nothing
+  answered, and the demo pages showed "Failed to fetch".
 
 netcon works in CS2 Bot Mode (Tom's run, 2026-11-14); RCON and the plugin stay as fallbacks.
 - At match start the service sends `mp_warmup_end` and `mp_restartgame 1`, then ignores
@@ -1541,6 +1584,8 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-15, Tom (with Claude): added clones `donkL2`/`brokyL2`, which now carry Round 3 step 1 (human aim bot entries, no restlessness or crouch rule). **`donkL`/`brokyL` are put back on purpose** to five rules and plain bot entries, so versions can be compared. CloneDirector: route playback stops when an enemy is within 900 units, and each clone death writes a `DEATH` log line (not built or run; C# does not build on Tom's PC). Match service: removes the bot base's random extra bot when a match has one clone, and `start-cs2.ps1` uses the selector event loop so a reset connection cannot stop the service answering. 77 of 78 match service tests pass on Tom's PC (the failure is the symlink test), 3 tool tests pass; nothing confirmed in CS2 by this agent. AGENTS.md section 7 gained four rules.
 
 - 2026-11-15, Arjun (Codex): completed both Round4 development runs on A100-40GB (800 total updates), verified/downloaded adapters and source hashes, and preserved all iteration results. Path/tempo/limits improve but turning regresses for both; neither promoted or final-tested. Published detailed next-stage plan and Tom prompt. 60 tests pass,5 optional Open3D skips.
 

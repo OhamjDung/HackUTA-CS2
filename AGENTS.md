@@ -81,6 +81,19 @@ record the change in `SPEC.md`.
 - **Live demo runs:** start the service with `.\start-cs2.ps1 -Record off`, then use
   `http://localhost:8000/demo/`. CS2 sends bot positions only to a spectator, so the live map
   panels work for bot-vs-bot matches, not for matches where the person plays.
+- **Start the service with `start-cs2.ps1` (added 2026-11-15).** A hand-run uvicorn on Windows needs
+  `--loop match_service.loop:selector_loop`. With the default loop a reset connection can close the
+  listening socket: the process stays alive, nothing answers, and the demo pages show "Failed to fetch".
+- **Do not set `bot_quota` by hand (added 2026-11-15).** The bot base keeps a quota of 2 and fills it
+  with a random bot. `bot_quota 0` kicks every bot and a lower quota kicks a random one, possibly the
+  clone. The service kicks extra bots by name first, then sets the quota (`_settle_bots`).
+- **A new clone version gets a new id (added 2026-11-15).** Do not change a clone teammates have
+  already watched; add `donkL2` next to `donkL`. Add the id to `COPIES` in
+  `add_clone_bot_entries.py` (and to `HUMAN_AIM_IDS` if it gets human aim), then run the tool again.
+- **Known test limits on Tom's PC (2026-11-15).** `test_generated.py::test_path_traversal_is_refused`
+  fails with `WinError 1314` (symlinks need a Windows privilege); it is not a regression. The
+  CloneDirector C# tests do not build there (`clone-director/libs/BotControllerApi.dll` is missing), so
+  say "not run" for C# changes.
 
 ## 8. Voices
 

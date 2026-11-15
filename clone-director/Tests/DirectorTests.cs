@@ -140,6 +140,15 @@ public sealed class DirectorTests
     }
 
     [Fact]
+    public void EnemyContactUsesThreeDimensionalDistance()
+    {
+        Assert.True(Combat.EnemyClose(0, 0, 0, 900, 0, 0));
+        Assert.False(Combat.EnemyClose(0, 0, 0, 901, 0, 0));
+        Assert.False(Combat.EnemyClose(0, 0, 0, 700, 700, 0));
+        Assert.True(Combat.EnemyClose(0, 0, 0, 500, 500, 300));
+    }
+
+    [Fact]
     public void NearbyShotsUseThreeDimensionalDistance()
     {
         Assert.True(Combat.Nearby(0, 0, 0, 1200, 0, 0));

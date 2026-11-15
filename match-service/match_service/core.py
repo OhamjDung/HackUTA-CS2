@@ -59,6 +59,8 @@ class Settings:
     cs2_plugin_port: int = 27100
     cs2_plugin_token: str = ""  # empty: use cs2_console_password
     clone_join_seconds: float = 20.0  # how long to wait for every clone bot to join
+    # How long to wait for every clone bot to show in `status` before removing extra bots (see _settle_bots).
+    cs2_settle_seconds: float = 6.0
     # Which route files CloneDirector plays: `recorded` (cut from the player's matches) or `generated`
     # (written by a trained model; needs `model` in the profile). See drivers.py.
     cs2_routes: str = "recorded"
@@ -93,6 +95,7 @@ class Settings:
             cs2_plugin_token=env.get("CS2_PLUGIN_TOKEN", cls.cs2_plugin_token),
             clone_join_seconds=float(env.get("CS2_CLONE_JOIN_SECONDS", cls.clone_join_seconds)),
             cs2_routes=env.get("CS2_CLONE_ROUTES", cls.cs2_routes),
+            cs2_settle_seconds=float(env.get("CS2_SETTLE_SECONDS", cls.cs2_settle_seconds)),
         )
 
 

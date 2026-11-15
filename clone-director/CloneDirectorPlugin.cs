@@ -183,10 +183,29 @@ public sealed class CloneDirectorPlugin : BasePlugin
             var pawn = binding.Player.PlayerPawn.Value;
             if (binding.Session.Playing && (pawn is null || !pawn.IsValid || pawn.Handle != binding.Pawn || !binding.Player.PawnIsAlive))
                 binding.Session.Stop("pawn changed or dead");
+            if (binding.Session.Playing && pawn is not null && pawn.IsValid && EnemyClose(binding, pawn))
+            {
+                binding.Session.Stop("enemy close");
+                binding.QuietUntil = Server.CurrentTime + Quirks.QuietSecondsAfterFight;
+            }
             binding.Session.Poll();
             ApplyJumpQuirk(binding, pawn);
             ApplyRestlessQuirk(binding, pawn);
         }
+    }
+
+    // True when any living enemy is within Combat.EnemyContactRadius of the bot.
+    private static bool EnemyClose(Binding b, CCSPlayerPawn pawn)
+    {
+        var me = pawn.AbsOrigin;
+        if (me is null) return false;
+        foreach (var other in Utilities.GetPlayers())
+        {
+            if (!other.IsValid || !other.PawnIsAlive || other.TeamNum is not (2 or 3) || other.TeamNum == b.Player.TeamNum) continue;
+            var pos = other.PlayerPawn.Value?.AbsOrigin;
+            if (pos is not null && Combat.EnemyClose(me.X, me.Y, me.Z, pos.X, pos.Y, pos.Z)) return true;
+        }
+        return false;
     }
 
     // Learned quirk: a player who rarely stands still. When the bot has stood still for a larger
@@ -294,7 +313,21 @@ public sealed class CloneDirectorPlugin : BasePlugin
         StopFor(e.Attacker, "dealt damage");
         return HookResult.Continue;
     }
-    private HookResult Death(EventPlayerDeath e, GameEventInfo info) { StopFor(e.Userid, "death"); return HookResult.Continue; }
+    private HookResult Death(EventPlayerDeath e, GameEventInfo info)
+    {
+        // Say how a clone died: weapon "world" with no attacker is a fall, "planted_c4" the bomb, "inferno" fire.
+        // Logged before the route is stopped, so the reason shows whether it was still playing.
+        if (e.Userid is { } victim && _bots.TryGetValue(victim.Slot, out var dead))
+        {
+            var at = victim.PlayerPawn.Value?.AbsOrigin;
+            var killer = e.Attacker is { IsValid: true } a ? (a.Slot == victim.Slot ? "self" : a.PlayerName) : "none";
+            Log($"DEATH {dead.Session.Profile.Id} slot={victim.Slot} by={killer} weapon={e.Weapon} " +
+                $"route={(dead.Session.Playing ? "playing" : "stopped")} last_reason={dead.Session.Reason} " +
+                $"pos=({at?.X:F0},{at?.Y:F0},{at?.Z:F0})");
+        }
+        StopFor(e.Userid, "death");
+        return HookResult.Continue;
+    }
     private void StopFor(CCSPlayerController? p, string reason)
     {
         if (p is not null && _bots.TryGetValue(p.Slot, out var b))

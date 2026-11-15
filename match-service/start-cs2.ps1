@@ -198,4 +198,5 @@ if ($Open) {
 if ($Listen -ne "127.0.0.1") {
     Write-Host "Listening on $Listen : anyone on this network can create and stop matches." -ForegroundColor Yellow
 }
-uv run uvicorn match_service.main:app --host $Listen --port $Port
+# --loop: the default Windows loop can close the listening socket after one reset connection (match_service/loop.py).
+uv run uvicorn match_service.main:app --host $Listen --port $Port --loop match_service.loop:selector_loop

@@ -234,6 +234,8 @@ By hand, on any system:
    MATCH_BACKEND=cs2 CS2_CONSOLE=netcon GSI_TOKEN=<token> CS2_DEMO_DIR="<CS2 folder>/game/csgo" \
      uv run uvicorn match_service.main:app --host 0.0.0.0 --port 8000
    ```
+   On Windows add `--loop match_service.loop:selector_loop` (`start-cs2.ps1` does). The default loop
+   there can close the listening socket after one reset connection.
 
 To build MatchBridge by hand: install the .NET SDK (8 or newer), run `dotnet build plugin/MatchBridge -c Release`,
 then copy `plugin/MatchBridge/bin/Release/net8.0/MatchBridge.dll` and a `matchbridge.json` (see
@@ -252,6 +254,7 @@ then copy `plugin/MatchBridge/bin/Release/net8.0/MatchBridge.dll` and a `matchbr
 | `CS2_BOTS` | `stand_in` | `stand_in` or `clone` (CloneDirector through MatchBridge) |
 | `CS2_PLUGIN_PORT`, `CS2_PLUGIN_TOKEN` | 27100, `CS2_CONSOLE_PASSWORD` | MatchBridge, for clone mode |
 | `CS2_CLONE_JOIN_SECONDS` | 20 | How long to wait for every clone bot to join |
+| `CS2_SETTLE_SECONDS` | 6 | How long to wait for every clone bot to show in `status` before the bot base's extra bots are kicked and `bot_quota` is set to the number of clones |
 | `CS2_DEMO_DIR` | not set | Folder where CS2 saves `match_<id>.dem`; served at `demo_url` |
 | `CS2_MAP_LOAD_SECONDS` | 90 | How long to wait for CS2 to report the map before failing |
 | `CS2_RESTART_SECONDS` | 2 | How long to ignore game state after `mp_restartgame 1` |

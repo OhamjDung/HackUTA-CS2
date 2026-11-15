@@ -1,0 +1,2411 @@
+{
+  "clone_id": "donkL2",
+  "display_name": "donkL2",
+  "source": "pro",
+  "reaction_ms": null,
+  "aim_skill": 1.0,
+  "aggression": 0.52,
+  "weapons": [
+    "ak47",
+    "m4a1",
+    "galilar",
+    "usp_silencer",
+    "glock",
+    "m4a1_silencer"
+  ],
+  "positions": {
+    "T": {
+      "TopofMid": 0.2093,
+      "TSpawn": 0.1109,
+      "SideAlley": 0.0886,
+      "BombsiteA": 0.0811,
+      "Middle": 0.0724,
+      "PalaceAlley": 0.0718,
+      "PalaceInterior": 0.0534,
+      "Apartments": 0.05,
+      "Underpass": 0.0445,
+      "TRamp": 0.035,
+      "Catwalk": 0.0347,
+      "BackAlley": 0.0325
+    },
+    "CT": {
+      "CTSpawn": 0.2716,
+      "BombsiteA": 0.2188,
+      "Jungle": 0.1272,
+      "Connector": 0.0739,
+      "SnipersNest": 0.0678,
+      "Middle": 0.0532,
+      "BombsiteB": 0.052,
+      "PalaceInterior": 0.0321,
+      "Shop": 0.032,
+      "Underpass": 0.0187,
+      "Stairs": 0.0171,
+      "PalaceAlley": 0.0117
+    }
+  },
+  "model": null,
+  "map": "de_mirage",
+  "steam_id": "76561198018303780",
+  "aggression_detail": {
+    "value": 0.52,
+    "opening_duel_rate": 0.222,
+    "compared_with_players": 25
+  },
+  "route_shares": {
+    "T": {
+      "TopofMid": 0.375,
+      "TSpawn": 0.0938,
+      "SideAlley": 0.0938,
+      "TRamp": 0.0938,
+      "Underpass": 0.0625,
+      "PalaceInterior": 0.0625,
+      "Apartments": 0.0625,
+      "House": 0.0625,
+      "BombsiteA": 0.0312,
+      "BackAlley": 0.0312,
+      "Middle": 0.0312
+    },
+    "CT": {
+      "SnipersNest": 0.25,
+      "BombsiteA": 0.2083,
+      "CTSpawn": 0.125,
+      "Jungle": 0.125,
+      "Connector": 0.1042,
+      "Middle": 0.0833,
+      "PalaceInterior": 0.0417,
+      "Ladder": 0.0208,
+      "Underpass": 0.0208,
+      "Stairs": 0.0208
+    }
+  },
+  "routes": {
+    "T": [
+      {
+        "recording": "donk_v1_t_2393226_r13",
+        "file": "donk_v1/routes/T/donk_v1_t_2393226_r13.json.br",
+        "source": "recorded",
+        "route_key": "BombsiteA",
+        "label": "TSpawn > PalaceAlley > TRamp > PalaceInterior > BombsiteA",
+        "buy_type": "pistol",
+        "match_id": "2393226",
+        "round": 13,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.0,
+          -211.2,
+          -164.0
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393226_r14",
+        "file": "donk_v1/routes/T/donk_v1_t_2393226_r14.json.br",
+        "source": "recorded",
+        "route_key": "BackAlley",
+        "label": "TSpawn > SideAlley > House > BackAlley",
+        "buy_type": "force",
+        "match_id": "2393226",
+        "round": 14,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1296.0,
+          -352.0,
+          -168.0
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393226_r15",
+        "file": "donk_v1/routes/T/donk_v1_t_2393226_r15.json.br",
+        "source": "recorded",
+        "route_key": "Underpass",
+        "label": "TSpawn > SideAlley > House > BackAlley > Underpass",
+        "buy_type": "force",
+        "match_id": "2393226",
+        "round": 15,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1296.0,
+          32.0,
+          -168.0
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393226_r16",
+        "file": "donk_v1/routes/T/donk_v1_t_2393226_r16.json.br",
+        "source": "recorded",
+        "route_key": "TSpawn",
+        "label": "TSpawn > SideAlley > House > BackAlley > House > SideAlley > TSpawn",
+        "buy_type": "eco",
+        "match_id": "2393226",
+        "round": 16,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.0,
+          -306.8,
+          -164.8
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393226_r17",
+        "file": "donk_v1/routes/T/donk_v1_t_2393226_r17.json.br",
+        "source": "recorded",
+        "route_key": "SideAlley",
+        "label": "TSpawn > SideAlley > TopofMid > SideAlley",
+        "buy_type": "full",
+        "match_id": "2393226",
+        "round": 17,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1136.0,
+          32.2,
+          -164.8
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393226_r18",
+        "file": "donk_v1/routes/T/donk_v1_t_2393226_r18.json.br",
+        "source": "recorded",
+        "route_key": "TopofMid",
+        "label": "TSpawn > SideAlley > TopofMid > SideAlley > TopofMid > SideAlley > TopofMid",
+        "buy_type": "force",
+        "match_id": "2393226",
+        "round": 18,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1136.0,
+          -159.8,
+          -164.4
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393232_r13",
+        "file": "donk_v1/routes/T/donk_v1_t_2393232_r13.json.br",
+        "source": "recorded",
+        "route_key": "PalaceInterior",
+        "label": "TSpawn > PalaceInterior",
+        "buy_type": "pistol",
+        "match_id": "2393232",
+        "round": 13,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.0,
+          -307.2,
+          -164.8
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393232_r14",
+        "file": "donk_v1/routes/T/donk_v1_t_2393232_r14.json.br",
+        "source": "recorded",
+        "route_key": "TopofMid",
+        "label": "TSpawn > SideAlley > TopofMid > SideAlley > TopofMid",
+        "buy_type": "full",
+        "match_id": "2393232",
+        "round": 14,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.0,
+          -306.8,
+          -164.8
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393232_r15",
+        "file": "donk_v1/routes/T/donk_v1_t_2393232_r15.json.br",
+        "source": "recorded",
+        "route_key": "TopofMid",
+        "label": "TSpawn > SideAlley > TopofMid",
+        "buy_type": "full",
+        "match_id": "2393232",
+        "round": 15,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1295.9,
+          32.1,
+          -168.0
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393232_r16",
+        "file": "donk_v1/routes/T/donk_v1_t_2393232_r16.json.br",
+        "source": "recorded",
+        "route_key": "TopofMid",
+        "label": "TSpawn > SideAlley > TopofMid > SideAlley > TopofMid",
+        "buy_type": "full",
+        "match_id": "2393232",
+        "round": 16,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1135.9,
+          -255.9,
+          -164.8
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393232_r17",
+        "file": "donk_v1/routes/T/donk_v1_t_2393232_r17.json.br",
+        "source": "recorded",
+        "route_key": "TopofMid",
+        "label": "TSpawn > SideAlley > TopofMid",
+        "buy_type": "full",
+        "match_id": "2393232",
+        "round": 17,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1136.0,
+          -159.8,
+          -164.4
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393232_r18",
+        "file": "donk_v1/routes/T/donk_v1_t_2393232_r18.json.br",
+        "source": "recorded",
+        "route_key": "SideAlley",
+        "label": "TSpawn > SideAlley > TopofMid > SideAlley",
+        "buy_type": "full",
+        "match_id": "2393232",
+        "round": 18,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1136.0,
+          -159.8,
+          -164.4
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393232_r19",
+        "file": "donk_v1/routes/T/donk_v1_t_2393232_r19.json.br",
+        "source": "recorded",
+        "route_key": "TSpawn",
+        "label": "TSpawn",
+        "buy_type": "eco",
+        "match_id": "2393232",
+        "round": 19,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1215.9,
+          -210.8,
+          -164.0
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393232_r20",
+        "file": "donk_v1/routes/T/donk_v1_t_2393232_r20.json.br",
+        "source": "recorded",
+        "route_key": "TopofMid",
+        "label": "TSpawn > SideAlley > TopofMid",
+        "buy_type": "full",
+        "match_id": "2393232",
+        "round": 20,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.0,
+          -306.8,
+          -164.8
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393232_r21",
+        "file": "donk_v1/routes/T/donk_v1_t_2393232_r21.json.br",
+        "source": "recorded",
+        "route_key": "TopofMid",
+        "label": "TSpawn > SideAlley > TopofMid",
+        "buy_type": "full",
+        "match_id": "2393232",
+        "round": 21,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.0,
+          -211.0,
+          -164.0
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393237_r13",
+        "file": "donk_v1/routes/T/donk_v1_t_2393237_r13.json.br",
+        "source": "recorded",
+        "route_key": "Apartments",
+        "label": "TSpawn > SideAlley > House > BackAlley > Apartments",
+        "buy_type": "pistol",
+        "match_id": "2393237",
+        "round": 13,
+        "seconds": 16.08,
+        "ticks": 1028,
+        "end_reason": "contact",
+        "start": [
+          1215.9,
+          -15.8,
+          -164.0
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393237_r14",
+        "file": "donk_v1/routes/T/donk_v1_t_2393237_r14.json.br",
+        "source": "recorded",
+        "route_key": "Apartments",
+        "label": "TSpawn > SideAlley > House > BackAlley > Apartments",
+        "buy_type": "force",
+        "match_id": "2393237",
+        "round": 14,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1136.0,
+          32.2,
+          -164.8
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393237_r15",
+        "file": "donk_v1/routes/T/donk_v1_t_2393237_r15.json.br",
+        "source": "recorded",
+        "route_key": "Underpass",
+        "label": "TSpawn > SideAlley > House > BackAlley > Underpass",
+        "buy_type": "full",
+        "match_id": "2393237",
+        "round": 15,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1136.0,
+          -63.8,
+          -164.5
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393237_r16",
+        "file": "donk_v1/routes/T/donk_v1_t_2393237_r16.json.br",
+        "source": "recorded",
+        "route_key": "House",
+        "label": "TSpawn > SideAlley > House > BackAlley > House",
+        "buy_type": "eco",
+        "match_id": "2393237",
+        "round": 16,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.0,
+          -115.0,
+          -164.0
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393237_r17",
+        "file": "donk_v1/routes/T/donk_v1_t_2393237_r17.json.br",
+        "source": "recorded",
+        "route_key": "TopofMid",
+        "label": "TSpawn > SideAlley > TopofMid > SideAlley > TopofMid",
+        "buy_type": "full",
+        "match_id": "2393237",
+        "round": 17,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1215.9,
+          -15.8,
+          -164.0
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393237_r18",
+        "file": "donk_v1/routes/T/donk_v1_t_2393237_r18.json.br",
+        "source": "recorded",
+        "route_key": "TopofMid",
+        "label": "TSpawn > SideAlley > TopofMid > SideAlley > TopofMid > SideAlley > TopofMid",
+        "buy_type": "full",
+        "match_id": "2393237",
+        "round": 18,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.0,
+          -115.0,
+          -164.0
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393237_r19",
+        "file": "donk_v1/routes/T/donk_v1_t_2393237_r19.json.br",
+        "source": "recorded",
+        "route_key": "TopofMid",
+        "label": "TSpawn > SideAlley > TopofMid",
+        "buy_type": "full",
+        "match_id": "2393237",
+        "round": 19,
+        "seconds": 11.78,
+        "ticks": 753,
+        "end_reason": "contact",
+        "start": [
+          1216.0,
+          -306.8,
+          -164.8
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393237_r20",
+        "file": "donk_v1/routes/T/donk_v1_t_2393237_r20.json.br",
+        "source": "recorded",
+        "route_key": "Middle",
+        "label": "TSpawn > SideAlley > TopofMid > Middle",
+        "buy_type": "full",
+        "match_id": "2393237",
+        "round": 20,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1136.0,
+          -159.8,
+          -164.4
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393240_r13",
+        "file": "donk_v1/routes/T/donk_v1_t_2393240_r13.json.br",
+        "source": "recorded",
+        "route_key": "TRamp",
+        "label": "TSpawn > PalaceAlley > TRamp",
+        "buy_type": "pistol",
+        "match_id": "2393240",
+        "round": 13,
+        "seconds": 18.42,
+        "ticks": 1178,
+        "end_reason": "contact",
+        "start": [
+          1136.0,
+          -256.2,
+          -164.8
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393240_r14",
+        "file": "donk_v1/routes/T/donk_v1_t_2393240_r14.json.br",
+        "source": "recorded",
+        "route_key": "TSpawn",
+        "label": "TSpawn > PalaceAlley > TSpawn",
+        "buy_type": "eco",
+        "match_id": "2393240",
+        "round": 14,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1136.1,
+          -64.1,
+          -164.5
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393240_r15",
+        "file": "donk_v1/routes/T/donk_v1_t_2393240_r15.json.br",
+        "source": "recorded",
+        "route_key": "TRamp",
+        "label": "TSpawn > PalaceAlley > TRamp",
+        "buy_type": "full",
+        "match_id": "2393240",
+        "round": 15,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.0,
+          -115.0,
+          -164.0
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393240_r16",
+        "file": "donk_v1/routes/T/donk_v1_t_2393240_r16.json.br",
+        "source": "recorded",
+        "route_key": "PalaceInterior",
+        "label": "TSpawn > PalaceInterior",
+        "buy_type": "force",
+        "match_id": "2393240",
+        "round": 16,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.0,
+          -16.2,
+          -164.0
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393240_r17",
+        "file": "donk_v1/routes/T/donk_v1_t_2393240_r17.json.br",
+        "source": "recorded",
+        "route_key": "SideAlley",
+        "label": "TSpawn > SideAlley > TopofMid > SideAlley",
+        "buy_type": "full",
+        "match_id": "2393240",
+        "round": 17,
+        "seconds": 15.55,
+        "ticks": 994,
+        "end_reason": "contact",
+        "start": [
+          1215.9,
+          -15.8,
+          -164.0
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393240_r18",
+        "file": "donk_v1/routes/T/donk_v1_t_2393240_r18.json.br",
+        "source": "recorded",
+        "route_key": "House",
+        "label": "TSpawn > SideAlley > House",
+        "buy_type": "full",
+        "match_id": "2393240",
+        "round": 18,
+        "seconds": 6.66,
+        "ticks": 425,
+        "end_reason": "contact",
+        "start": [
+          1216.0,
+          -16.0,
+          -164.0
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393240_r19",
+        "file": "donk_v1/routes/T/donk_v1_t_2393240_r19.json.br",
+        "source": "recorded",
+        "route_key": "TopofMid",
+        "label": "TSpawn > SideAlley > TopofMid",
+        "buy_type": "full",
+        "match_id": "2393240",
+        "round": 19,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1135.9,
+          -159.9,
+          -164.4
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393240_r20",
+        "file": "donk_v1/routes/T/donk_v1_t_2393240_r20.json.br",
+        "source": "recorded",
+        "route_key": "TopofMid",
+        "label": "TSpawn > SideAlley > TopofMid",
+        "buy_type": "full",
+        "match_id": "2393240",
+        "round": 20,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.0,
+          -210.8,
+          -164.0
+        ]
+      },
+      {
+        "recording": "donk_v1_t_2393240_r21",
+        "file": "donk_v1/routes/T/donk_v1_t_2393240_r21.json.br",
+        "source": "recorded",
+        "route_key": "TRamp",
+        "label": "TSpawn > PalaceAlley > TRamp",
+        "buy_type": "full",
+        "match_id": "2393240",
+        "round": 21,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          1216.0,
+          -16.0,
+          -164.0
+        ]
+      }
+    ],
+    "CT": [
+      {
+        "recording": "donk_v1_ct_2393226_r01",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393226_r01.json.br",
+        "source": "recorded",
+        "route_key": "CTSpawn",
+        "label": "CTSpawn > Shop > BombsiteB > Shop > CTSpawn",
+        "buy_type": "pistol",
+        "match_id": "2393226",
+        "round": 1,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1776.0,
+          -1975.8,
+          -264.0
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393226_r02",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393226_r02.json.br",
+        "source": "recorded",
+        "route_key": "Jungle",
+        "label": "CTSpawn > SnipersNest > CTSpawn > Jungle",
+        "buy_type": "full",
+        "match_id": "2393226",
+        "round": 2,
+        "seconds": 19.48,
+        "ticks": 1246,
+        "end_reason": "contact",
+        "start": [
+          -1720.0,
+          -1895.8,
+          -267.6
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393226_r03",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393226_r03.json.br",
+        "source": "recorded",
+        "route_key": "SnipersNest",
+        "label": "CTSpawn > Jungle > CTSpawn > SnipersNest",
+        "buy_type": "full",
+        "match_id": "2393226",
+        "round": 3,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1775.9,
+          -1799.9,
+          -264.0
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393226_r04",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393226_r04.json.br",
+        "source": "recorded",
+        "route_key": "CTSpawn",
+        "label": "CTSpawn > SnipersNest > CTSpawn",
+        "buy_type": "full",
+        "match_id": "2393226",
+        "round": 4,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1975.8,
+          -267.5
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393226_r05",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393226_r05.json.br",
+        "source": "recorded",
+        "route_key": "Middle",
+        "label": "CTSpawn > SnipersNest > Ladder > Catwalk > Middle",
+        "buy_type": "eco",
+        "match_id": "2393226",
+        "round": 5,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393226_r06",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393226_r06.json.br",
+        "source": "recorded",
+        "route_key": "Connector",
+        "label": "CTSpawn > Jungle > BombsiteA > Connector > Middle > Connector",
+        "buy_type": "full",
+        "match_id": "2393226",
+        "round": 6,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1720.0,
+          -1895.8,
+          -267.6
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393226_r07",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393226_r07.json.br",
+        "source": "recorded",
+        "route_key": "Jungle",
+        "label": "CTSpawn > Jungle > BombsiteA > Jungle",
+        "buy_type": "full",
+        "match_id": "2393226",
+        "round": 7,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393226_r08",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393226_r08.json.br",
+        "source": "recorded",
+        "route_key": "Ladder",
+        "label": "CTSpawn > SnipersNest > Ladder",
+        "buy_type": "full",
+        "match_id": "2393226",
+        "round": 8,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1720.0,
+          -1895.8,
+          -267.6
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393226_r09",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393226_r09.json.br",
+        "source": "recorded",
+        "route_key": "Connector",
+        "label": "CTSpawn > Jungle > BombsiteA > Connector",
+        "buy_type": "full",
+        "match_id": "2393226",
+        "round": 9,
+        "seconds": 12.66,
+        "ticks": 809,
+        "end_reason": "contact",
+        "start": [
+          -1775.9,
+          -1799.9,
+          -264.0
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393226_r10",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393226_r10.json.br",
+        "source": "recorded",
+        "route_key": "Middle",
+        "label": "CTSpawn > SnipersNest > Middle > Catwalk > Underpass > Catwalk > Underpass > Middle",
+        "buy_type": "full",
+        "match_id": "2393226",
+        "round": 10,
+        "seconds": 18.67,
+        "ticks": 1194,
+        "end_reason": "contact",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393226_r11",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393226_r11.json.br",
+        "source": "recorded",
+        "route_key": "Jungle",
+        "label": "CTSpawn > BombsiteA > Jungle",
+        "buy_type": "full",
+        "match_id": "2393226",
+        "round": 11,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1655.9,
+          -1976.1,
+          -267.5
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393226_r12",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393226_r12.json.br",
+        "source": "recorded",
+        "route_key": "CTSpawn",
+        "label": "CTSpawn > SnipersNest > Catwalk > SnipersNest > CTSpawn",
+        "buy_type": "full",
+        "match_id": "2393226",
+        "round": 12,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1975.8,
+          -267.5
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393232_r01",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393232_r01.json.br",
+        "source": "recorded",
+        "route_key": "SnipersNest",
+        "label": "CTSpawn > SnipersNest",
+        "buy_type": "pistol",
+        "match_id": "2393232",
+        "round": 1,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1975.8,
+          -267.5
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393232_r02",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393232_r02.json.br",
+        "source": "recorded",
+        "route_key": "Connector",
+        "label": "CTSpawn > Jungle > BombsiteA > Connector > Middle > Connector > BombsiteA > Connector",
+        "buy_type": "force",
+        "match_id": "2393232",
+        "round": 2,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1975.8,
+          -267.5
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393232_r03",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393232_r03.json.br",
+        "source": "recorded",
+        "route_key": "BombsiteA",
+        "label": "CTSpawn > Jungle > BombsiteA",
+        "buy_type": "full",
+        "match_id": "2393232",
+        "round": 3,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1776.1,
+          -1975.9,
+          -264.0
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393232_r04",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393232_r04.json.br",
+        "source": "recorded",
+        "route_key": "BombsiteA",
+        "label": "CTSpawn > BombsiteA",
+        "buy_type": "full",
+        "match_id": "2393232",
+        "round": 4,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1775.9,
+          -1800.1,
+          -264.0
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393232_r05",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393232_r05.json.br",
+        "source": "recorded",
+        "route_key": "PalaceInterior",
+        "label": "CTSpawn > BombsiteA > PalaceInterior",
+        "buy_type": "force",
+        "match_id": "2393232",
+        "round": 5,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1775.9,
+          -1976.1,
+          -264.0
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393232_r06",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393232_r06.json.br",
+        "source": "recorded",
+        "route_key": "BombsiteA",
+        "label": "CTSpawn > Jungle > CTSpawn > Jungle > BombsiteA",
+        "buy_type": "full",
+        "match_id": "2393232",
+        "round": 6,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1720.0,
+          -1895.8,
+          -267.6
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393232_r07",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393232_r07.json.br",
+        "source": "recorded",
+        "route_key": "Underpass",
+        "label": "CTSpawn > SnipersNest > Middle > Catwalk > Underpass",
+        "buy_type": "full",
+        "match_id": "2393232",
+        "round": 7,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1775.9,
+          -1799.9,
+          -264.0
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393232_r08",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393232_r08.json.br",
+        "source": "recorded",
+        "route_key": "PalaceInterior",
+        "label": "CTSpawn > BombsiteA > PalaceInterior > Scaffolding > PalaceInterior",
+        "buy_type": "full",
+        "match_id": "2393232",
+        "round": 8,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1719.9,
+          -1896.1,
+          -267.6
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393232_r09",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393232_r09.json.br",
+        "source": "recorded",
+        "route_key": "SnipersNest",
+        "label": "CTSpawn > SnipersNest",
+        "buy_type": "full",
+        "match_id": "2393232",
+        "round": 9,
+        "seconds": 17.44,
+        "ticks": 1115,
+        "end_reason": "contact",
+        "start": [
+          -1775.9,
+          -1799.9,
+          -264.0
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393232_r10",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393232_r10.json.br",
+        "source": "recorded",
+        "route_key": "BombsiteA",
+        "label": "CTSpawn > Jungle > BombsiteA",
+        "buy_type": "force",
+        "match_id": "2393232",
+        "round": 10,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393232_r11",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393232_r11.json.br",
+        "source": "recorded",
+        "route_key": "BombsiteA",
+        "label": "CTSpawn > BombsiteA",
+        "buy_type": "full",
+        "match_id": "2393232",
+        "round": 11,
+        "seconds": 9.86,
+        "ticks": 630,
+        "end_reason": "contact",
+        "start": [
+          -1655.9,
+          -1976.1,
+          -267.5
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393232_r12",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393232_r12.json.br",
+        "source": "recorded",
+        "route_key": "SnipersNest",
+        "label": "CTSpawn > SnipersNest",
+        "buy_type": "full",
+        "match_id": "2393232",
+        "round": 12,
+        "seconds": 9.2,
+        "ticks": 588,
+        "end_reason": "contact",
+        "start": [
+          -1720.0,
+          -1895.8,
+          -267.6
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393237_r01",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393237_r01.json.br",
+        "source": "recorded",
+        "route_key": "SnipersNest",
+        "label": "CTSpawn > SnipersNest",
+        "buy_type": "pistol",
+        "match_id": "2393237",
+        "round": 1,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393237_r02",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393237_r02.json.br",
+        "source": "recorded",
+        "route_key": "Middle",
+        "label": "CTSpawn > SnipersNest > Middle",
+        "buy_type": "full",
+        "match_id": "2393237",
+        "round": 2,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1720.0,
+          -1895.8,
+          -267.6
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393237_r03",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393237_r03.json.br",
+        "source": "recorded",
+        "route_key": "Middle",
+        "label": "CTSpawn > Jungle > BombsiteA > Connector > Middle",
+        "buy_type": "full",
+        "match_id": "2393237",
+        "round": 3,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1720.0,
+          -1895.8,
+          -267.6
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393237_r04",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393237_r04.json.br",
+        "source": "recorded",
+        "route_key": "Jungle",
+        "label": "CTSpawn > SnipersNest > CTSpawn > Jungle > BombsiteA > Jungle",
+        "buy_type": "full",
+        "match_id": "2393237",
+        "round": 4,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1775.9,
+          -1975.8,
+          -264.0
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393237_r05",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393237_r05.json.br",
+        "source": "recorded",
+        "route_key": "BombsiteA",
+        "label": "CTSpawn > Jungle > BombsiteA",
+        "buy_type": "full",
+        "match_id": "2393237",
+        "round": 5,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1719.9,
+          -1895.8,
+          -267.6
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393237_r06",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393237_r06.json.br",
+        "source": "recorded",
+        "route_key": "SnipersNest",
+        "label": "CTSpawn > SnipersNest",
+        "buy_type": "full",
+        "match_id": "2393237",
+        "round": 6,
+        "seconds": 18.98,
+        "ticks": 1214,
+        "end_reason": "contact",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393237_r07",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393237_r07.json.br",
+        "source": "recorded",
+        "route_key": "SnipersNest",
+        "label": "CTSpawn > SnipersNest",
+        "buy_type": "full",
+        "match_id": "2393237",
+        "round": 7,
+        "seconds": 11.12,
+        "ticks": 711,
+        "end_reason": "contact",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393237_r08",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393237_r08.json.br",
+        "source": "recorded",
+        "route_key": "CTSpawn",
+        "label": "CTSpawn > SnipersNest > CTSpawn",
+        "buy_type": "full",
+        "match_id": "2393237",
+        "round": 8,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1775.8,
+          -1800.0,
+          -264.0
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393237_r09",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393237_r09.json.br",
+        "source": "recorded",
+        "route_key": "SnipersNest",
+        "label": "CTSpawn > SnipersNest",
+        "buy_type": "full",
+        "match_id": "2393237",
+        "round": 9,
+        "seconds": 12.02,
+        "ticks": 768,
+        "end_reason": "contact",
+        "start": [
+          -1656.0,
+          -1975.8,
+          -267.5
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393237_r10",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393237_r10.json.br",
+        "source": "recorded",
+        "route_key": "CTSpawn",
+        "label": "CTSpawn > Shop > CTSpawn",
+        "buy_type": "eco",
+        "match_id": "2393237",
+        "round": 10,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393237_r11",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393237_r11.json.br",
+        "source": "recorded",
+        "route_key": "Connector",
+        "label": "CTSpawn > Jungle > BombsiteA > Connector",
+        "buy_type": "full",
+        "match_id": "2393237",
+        "round": 11,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1776.0,
+          -1975.8,
+          -264.0
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393237_r12",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393237_r12.json.br",
+        "source": "recorded",
+        "route_key": "Jungle",
+        "label": "CTSpawn > SnipersNest > CTSpawn > Jungle",
+        "buy_type": "full",
+        "match_id": "2393237",
+        "round": 12,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1975.8,
+          -267.5
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393240_r01",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393240_r01.json.br",
+        "source": "recorded",
+        "route_key": "SnipersNest",
+        "label": "CTSpawn > SnipersNest > CTSpawn > SnipersNest",
+        "buy_type": "pistol",
+        "match_id": "2393240",
+        "round": 1,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1775.9,
+          -1799.9,
+          -264.0
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393240_r02",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393240_r02.json.br",
+        "source": "recorded",
+        "route_key": "SnipersNest",
+        "label": "CTSpawn > SnipersNest",
+        "buy_type": "full",
+        "match_id": "2393240",
+        "round": 2,
+        "seconds": 15.22,
+        "ticks": 973,
+        "end_reason": "contact",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393240_r03",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393240_r03.json.br",
+        "source": "recorded",
+        "route_key": "CTSpawn",
+        "label": "CTSpawn > SnipersNest > CTSpawn",
+        "buy_type": "full",
+        "match_id": "2393240",
+        "round": 3,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1720.0,
+          -1895.8,
+          -267.6
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393240_r04",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393240_r04.json.br",
+        "source": "recorded",
+        "route_key": "BombsiteA",
+        "label": "CTSpawn > Jungle > BombsiteA > Connector > BombsiteA",
+        "buy_type": "full",
+        "match_id": "2393240",
+        "round": 4,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393240_r05",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393240_r05.json.br",
+        "source": "recorded",
+        "route_key": "SnipersNest",
+        "label": "CTSpawn > SnipersNest",
+        "buy_type": "full",
+        "match_id": "2393240",
+        "round": 5,
+        "seconds": 11.31,
+        "ticks": 723,
+        "end_reason": "contact",
+        "start": [
+          -1775.9,
+          -1799.9,
+          -264.0
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393240_r06",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393240_r06.json.br",
+        "source": "recorded",
+        "route_key": "BombsiteA",
+        "label": "CTSpawn > Jungle > BombsiteA",
+        "buy_type": "full",
+        "match_id": "2393240",
+        "round": 6,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393240_r07",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393240_r07.json.br",
+        "source": "recorded",
+        "route_key": "BombsiteA",
+        "label": "CTSpawn > Jungle > BombsiteA",
+        "buy_type": "full",
+        "match_id": "2393240",
+        "round": 7,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1776.1,
+          -1975.8,
+          -264.0
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393240_r08",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393240_r08.json.br",
+        "source": "recorded",
+        "route_key": "Jungle",
+        "label": "CTSpawn > BombsiteA > Jungle > BombsiteA > Jungle",
+        "buy_type": "full",
+        "match_id": "2393240",
+        "round": 8,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1655.9,
+          -1976.1,
+          -267.5
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393240_r09",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393240_r09.json.br",
+        "source": "recorded",
+        "route_key": "Connector",
+        "label": "CTSpawn > Jungle > BombsiteA > Connector",
+        "buy_type": "full",
+        "match_id": "2393240",
+        "round": 9,
+        "seconds": 10.98,
+        "ticks": 702,
+        "end_reason": "contact",
+        "start": [
+          -1720.0,
+          -1895.8,
+          -267.6
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393240_r10",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393240_r10.json.br",
+        "source": "recorded",
+        "route_key": "Stairs",
+        "label": "CTSpawn > Jungle > BombsiteA > Connector > BombsiteA > Stairs",
+        "buy_type": "full",
+        "match_id": "2393240",
+        "round": 10,
+        "seconds": 19.98,
+        "ticks": 1278,
+        "end_reason": "time_limit",
+        "start": [
+          -1776.1,
+          -1975.8,
+          -264.0
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393240_r11",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393240_r11.json.br",
+        "source": "recorded",
+        "route_key": "BombsiteA",
+        "label": "CTSpawn > Jungle > BombsiteA > Jungle > BombsiteA",
+        "buy_type": "full",
+        "match_id": "2393240",
+        "round": 11,
+        "seconds": 15.25,
+        "ticks": 975,
+        "end_reason": "contact",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      },
+      {
+        "recording": "donk_v1_ct_2393240_r12",
+        "file": "donk_v1/routes/CT/donk_v1_ct_2393240_r12.json.br",
+        "source": "recorded",
+        "route_key": "SnipersNest",
+        "label": "CTSpawn > SnipersNest",
+        "buy_type": "full",
+        "match_id": "2393240",
+        "round": 12,
+        "seconds": 8.22,
+        "ticks": 525,
+        "end_reason": "contact",
+        "start": [
+          -1656.0,
+          -1799.8,
+          -267.2
+        ]
+      }
+    ]
+  },
+  "buy_plan": {
+    "CT": {
+      "eco": {
+        "items": [
+          "Kevlar Vest",
+          "Desert Eagle"
+        ],
+        "aliases": [
+          "vest",
+          "deagle"
+        ],
+        "unmapped_items": [],
+        "rounds_of_this_type": 2,
+        "share_of_rounds_bought": {
+          "Desert Eagle": 0.5,
+          "Kevlar Vest": 0.5
+        }
+      },
+      "force": {
+        "items": [
+          "Kevlar Vest",
+          "Smoke Grenade"
+        ],
+        "aliases": [
+          "vest",
+          "smokegrenade"
+        ],
+        "unmapped_items": [],
+        "rounds_of_this_type": 3,
+        "share_of_rounds_bought": {
+          "Kevlar Vest": 0.67,
+          "Smoke Grenade": 0.67,
+          "Desert Eagle": 0.33,
+          "Flashbang": 0.33,
+          "Kevlar & Helmet": 0.33
+        }
+      },
+      "full": {
+        "items": [
+          "M4A4",
+          "Kevlar & Helmet",
+          "Smoke Grenade",
+          "Incendiary Grenade",
+          "High Explosive Grenade",
+          "Flashbang"
+        ],
+        "aliases": [
+          "m4a1",
+          "vesthelm",
+          "smokegrenade",
+          "incgrenade",
+          "hegrenade",
+          "flashbang"
+        ],
+        "unmapped_items": [],
+        "rounds_of_this_type": 39,
+        "share_of_rounds_bought": {
+          "Smoke Grenade": 0.95,
+          "Incendiary Grenade": 0.67,
+          "High Explosive Grenade": 0.64,
+          "Flashbang": 0.62,
+          "Kevlar & Helmet": 0.49,
+          "Defuse Kit": 0.33,
+          "M4A4": 0.33,
+          "M4A1-S": 0.13,
+          "Kevlar Vest": 0.1,
+          "AWP": 0.05,
+          "MP9": 0.05,
+          "Desert Eagle": 0.03,
+          "FAMAS": 0.03,
+          "Five-SeveN": 0.03
+        }
+      },
+      "pistol": {
+        "items": [
+          "Kevlar Vest"
+        ],
+        "aliases": [
+          "vest"
+        ],
+        "unmapped_items": [],
+        "rounds_of_this_type": 4,
+        "share_of_rounds_bought": {
+          "Kevlar Vest": 1.0
+        }
+      }
+    },
+    "T": {
+      "eco": {
+        "items": [],
+        "aliases": [],
+        "unmapped_items": [],
+        "rounds_of_this_type": 4,
+        "share_of_rounds_bought": {
+          "Decoy Grenade": 0.25
+        }
+      },
+      "force": {
+        "items": [
+          "Galil AR",
+          "Kevlar & Helmet",
+          "Smoke Grenade",
+          "Flashbang"
+        ],
+        "aliases": [
+          "galilar",
+          "vesthelm",
+          "smokegrenade",
+          "flashbang"
+        ],
+        "unmapped_items": [],
+        "rounds_of_this_type": 5,
+        "share_of_rounds_bought": {
+          "Smoke Grenade": 1.0,
+          "Kevlar & Helmet": 0.8,
+          "Flashbang": 0.6,
+          "Galil AR": 0.6,
+          "Desert Eagle": 0.2,
+          "High Explosive Grenade": 0.2,
+          "MAC-10": 0.2,
+          "Molotov": 0.2
+        }
+      },
+      "full": {
+        "items": [
+          "AK-47",
+          "Kevlar & Helmet",
+          "Smoke Grenade",
+          "Molotov",
+          "Flashbang",
+          "High Explosive Grenade"
+        ],
+        "aliases": [
+          "ak47",
+          "vesthelm",
+          "smokegrenade",
+          "molotov",
+          "flashbang",
+          "hegrenade"
+        ],
+        "unmapped_items": [],
+        "rounds_of_this_type": 19,
+        "share_of_rounds_bought": {
+          "Smoke Grenade": 1.0,
+          "Molotov": 0.95,
+          "Kevlar & Helmet": 0.84,
+          "Flashbang": 0.74,
+          "AK-47": 0.58,
+          "High Explosive Grenade": 0.53,
+          "Galil AR": 0.16,
+          "Desert Eagle": 0.05
+        }
+      },
+      "pistol": {
+        "items": [],
+        "aliases": [],
+        "unmapped_items": [],
+        "rounds_of_this_type": 4,
+        "share_of_rounds_bought": {}
+      }
+    }
+  },
+  "files": {
+    "botprofile": "donk_v1/botprofile.txt",
+    "buy_plan": "donk_v1/buy_plan.json",
+    "grenades": "donk_v1/grenades.json"
+  },
+  "grenade_throws": 164,
+  "seconds_to_first_contact": {
+    "T": [
+      21.05,
+      29.06,
+      72.59,
+      72.89,
+      87.86,
+      56.25,
+      21.38,
+      71.64,
+      49.09,
+      66.22,
+      52.73,
+      51.67,
+      84.3,
+      41.5,
+      75.44,
+      16.09,
+      20.97,
+      86.67,
+      64.7,
+      64.64,
+      79.62,
+      11.8,
+      26.81,
+      18.44,
+      80.97,
+      21.91,
+      44.12,
+      15.56,
+      6.67,
+      60.11,
+      91.61,
+      28.84
+    ],
+    "CT": [
+      43.53,
+      19.5,
+      31.12,
+      24.06,
+      24.2,
+      31.58,
+      21.19,
+      30.88,
+      12.67,
+      18.69,
+      85.42,
+      41.17,
+      43.77,
+      94.34,
+      92.59,
+      74.42,
+      56.02,
+      89.11,
+      23.22,
+      17.45,
+      83.92,
+      9.88,
+      9.22,
+      47.33,
+      92.78,
+      70.05,
+      46.92,
+      50.44,
+      19.0,
+      11.14,
+      56.27,
+      12.03,
+      27.38,
+      24.2,
+      77.38,
+      15.23,
+      88.16,
+      78.2,
+      11.33,
+      82.14,
+      46.88,
+      34.62,
+      11.0,
+      20.12,
+      15.27,
+      8.23
+    ]
+  },
+  "source_games": [
+    {
+      "match_id": "2393226",
+      "file": "2393226_spirit-vs-falcons-m2-mirage.dem",
+      "rounds": 18
+    },
+    {
+      "match_id": "2393232",
+      "file": "2393232_red-canids-vs-spirit-m1-mirage.dem",
+      "rounds": 21
+    },
+    {
+      "match_id": "2393237",
+      "file": "2393237_g2-vs-spirit-m1-mirage.dem",
+      "rounds": 20
+    },
+    {
+      "match_id": "2393240",
+      "file": "2393240_spirit-vs-mouz-m2-mirage.dem",
+      "rounds": 21
+    }
+  ],
+  "rounds": {
+    "T": 32,
+    "CT": 48
+  },
+  "similarity": {
+    "what": "The player's building matches compared with the player's own held-back matches. This is the ceiling: how alike the player is to themselves.",
+    "held_back_matches": [
+      "2393242"
+    ],
+    "player_vs_self": {
+      "T": {
+        "position_overlap": 0.621,
+        "route_overlap": 0.421,
+        "median_seconds_to_first_contact": [
+          52.2,
+          71.61
+        ],
+        "rounds": [
+          32,
+          5
+        ]
+      },
+      "CT": {
+        "position_overlap": 0.787,
+        "route_overlap": 0.571,
+        "median_seconds_to_first_contact": [
+          31.35,
+          24.61
+        ],
+        "rounds": [
+          48,
+          12
+        ]
+      }
+    }
+  },
+  "built_at": "2026-11-15T01:39:31+00:00",
+  "stand_in_bot": "donkL2",
+  "learned": {
+    "kind": "per-quirk rules fitted from recordings (clone_pipeline/quirks.py)",
+    "based_on": "donk_v1",
+    "neural_model": null,
+    "building_matches": [
+      "2393226",
+      "2393232",
+      "2393237",
+      "2393240"
+    ],
+    "held_back_matches": [
+      "2393242"
+    ],
+    "pass_rules": {
+      "who_is_it_top_k": 2,
+      "distinctive_z": 1.0,
+      "quirk_min_share_of_gap": 0.5,
+      "quirks_pass_share": 0.6
+    }
+  },
+  "quirks": {
+    "jumps_per_min": {
+      "meaning": "jumps per minute alive",
+      "player": 4.1049,
+      "population_mean": 1.7304,
+      "population_sd": 1.9411,
+      "z": 1.22,
+      "matches": 4,
+      "distinctive": true
+    },
+    "still_share": {
+      "meaning": "share of alive time standing still",
+      "player": 0.1092,
+      "population_mean": 0.1959,
+      "population_sd": 0.0454,
+      "z": -1.91,
+      "matches": 4,
+      "distinctive": true
+    },
+    "full_speed_share": {
+      "meaning": "share of alive time at running speed",
+      "player": 0.2962,
+      "population_mean": 0.2457,
+      "population_sd": 0.0454,
+      "z": 1.11,
+      "matches": 4,
+      "distinctive": true
+    },
+    "slow_share": {
+      "meaning": "share of alive time moving slowly (walking or crouching)",
+      "player": 0.4961,
+      "population_mean": 0.4813,
+      "population_sd": 0.0534,
+      "z": 0.28,
+      "matches": 4,
+      "distinctive": false
+    },
+    "mean_speed": {
+      "meaning": "average speed, game units per second",
+      "player": 128.8808,
+      "population_mean": 112.8368,
+      "population_sd": 10.966,
+      "z": 1.46,
+      "matches": 4,
+      "distinctive": true
+    },
+    "look_speed_deg_s": {
+      "meaning": "typical turning speed while moving, degrees per second",
+      "player": 4.3999,
+      "population_mean": 2.3719,
+      "population_sd": 1.4857,
+      "z": 1.37,
+      "matches": 4,
+      "distinctive": true
+    },
+    "pitch_std": {
+      "meaning": "how much the view moves up and down",
+      "player": 9.5804,
+      "population_mean": 9.9482,
+      "population_sd": 1.5572,
+      "z": -0.24,
+      "matches": 4,
+      "distinctive": false
+    },
+    "crouch_time_share": {
+      "meaning": "share of alive time crouched",
+      "player": 0.079,
+      "population_mean": 0.0861,
+      "population_sd": 0.0378,
+      "z": -0.19,
+      "matches": 4,
+      "distinctive": false
+    },
+    "knife_out_share": {
+      "meaning": "share of alive time holding the knife",
+      "player": 0.2179,
+      "population_mean": 0.205,
+      "population_sd": 0.0391,
+      "z": 0.33,
+      "matches": 4,
+      "distinctive": false
+    },
+    "rifle_speed_at_first_shot": {
+      "meaning": "speed at the first rifle shot of a burst",
+      "player": 40.4257,
+      "population_mean": 47.1231,
+      "population_sd": 15.4374,
+      "z": -0.43,
+      "matches": 4,
+      "distinctive": false
+    },
+    "moving_first_shot_share": {
+      "meaning": "share of rifle bursts started while still moving",
+      "player": 0.4867,
+      "population_mean": 0.5553,
+      "population_sd": 0.1506,
+      "z": -0.46,
+      "matches": 4,
+      "distinctive": false
+    },
+    "single_shot_burst_share": {
+      "meaning": "share of bursts that are a single shot",
+      "player": 0.2619,
+      "population_mean": 0.3731,
+      "population_sd": 0.1677,
+      "z": -0.66,
+      "matches": 4,
+      "distinctive": false
+    },
+    "shots_per_burst": {
+      "meaning": "shots per burst",
+      "player": 4.1834,
+      "population_mean": 3.9424,
+      "population_sd": 0.9288,
+      "z": 0.26,
+      "matches": 4,
+      "distinctive": false
+    },
+    "crouched_shot_share": {
+      "meaning": "share of shots fired while crouched",
+      "player": 0.3005,
+      "population_mean": 0.2893,
+      "population_sd": 0.0856,
+      "z": 0.13,
+      "matches": 4,
+      "distinctive": false
+    },
+    "turn_before_shot_deg": {
+      "meaning": "typical turn in the quarter second before a burst, degrees",
+      "player": 2.5093,
+      "population_mean": 2.0346,
+      "population_sd": 0.8911,
+      "z": 0.53,
+      "matches": 4,
+      "distinctive": false
+    },
+    "peek_left_share": {
+      "meaning": "share of bursts started while strafing left",
+      "player": 0.4396,
+      "population_mean": 0.5164,
+      "population_sd": 0.0712,
+      "z": -1.08,
+      "matches": 4,
+      "distinctive": true
+    },
+    "shots_per_round": {
+      "meaning": "gun shots per round",
+      "player": 16.6567,
+      "population_mean": 10.855,
+      "population_sd": 3.3665,
+      "z": 1.72,
+      "matches": 4,
+      "distinctive": false
+    },
+    "awp_shot_share": {
+      "meaning": "share of shots fired with the sniper rifle (AWP)",
+      "player": 0.0,
+      "population_mean": 0.0248,
+      "population_sd": 0.0538,
+      "z": -0.46,
+      "matches": 4,
+      "distinctive": false
+    },
+    "pistol_shot_share": {
+      "meaning": "share of shots fired with pistols",
+      "player": 0.1232,
+      "population_mean": 0.1972,
+      "population_sd": 0.1144,
+      "z": -0.65,
+      "matches": 4,
+      "distinctive": false
+    },
+    "nades_per_round": {
+      "meaning": "grenades thrown per round",
+      "player": 2.0333,
+      "population_mean": 2.0816,
+      "population_sd": 0.5718,
+      "z": -0.08,
+      "matches": 4,
+      "distinctive": false
+    },
+    "smoke_share": {
+      "meaning": "share of grenades that are smokes",
+      "player": 0.3341,
+      "population_mean": 0.3304,
+      "population_sd": 0.074,
+      "z": 0.05,
+      "matches": 4,
+      "distinctive": false
+    },
+    "flash_share": {
+      "meaning": "share of grenades that are flashbangs",
+      "player": 0.1829,
+      "population_mean": 0.2714,
+      "population_sd": 0.0858,
+      "z": -1.03,
+      "matches": 4,
+      "distinctive": true
+    },
+    "fire_share": {
+      "meaning": "share of grenades that are fire grenades",
+      "player": 0.2577,
+      "population_mean": 0.2391,
+      "population_sd": 0.0607,
+      "z": 0.31,
+      "matches": 4,
+      "distinctive": false
+    },
+    "first_contact_sec": {
+      "meaning": "typical seconds from round start to the first damage dealt or taken",
+      "player": 39.4688,
+      "population_mean": 50.8882,
+      "population_sd": 15.3243,
+      "z": -0.75,
+      "matches": 4,
+      "distinctive": false
+    },
+    "opening_duel_rate": {
+      "meaning": "share of rounds where the player is in the first kill",
+      "player": 0.3097,
+      "population_mean": 0.1878,
+      "population_sd": 0.0941,
+      "z": 1.3,
+      "matches": 4,
+      "distinctive": true
+    },
+    "team_distance": {
+      "meaning": "typical distance from the centre of the teammates, game units",
+      "player": 693.8072,
+      "population_mean": 1046.6241,
+      "population_sd": 254.5433,
+      "z": -1.39,
+      "matches": 4,
+      "distinctive": true
+    },
+    "alone_share": {
+      "meaning": "share of alive time more than 1200 units from the teammates' centre",
+      "player": 0.1686,
+      "population_mean": 0.4075,
+      "population_sd": 0.1287,
+      "z": -1.86,
+      "matches": 4,
+      "distinctive": true
+    }
+  },
+  "quirk_controls": {
+    "jumps_per_min": {
+      "value": 4.1049,
+      "applied_by": "CloneDirector: presses jump at this rate while the bot runs outside a fight",
+      "status": "implemented in the plugin; not run in CS2"
+    },
+    "teamwork": {
+      "value": 100,
+      "applied_by": "bot personality file (botprofile.db), field Teamwork",
+      "status": "written to botprofile.txt; installing it is a manual step"
+    },
+    "shots_per_burst": {
+      "value": 4.1834,
+      "applied_by": "CloneDirector: releases the trigger after a drawn number of shots",
+      "status": "implemented in the plugin; not run in CS2"
+    },
+    "single_shot_burst_share": {
+      "value": 0.2619,
+      "applied_by": "CloneDirector: share of bursts limited to one shot",
+      "status": "implemented in the plugin; not run in CS2"
+    },
+    "look_speed_deg_s": {
+      "value": 4.3999,
+      "applied_by": "nothing",
+      "status": "measured only: the bot interface has no control over view direction"
+    },
+    "flash_share": {
+      "value": 0.1829,
+      "applied_by": "nothing",
+      "status": "measured only: grenade throws are not yet installed into the grenade system"
+    },
+    "opening_duel_rate": {
+      "value": 0.3097,
+      "applied_by": "nothing",
+      "status": "measured only: set by routes and the personality file's Aggression, not by a separate control"
+    }
+  },
+  "quirk_reference": {
+    "players": {
+      "donk": {
+        "jumps_per_min": 4.1049,
+        "still_share": 0.1092,
+        "full_speed_share": 0.2962,
+        "slow_share": 0.4961,
+        "mean_speed": 128.8808,
+        "look_speed_deg_s": 4.3999,
+        "pitch_std": 9.5804,
+        "crouch_time_share": 0.079,
+        "knife_out_share": 0.2179,
+        "rifle_speed_at_first_shot": 40.4257,
+        "moving_first_shot_share": 0.4867,
+        "single_shot_burst_share": 0.2619,
+        "shots_per_burst": 4.1834,
+        "crouched_shot_share": 0.3005,
+        "turn_before_shot_deg": 2.5093,
+        "peek_left_share": 0.4396,
+        "shots_per_round": 16.6567,
+        "awp_shot_share": 0.0,
+        "pistol_shot_share": 0.1232,
+        "nades_per_round": 2.0333,
+        "smoke_share": 0.3341,
+        "flash_share": 0.1829,
+        "fire_share": 0.2577,
+        "first_contact_sec": 39.4688,
+        "opening_duel_rate": 0.3097,
+        "team_distance": 693.8072,
+        "alone_share": 0.1686
+      },
+      "magixx": {
+        "jumps_per_min": 3.141,
+        "still_share": 0.224,
+        "full_speed_share": 0.3152,
+        "slow_share": 0.3851,
+        "mean_speed": 122.1238,
+        "look_speed_deg_s": 2.1094,
+        "pitch_std": 10.7304,
+        "crouch_time_share": 0.0686,
+        "knife_out_share": 0.2029,
+        "rifle_speed_at_first_shot": 53.1958,
+        "moving_first_shot_share": 0.58,
+        "single_shot_burst_share": 0.4561,
+        "shots_per_burst": 3.6217,
+        "crouched_shot_share": 0.3199,
+        "turn_before_shot_deg": 2.5205,
+        "peek_left_share": 0.5218,
+        "shots_per_round": 10.9135,
+        "awp_shot_share": 0.0,
+        "pistol_shot_share": 0.2955,
+        "nades_per_round": 2.7065,
+        "smoke_share": 0.367,
+        "flash_share": 0.2372,
+        "fire_share": 0.2597,
+        "first_contact_sec": 60.5137,
+        "opening_duel_rate": 0.0998,
+        "team_distance": 1317.9049,
+        "alone_share": 0.5389
+      },
+      "sh1r0": {
+        "jumps_per_min": 3.4402,
+        "still_share": 0.2006,
+        "full_speed_share": 0.2264,
+        "slow_share": 0.4855,
+        "mean_speed": 106.9874,
+        "look_speed_deg_s": 4.2297,
+        "pitch_std": 8.3623,
+        "crouch_time_share": 0.0971,
+        "knife_out_share": 0.2161,
+        "rifle_speed_at_first_shot": 46.5454,
+        "moving_first_shot_share": 0.5389,
+        "single_shot_burst_share": 0.5358,
+        "shots_per_burst": 3.5006,
+        "crouched_shot_share": 0.2769,
+        "turn_before_shot_deg": 2.0588,
+        "peek_left_share": 0.5253,
+        "shots_per_round": 9.3349,
+        "awp_shot_share": 0.0771,
+        "pistol_shot_share": 0.205,
+        "nades_per_round": 1.9206,
+        "smoke_share": 0.3843,
+        "flash_share": 0.2213,
+        "fire_share": 0.2348,
+        "first_contact_sec": 50.1172,
+        "opening_duel_rate": 0.1704,
+        "team_distance": 869.71,
+        "alone_share": 0.3087
+      },
+      "tn1r": {
+        "jumps_per_min": 0.7126,
+        "still_share": 0.2089,
+        "full_speed_share": 0.2066,
+        "slow_share": 0.5206,
+        "mean_speed": 104.7696,
+        "look_speed_deg_s": 2.8125,
+        "pitch_std": 10.9031,
+        "crouch_time_share": 0.0516,
+        "knife_out_share": 0.1591,
+        "rifle_speed_at_first_shot": 49.1807,
+        "moving_first_shot_share": 0.5575,
+        "single_shot_burst_share": 0.2524,
+        "shots_per_burst": 3.676,
+        "crouched_shot_share": 0.3211,
+        "turn_before_shot_deg": 1.9414,
+        "peek_left_share": 0.5424,
+        "shots_per_round": 9.9571,
+        "awp_shot_share": 0.0011,
+        "pistol_shot_share": 0.1595,
+        "nades_per_round": 2.3859,
+        "smoke_share": 0.2907,
+        "flash_share": 0.2981,
+        "fire_share": 0.2592,
+        "first_contact_sec": 45.6445,
+        "opening_duel_rate": 0.2442,
+        "team_distance": 1354.8935,
+        "alone_share": 0.5675
+      },
+      "zont1x": {
+        "jumps_per_min": 0.2194,
+        "still_share": 0.1838,
+        "full_speed_share": 0.2987,
+        "slow_share": 0.4327,
+        "mean_speed": 126.3183,
+        "look_speed_deg_s": 0.0,
+        "pitch_std": 7.8254,
+        "crouch_time_share": 0.0405,
+        "knife_out_share": 0.2574,
+        "rifle_speed_at_first_shot": 26.956,
+        "moving_first_shot_share": 0.3497,
+        "single_shot_burst_share": 0.3966,
+        "shots_per_burst": 3.6381,
+        "crouched_shot_share": 0.2255,
+        "turn_before_shot_deg": 1.6372,
+        "peek_left_share": 0.4508,
+        "shots_per_round": 9.8879,
+        "awp_shot_share": 0.0,
+        "pistol_shot_share": 0.1698,
+        "nades_per_round": 1.6169,
+        "smoke_share": 0.2667,
+        "flash_share": 0.2372,
+        "fire_share": 0.2455,
+        "first_contact_sec": 51.5508,
+        "opening_duel_rate": 0.1758,
+        "team_distance": 1101.485,
+        "alone_share": 0.427
+      }
+    },
+    "population": {
+      "jumps_per_min": {
+        "mean": 1.9678,
+        "sd": 1.9814
+      },
+      "still_share": {
+        "mean": 0.1872,
+        "sd": 0.0505
+      },
+      "full_speed_share": {
+        "mean": 0.2508,
+        "sd": 0.046
+      },
+      "slow_share": {
+        "mean": 0.4828,
+        "sd": 0.051
+      },
+      "mean_speed": {
+        "mean": 114.4412,
+        "sd": 11.5285
+      },
+      "look_speed_deg_s": {
+        "mean": 2.5747,
+        "sd": 1.5617
+      },
+      "pitch_std": {
+        "mean": 9.9115,
+        "sd": 1.4889
+      },
+      "crouch_time_share": {
+        "mean": 0.0854,
+        "sd": 0.0363
+      },
+      "knife_out_share": {
+        "mean": 0.2063,
+        "sd": 0.0379
+      },
+      "rifle_speed_at_first_shot": {
+        "mean": 46.4533,
+        "sd": 14.7995
+      },
+      "moving_first_shot_share": {
+        "mean": 0.5485,
+        "sd": 0.1447
+      },
+      "single_shot_burst_share": {
+        "mean": 0.362,
+        "sd": 0.1627
+      },
+      "shots_per_burst": {
+        "mean": 3.9665,
+        "sd": 0.8923
+      },
+      "crouched_shot_share": {
+        "mean": 0.2904,
+        "sd": 0.0831
+      },
+      "turn_before_shot_deg": {
+        "mean": 2.0821,
+        "sd": 0.8615
+      },
+      "peek_left_share": {
+        "mean": 0.5087,
+        "sd": 0.0732
+      },
+      "shots_per_round": {
+        "mean": 11.4352,
+        "sd": 4.0762
+      },
+      "awp_shot_share": {
+        "mean": 0.0223,
+        "sd": 0.0515
+      },
+      "pistol_shot_share": {
+        "mean": 0.1898,
+        "sd": 0.1117
+      },
+      "nades_per_round": {
+        "mean": 2.0767,
+        "sd": 0.5531
+      },
+      "smoke_share": {
+        "mean": 0.3307,
+        "sd": 0.0717
+      },
+      "flash_share": {
+        "mean": 0.2626,
+        "sd": 0.0862
+      },
+      "fire_share": {
+        "mean": 0.241,
+        "sd": 0.0579
+      },
+      "first_contact_sec": {
+        "mean": 49.7463,
+        "sd": 15.3922
+      },
+      "opening_duel_rate": {
+        "mean": 0.2,
+        "sd": 0.1031
+      },
+      "team_distance": {
+        "mean": 1011.3424,
+        "sd": 264.3743
+      },
+      "alone_share": {
+        "mean": 0.3836,
+        "sd": 0.1424
+      }
+    }
+  },
+  "teamwork": 1.0,
+  "quirk_controls_disabled": {
+    "still_share": {
+      "value": 0.1092,
+      "why_off": "suspected cause of donkL walking backwards (Arjun watched it, 2026-11-15): the sidestep makes the bot base walk back to its spot while aiming at its angle"
+    },
+    "crouched_shot_share": {
+      "value": 0.3005,
+      "why_off": "holding crouch for 0.6 s at the start of a burst may look mechanical"
+    }
+  }
+}
