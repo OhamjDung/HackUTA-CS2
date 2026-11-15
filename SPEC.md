@@ -47,10 +47,10 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | broky clone (`broky_v1`): data-built profile and routes | Arjun (Codex) | Done. Built from 4 matches, 79 rounds/routes; held back 22 rounds. Files load in C#; not run in game. | `clones/broky_v1.json`, `clones/README.md` | 2026-11-14 |
 | Route converter: recording data to the bot playback format | Arjun | In progress. Files are written. **Not tested in the game.** Several field values are guesses (`HANDOFF.md` section 5.1). | `clone-pipeline/clone_pipeline/recording.py` | 2026-11-14 |
 | CloneDirector plugin: applies a clone to a bot inside CS2 | Arjun (Codex) | In progress. Compiles; 26 C# tests pass, including all 159 donk/broky files. Not run in CS2. | `clone-director/` | 2026-11-14 |
-| Generating model: CS-NET v4 plus player identity | Arjun (Codex) | In progress. First A100 experiment trained 600 updates, selected step 400; both held-out identity tests failed. Experimental checkpoints/results preserved; review/export work next. | `clone-model/` | 2026-11-14 |
+| Generating model: CS-NET v4 plus player identity | Arjun (Codex) | In progress. First A100 experiment trained 600 updates, selected step 400; both held-out identity tests failed. Experimental checkpoints/results preserved; offline review export verified, identity fidelity not established. | `clone-model/` | 2026-11-14 |
 | Offline weapon-role and habit audit handoff | Arjun's friend (handoff prepared) | Not started. CPU-only audit/fix handoff ready; recipient must remove consumed handoff docs on task branch after reading. | `handoffs/friend/01-HABIT-AUDIT-AND-FIX.md` | 2026-11-14 |
 | Independent mock replay QA handoff | Arjun's friend (optional second task) | Not started. Existing Ashirwad replay implementation remains with its owner; QA/report only. | `handoffs/friend/02-MOCK-REPLAY-QA.md` | 2026-11-14 |
-| Offline generated-path review export | Arjun (Codex) | In progress. Development-only real/own/other/base export written; 12 CPU tests pass. GPU export check pending. | `clone-model/review.py` | 2026-11-14 |
+| Offline generated-path review export | Arjun (Codex) | Done. Eight development cases exported on A100 (24 generated paths plus real paths), JSON checked and plots inspected; 12 CPU tests pass. No route promotion. | `clone-model/review.py` | 2026-11-14 |
 | Replay page: real player next to clone | Unassigned | In progress (demo version by Ashirwad: 2D map from positions, no video, no generated path) | `match-service/demo/replay.html` | 2026-11-14 |
 | Clone profile page | Unassigned | Not started | Not decided | 2026-11-14 |
 | Caster voice (Gemini script, ElevenLabs audio) | Unassigned | Not started | Not decided | 2026-11-14 |
@@ -205,6 +205,9 @@ Checked on 2026-11-14.
 
 - MatchBridge Release compilation ran on Windows with .NET SDK 10.0.404: zero warnings, zero errors. The existing project targets net8.0 and CounterStrikeSharp.API 1.0.367; no C# changes were needed. Re-ran all 42 service tests, including seven clone-mode tests against fakes; all pass. This does not verify loading the plugin or clone playback in CS2.
 
+- CS2 base-game download completed on Arjun's PC: Steam manifest reports all download/staging bytes complete, state 4, update result 0, 74.3 GB installed. No bot-base installer was run by this agent.
+- Learned movement: A100-SXM4-80GB optimization completed 600 updates, selected step 400; final held-out identity comparison ran 213 predictions across 71 windows and failed for both players (section 8.6). Twelve CPU integration tests pass. Eight development examples were then exported on the A100 and plotted for review; no model or route was promoted.
+
 **Checked by reading source or documentation, not by running:**
 - What each open-source project can do (section 4).
 - The calls in the CS2-Bot-Controller programming interface (section 6).
@@ -215,10 +218,9 @@ Checked on 2026-11-14.
 - CS2 Game State Integration field names (`map.phase`, `map.team_ct.score`, `round.win_team`), from
   the CounterStrike2GSI and cs2-gsi library docs.
 
-**Not checked. Nobody has run any of this yet:**
-- Playing a pipeline-produced route inside CS2 (the format loads in C#; movement is still untested).
+**Not fully checked:**
+- Correct-side full-path fidelity and CloneDirector-driven playback inside CS2. A converted T-side file loaded and moved a CT bot in Tom's manual check, but hit a wall from the wrong spawn.
 - Adding a custom entry to the bot personality file.
-- Running or training CS-NET v4 on this project's data.
 - Every time estimate in section 11.
 - Sending console commands to CS2 through RCON (`-usercon`, `rcon_password`) or the MatchBridge
   plugin. Not needed while netcon works.
@@ -356,7 +358,7 @@ Treat the measured value as an estimate.
 **Current limit:** reaction time is actually `null` in both built profiles, and `aim_skill=1` /
 `Skill=100` are maximum base-bot settings, not measured player ratings. The true-level goal in
 section 2.1 is unproven. After the opening route, the existing bot AI makes decisions; no
-player-specific combat or generating model has been trained or evaluated.
+player-specific combat model has been trained or evaluated. A movement identity adapter was trained and tested offline, but both identities failed (section 8.6).
 
 ### 5.4 The clone profile file
 
@@ -627,7 +629,7 @@ model, without retraining the network.
 
 ### 8.5 How generated movement reaches the demo (made by hand)
 
-The model does not run during the match. `clone-model/review.py` now exports development-only diagnostic examples via the same pinned PredictionEngine: actual, own identity, other identity and base paths, with timing/side/identity/provenance and native early-stop lengths. This new `cs2.clone.review.v1` offline file does not alter the match-service API. It is not a recorded bot match or an approved playback file; failed-validation identities are not promoted. Twelve CPU tests pass, including development/holdout exclusion, dead-anchor fallback and trace timing/channel checks. The exporter has not yet run on the GPU at this commit. Full test validation now writes an explicit final pass/fail state; dev reviews do not change it. For the demo, a person builds generated segments offline:
+The model does not run during the match. `clone-model/review.py` now exports development-only diagnostic examples via the same pinned PredictionEngine: actual, own identity, other identity and base paths, with timing/side/identity/provenance and native early-stop lengths. This new `cs2.clone.review.v1` offline file does not alter the match-service API. It is not a recorded bot match or an approved playback file; failed-validation identities are not promoted. Twelve CPU tests pass, including development/holdout exclusion, dead-anchor fallback and trace timing/channel checks. The exporter ran on the A100 with the step-400 adapter: eight development cases, four per player, 24 generated paths plus eight actual paths. Downloaded JSON was checked for timestamps/channels and held-out exclusion. `plot_review.py` rendered the XY comparisons with Matplotlib; the figure was visually checked. Artifacts and interpretation are attached to prerelease `learned-clones-a100-v1`. Six of eight own paths equal the base exactly; seven equal the other identity exactly. This diagnostic selection is not a validation score. Full test validation now writes an explicit final pass/fail state; dev reviews do not change it. For the demo, a person builds generated segments offline:
 
 1. Pick a real moment from a held-back game, for example the start of a round.
 2. Ask the model for the next 4 seconds of the clone's movement, with the clone's identity vector.
@@ -1080,6 +1082,8 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-14, Arjun (Codex): verified the offline path exporter on the real A100 checkpoint (eight development examples / 24 predictions), checked its JSON and Matplotlib review figure, and preserved the artifacts in the experimental release. Updated obsolete not-run model/download statements; live clone gameplay and identity likeness remain unproven.
 
 - 2026-11-14, Arjun (Codex): added development-only generated-path review export from the pinned prediction engine and explicit completed validation states. Twelve CPU tests pass; GPU export check pending. No failed identity or generated path is promoted.
 
