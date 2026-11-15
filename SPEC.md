@@ -188,6 +188,16 @@ Checked on 2026-11-14.
   `finished`, reported 9–7 and showed 16 `round.ended` events. Replay played donk's stand-in
   round 1 alongside pro donk's match 2393232 round 5 on a shared clock. The replay used position
   data from CS2 and from the pro recording.
+- Demo pages and trace checks on Tom's PC (2026-11-14, match `f1ac03b4bbb5`, donk CT vs broky T,
+  stand-in bots, recording off, Tom's PC in spectator, started from the service with
+  `start-cs2.ps1 -Record off -Open`). Final score CT 9, T 4. The score went past halftime without
+  a jump, and the 13 `round.ended` events equal the 13 rounds played. `GET /matches/<id>/trace` has 13
+  rounds with a path for each of the two bots (34 to 239 samples per round), and the trace was saved to
+  `data/traces/f1ac03b4bbb5.json` (git-ignored). In a browser, with no console errors: Bot vs bot (two
+  live panels, final score, end event), Replay (all three tabs; the real-vs-bot clock advanced from 0 to
+  9.9 s), Proof (in-game scores from this match, placed under Default bot) and Play (match went live,
+  player put on CT). The older trace of match `09a357d5a255` is gone: the service restarted and
+  `GET /matches/09a357d5a255/trace` returns 404.
 - Every GitHub repository in section 4 exists. Stars, licenses, and update dates come from GitHub.
 - The OpenCS2 counts in section 7 come from queries against its index tables.
 - The match service's cs2 backend, against a fake console and hand-written game state updates
@@ -1216,6 +1226,8 @@ demo. A released product would need each player's or team's permission.
 
 Newest first. One line per change: date, who, what changed.
 
+- 2026-11-14, Tom (with Claude): recorded the demo-page and trace checks of match `f1ac03b4bbb5`
+  in section 3. `-Bots clone` not run: CloneDirector is not installed on Tom's PC.
 - 2026-11-14, Tom (with Claude): wired the demo pages to the real CS2 bots. Added `drivers.py` (how each clone
   is played), `driver`/`label`/`playable`/`reason` and `model` on `GET /clones` (additive), the
   `CS2_CLONE_ROUTES` setting (`recorded` or `generated`) as the hook for a trained model, and
