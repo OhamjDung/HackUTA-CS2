@@ -1,0 +1,137 @@
+{
+  "experiment": "donk model, self-trained on imagined play (clone-model/imagine.py)",
+  "run_date": "2026-11-15",
+  "hardware": "NVIDIA A100-SXM4-40GB, Google Colab",
+  "source_revision": "0eab66c",
+  "csnet_revision": "268dd2193c8a3d6e330c07dde5a851196c94eeaa",
+  "base_checkpoint_sha256": "d961a2d065464da19809d9b6d13e7467fde06a5a93e93c19b12ecd001cce5c20",
+  "manifest_sha256": "ebe8bf37c5cbb879e3c845fbf2b9cf9e8ede9f498393bb9d0706ac04cd927c00",
+  "settings": {
+    "iterations": 4,
+    "moments_per_iteration": 200,
+    "keep_last": 600,
+    "steps_per_iteration": 100,
+    "select_moments": 80,
+    "samples": 8,
+    "batch_size": 8,
+    "lr": 0.0003,
+    "kl": 0.1,
+    "imagined_weight": 1.0,
+    "rank": 16,
+    "budget_minutes": 60
+  },
+  "pool_windows": 635,
+  "test_C_windows": 119,
+  "selection": "dev-A, 80 moments, free-running",
+  "iterations": [
+    {
+      "iteration": 0,
+      "model": "base",
+      "mean_ade": 181.26926359950957,
+      "violation_share": 0.00469155520063885,
+      "backwards_share": 0.11209822319824317,
+      "move_w1": 3.227273201527559,
+      "turn_w1": 1.2637847687207397
+    },
+    {
+      "iteration": 1,
+      "mean_ade": 169.71384152891136,
+      "violation_share": 0.0004022930705018606,
+      "backwards_share": 0.07784370914211003,
+      "move_w1": 1.4656729772774622,
+      "turn_w1": 3.456063717668092,
+      "kept": 190,
+      "tried": 200,
+      "kept_mean_ade": 97.66387612174157,
+      "imagine_seconds": 393
+    },
+    {
+      "iteration": 2,
+      "mean_ade": 166.08288145029746,
+      "violation_share": 0.0005016554630279924,
+      "backwards_share": 0.0783585833249724,
+      "move_w1": 1.8089834922829637,
+      "turn_w1": 4.0875074618181735,
+      "kept": 190,
+      "tried": 200,
+      "kept_mean_ade": 90.12669668290447,
+      "imagine_seconds": 399
+    },
+    {
+      "iteration": 3,
+      "mean_ade": 166.04196275177756,
+      "violation_share": 0.0005032712632108706,
+      "backwards_share": 0.0844489179667841,
+      "move_w1": 1.0475286978217853,
+      "turn_w1": 4.790849550581755,
+      "kept": 190,
+      "tried": 200,
+      "kept_mean_ade": 85.91419287556792,
+      "imagine_seconds": 399
+    },
+    {
+      "iteration": 4,
+      "mean_ade": 162.80065241496217,
+      "violation_share": 0.00020177562550443906,
+      "backwards_share": 0.0650726392251816,
+      "move_w1": 1.5342108215306758,
+      "turn_w1": 5.574308483447504,
+      "kept": 190,
+      "tried": 200,
+      "kept_mean_ade": 84.43799377906407,
+      "imagine_seconds": 399
+    }
+  ],
+  "best_iteration": 4,
+  "minutes_before_test": 40.5,
+  "minutes_total": 47.5,
+  "test": {
+    "P1_mean_ade": {
+      "donk_minus_base": -18.81678115735775,
+      "ci95": [
+        -27.251847642278463,
+        -10.177202225901404
+      ],
+      "pass": true
+    },
+    "P2_behaviour": {
+      "closer_on": 2,
+      "of": 3,
+      "pass": true,
+      "detail": {
+        "donk": {
+          "move_w1": 2.0370771606071436,
+          "turn_w1": 4.943870097486603,
+          "backwards_gap": 0.003670118770047137,
+          "violation_share": 0.0004633920296570899,
+          "backwards_share": 0.054018270885740766
+        },
+        "base": {
+          "move_w1": 2.8799080870016005,
+          "turn_w1": 1.3216774755817025,
+          "backwards_gap": 0.04596141910427186,
+          "violation_share": 0.005509093322713395,
+          "backwards_share": 0.09630957121996549
+        }
+      },
+      "real_donk_backwards_share": 0.05034815211569363
+    },
+    "P3_limits": {
+      "pass": true
+    },
+    "pass": true,
+    "windows": 119,
+    "mean_ade": {
+      "donk": 147.57858043164256,
+      "base": 166.39536158900032
+    },
+    "min_ade": {
+      "donk": 93.98175354095146,
+      "base": 90.12161378229533
+    },
+    "split": "test-C (donk training rounds with round_id % 6 == 3, never trained on here)",
+    "interpretation": "Free-running 4-second futures sampled by CS-NET's own engine. Movement and view only; not combat, not in CS2, not a people panel."
+  },
+  "pass": true,
+  "artifacts": "imagined_lora.pt (adapter only, about 5 MB) on the Colab machine at /content/run4/out. Not in git."
+}

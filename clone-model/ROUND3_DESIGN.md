@@ -378,6 +378,10 @@ Rounds. A new final test, **test-C**, is cut before the run: donk's training rou
 by free-running path error on 80 dev-A moments, and only if their human-limit breaks are no higher
 than the base's. Pass rule on test-C: P1 to P3 of 8.3, unchanged. If no iteration beats the base on
 dev-A, test-C is not used.
+**Result (2026-11-15): pass** on test-C (`results/imagine-a100.md`). Paths 11.3% closer to donk's
+than the generic model's, limit breaks 0.05% against 0.55%. View turning moved away from donk's, so a
+next judge must score view turning as well as position. test-C is now used.
+
 
 ## 7. What is not known yet
 
