@@ -26,7 +26,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 
 | Part | Owner | State | Where | Updated |
 |---|---|---|---|---|
-| Odyssey roster: Telemachus, Melantho and Odysseus | Tom (Codex) | Done in code on `codex/odyssey-melantho-roster`. Existing Telemachus (easy) and Odysseus (superhuman) preserved; new Melantho (medium) has 14 authored quirks. 50 offline Python tests, 9 C# persona tests, 5 frontend mode tests, typecheck and plugin build pass; no CS2 or browser run and nothing deployed. | `clones/`, `clone-director/`, `match-service/`, `frontend/modes/odyssey/` | 2026-11-15 |
+| Odyssey roster correction | Tom (Codex) | Done. Removed the mistakenly added Melantho; the existing Telemachus, Menelaus and Odysseus profiles remain unchanged. No game or service started. | `clones/`, `clone-director/`, `frontend/modes/odyssey/` | 2026-11-15 |
 | No-self-kill guardrail for clone bots | Arjun (Claude) | Written, **not compiled and not run**: Arjun's PC has no .NET SDK and no `BotControllerApi.dll`. Every hit on a clone bot (pro clones and Odyssey) is checked before it lands; its own grenade or fire, falls and other no-player damage are refused, and `kill`/`explode` are refused for clone bots. The bomb, enemies and teammates can still kill. 6 new C# test methods written, not run. **Tom: build, run the C# tests, install the DLLs** (section 6.2). | `clone-director/Core/SelfHarm.cs`, `clone-director/SafetyMode.cs`, `clone-director/OdysseyMode.cs`, `clone-director/Tests/SafetyTests.cs` | 2026-11-15 |
 | Voices for all four Odyssey characters | Arjun (Claude) | Done against fakes. Tom's Poseidon death commentary now covers Odysseus, Menelaus and Telemachus too: each has its own persona prompt, canned fallback line and voice. Odysseus and Menelaus have built-in voice IDs; Telemachus has none yet (chat only). 32 coach tests pass (9 new); no real Gemini or ElevenLabs call, no CS2 run. | `match-service/match_service/personas.py`, `match-service/match_service/coach.py` | 2026-11-15 |
 | One thing at a time in CS2: a new start replaces the running one | Arjun (Claude) | Done against fakes. Starting a match, puzzle, death retry or scene ends whatever CS2 is running instead of answering 409. 167 service tests pass, 1 known Windows symlink failure; not run in CS2 or a browser. | `match-service/match_service/main.py`, `match-service/match_service/puzzle_routes.py`, `frontend/components/puzzles/PuzzlePractice.tsx` | 2026-11-15 |
@@ -778,15 +778,6 @@ start and save the segment at round end. These segments are already in the playb
 who plays ten rounds has a route library at the end.
 
 ### 6.5 Odyssey authored personas (2026-11-15)
-
-**Melantho (2026-11-15).** The requested easy/medium/hard selection retains Telemachus and Odysseus
-unchanged and adds Melantho at medium difficulty. The existing donk native-bot template and Odyssey
-profile generator provide her AI and 14 authored controls; no model was trained and no match was run.
-Her sharp-tongued confrontation in [Homer's Odyssey, book 19](https://www.theoi.com/Text/HomerOdyssey19.html)
-informs a defiant persona; combat settings are interpretation, not historical facts. She uses normal
-damage, has no preassigned voice, and appears in the Odyssey selector with an initial instead of a
-portrait. Existing Menelaus and Poseidon remain available. Installation requires a patched bot archive
-and profile, and an updated plugin and service; none was deployed or run for this work.
 
 Poseidon's native entry and CloneDirector profile were installed on Tom's PC with the old VPK backed up
 under ignored `data/`. His Odyssey Play screen can start a private Mirage Wingman match against him using
@@ -2097,7 +2088,7 @@ demo. A released product would need each player's or team's permission.
 
 ## 19. Change log
 
-- 2026-11-15, Tom (Codex): added medium Melantho to the Odyssey bot pipeline and UI while retaining easy Telemachus, hard Odysseus and existing personas; offline tests and plugin build pass, no live demo run or deployment.
+- 2026-11-15, Tom (Codex): reverted the unintended Melantho addition; retained the existing Telemachus, Menelaus and Odysseus profiles.
 - 2026-11-15, Arjun (Claude): the Odyssey Play screen starts a match against any of the four characters, not only Poseidon, and follows it until ready or failed; the Studio link stays under the form. `tsc` and 4 mode tests pass; checked in a browser against the mock service. Odysseus, Menelaus and Telemachus still need installing on Tom's PC.
 - 2026-11-15, Arjun (Claude): no-self-kill guardrail for clone bots (own grenade/fire, falls and `kill` refused; bomb, enemies and teammates still kill; written, not compiled or run, Tom must build it); death-coach voices for all four Odyssey characters (Odysseus and Menelaus voice IDs built in); a new match, puzzle or scene replaces whatever CS2 runs instead of a 409; Steam ID saved in the browser. 167 service tests pass (1 known symlink failure), `tsc` and 4 mode tests pass; no CS2, real API or browser run.
 - 2026-11-15, Tom (Codex): installed Poseidon's profile and aggressive native bot entry with a backup, connected his Odyssey match setup and configured god-voice roast/advice commentary; 8 Odyssey and 23 fake-coach tests pass; no live match run.

@@ -12,7 +12,7 @@ const FAZE_SCENES = new Set([
   'dust2-awp-long',
   'mirage-b-anchor',
 ]);
-const ODYSSEY_BOTS = new Set(['telemachus', 'menelaus', 'odysseus', 'poseidon', 'melantho']);
+const ODYSSEY_BOTS = new Set(['telemachus', 'menelaus', 'odysseus', 'poseidon']);
 const ODYSSEY_SCENES = new Set(['upload', 'legendary']);
 
 export type QueryInput = URLSearchParams | Record<string, string | string[] | undefined>;

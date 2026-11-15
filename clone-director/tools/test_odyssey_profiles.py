@@ -29,7 +29,7 @@ def test_native_entries_have_distinct_difficulties_and_plain_keeps_them():
         db = patch_db(SAMPLE, limits)
         for name in IDS:
             for key, value in desired[name].items(): assert setting(entry(db, name), key) == value
-        assert [float(setting(entry(db, n), 'Skill')) for n in IDS] == [100, 100, 65, 20, 60]
+        assert [float(setting(entry(db, n), 'Skill')) for n in IDS] == [100, 100, 65, 20]
         assert patch_db(db, limits) == db
         assert entry(db, 'donk') == entry(SAMPLE, 'donk')
         assert entry(db, 'broky_v2') == entry(SAMPLE, 'broky').replace('"broky"', '"broky_v2"', 1)
@@ -37,10 +37,3 @@ def test_native_entries_have_distinct_difficulties_and_plain_keeps_them():
 
 def test_no_silent_fallback_when_persona_config_is_missing(tmp_path):
     with pytest.raises(FileNotFoundError): odyssey_settings(tmp_path)
-
-
-def test_requested_personas_have_distinct_progression_and_meaningful_quirks():
-    easy, medium, hard = (make_profile(n) for n in ('telemachus', 'melantho', 'odysseus'))
-    assert [p['odyssey']['difficulty'] for p in (easy, medium, hard)] == ['easy', 'medium', 'superhuman']
-    assert [p['aim_skill'] for p in (easy, medium, hard)] == sorted(p['aim_skill'] for p in (easy, medium, hard))
-    assert all(len({q['control'] for q in p['odyssey']['quirks']}) >= 10 for p in (easy, medium, hard))

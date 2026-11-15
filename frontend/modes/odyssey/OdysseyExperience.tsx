@@ -11,10 +11,9 @@ import { getSavedSteamId, saveSteamId, STEAM_ID_RE } from '@/lib/steam';
 import styles from './OdysseyExperience.module.css';
 import { useOdysseyMusic } from './useOdysseyMusic';
 
-type OdysseyBotId = 'telemachus' | 'menelaus' | 'odysseus' | 'poseidon' | 'melantho';
+type OdysseyBotId = 'telemachus' | 'menelaus' | 'odysseus' | 'poseidon';
 const BOTS: Array<{ id: OdysseyBotId; name: string; role: string; dialogue: string }> = [
   { id: 'telemachus', name: 'Telemachus', role: 'The Heir', dialogue: 'A name is earned. Will you help me earn mine?' },
-  { id: 'melantho', name: 'Melantho', role: 'The Defiant', dialogue: 'An intruder at the door? You should have stayed away.' },
   { id: 'menelaus', name: 'Menelaus', role: 'The Warlord', dialogue: 'Stand your ground, and history may remember you.' },
   { id: 'odysseus', name: 'Odysseus', role: 'The Strategist', dialogue: 'I have faced the seas. Can you face me?' },
   { id: 'poseidon', name: 'Poseidon', role: 'The Tempest', dialogue: 'The tide answers to me. How long will you endure?' },
@@ -91,7 +90,7 @@ export default function OdysseyExperience() {
   return <main ref={shellRef} className={styles.shell} data-odyssey-route={pathname}>
     <Header pathname={pathname} selectedId={selectedId} music={music} />
     {pathname === '/' && <Home selectedId={selectedId} onSelect={selectBot} onBegin={music.start} />}
-    {pathname === '/bots' && <><PageIntro n="01" eyebrow="The challengers" title="Choose your legend" body="Five rivals. Five styles. One epic challenge." /><Bots selectedId={selectedId} onSelect={selectBot} /></>}
+    {pathname === '/bots' && <><PageIntro n="01" eyebrow="The challengers" title="Choose your legend" body="Four rivals. Four styles. One epic challenge." /><Bots selectedId={selectedId} onSelect={selectBot} /></>}
     {pathname === '/scenes' && <><PageIntro n="02" eyebrow="Your next chapter" title="Play a scene" body="Bring your own moment, or enter a legendary trial." /><Scenes detailed /></>}
     {pathname === '/leaderboard' && <><PageIntro n="03" eyebrow="The hall of heroes" title="Claim your crown" body="Illustrative rankings until live scoring is connected." /><Leaderboard /></>}
     {pathname === '/play' && <Play selectedId={selectedId} />}
@@ -347,10 +346,8 @@ function PageIntro({ n, eyebrow, title, body }: { n: string; eyebrow: string; ti
 /** Portrait coin: face disc plus a separate Greek-key ring that can turn. */
 function Medal({ id }: { id: OdysseyBotId }) {
   return <span className={styles.medal}>
-    {id === 'melantho' ? <span className={styles.melanthoMedal} aria-hidden>M</span> : <>
-      <img src={`${LAYERS}/portraits/${id}-face.webp`} alt="" draggable={false} decoding="async" />
-      <img src={`${LAYERS}/portraits/${id}-ring.webp`} alt="" draggable={false} decoding="async" className={styles.ring} />
-    </>}
+    <img src={`${LAYERS}/portraits/${id}-face.webp`} alt="" draggable={false} decoding="async" />
+    <img src={`${LAYERS}/portraits/${id}-ring.webp`} alt="" draggable={false} decoding="async" className={styles.ring} />
     <i className={styles.sheen} aria-hidden />
   </span>;
 }
@@ -402,7 +399,6 @@ function useSeen(ref: React.RefObject<HTMLElement | null>): boolean {
 }
 
 function FeatureLayers({ id, phase }: { id: OdysseyBotId; phase: 'enter' | 'leave' }) {
-  if (id === 'melantho') return null;
   return <Stack dir={`${id}-feature`} width={1819} height={865} className={`${styles.featureGroup} ${phase === 'enter' ? styles.enter : styles.leave}`} layers={[
     { name: 'figure', className: styles.figure },
     { name: 'waves', className: styles.featureWaves },
@@ -428,11 +424,11 @@ function Feature({ bot, compact = false }: { bot: (typeof BOTS)[number]; compact
 
   return <article ref={articleRef} className={styles.feature} data-stage data-loop>
     <div className={styles.featureArt} aria-hidden>
-      <img src={`${LAYERS}/${current === 'melantho' ? 'odysseus' : current}-feature/paper.webp`} alt="" className={`${styles.layer} ${styles.softPaper}`} draggable={false} decoding="async" />
+      <img src={`${LAYERS}/${current}-feature/paper.webp`} alt="" className={`${styles.layer} ${styles.softPaper}`} draggable={false} decoding="async" />
       {leaving && <FeatureLayers key={`leave-${leaving}`} id={leaving} phase="leave" />}
       <FeatureLayers key={`enter-${current}`} id={current} phase="enter" />
     </div>
-    {bot.id !== 'melantho' && <span className={styles.srOnly}>Engraved illustration of {bot.name}</span>}
+    <span className={styles.srOnly}>Engraved illustration of {bot.name}</span>
     {!compact && <div className={styles.dialogue}>
       <p className={styles.srOnly} aria-live="polite">{bot.dialogue}</p>
       <p key={bot.id} aria-hidden>{bot.dialogue.slice(0, typed)}<span className={styles.untyped}>{bot.dialogue.slice(typed)}</span></p>

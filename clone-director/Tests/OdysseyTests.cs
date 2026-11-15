@@ -17,7 +17,6 @@ public sealed class OdysseyTests
     [InlineData("poseidon", "impossible", true, 1)]
     [InlineData("odysseus", "superhuman", false, 1.08)]
     [InlineData("menelaus", "medium", false, 1)]
-    [InlineData("melantho", "medium", false, 1)]
     [InlineData("telemachus", "easy", false, 1)]
     public void ActualPersonaProfilesLoadWithFourteenAuthoredQuirks(string id, string difficulty, bool immune, double damage)
     {

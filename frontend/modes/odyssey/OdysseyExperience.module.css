@@ -416,8 +416,7 @@
 
 /* ---- Roster medallions ---------------------------------------------------- */
 .botsSection { padding: 0 clamp(22px, 5vw, 76px) 50px; }
-.roster { max-width: 1100px; margin: 0 auto 38px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 30px; }
-.melanthoMedal { display: grid; width: 100%; aspect-ratio: 1; place-items: center; border: 6px double var(--blue); border-radius: 50%; background: #e9d29f; color: var(--blue); font-size: clamp(40px, 6vw, 80px); font-weight: 700; }
+.roster { max-width: 1100px; margin: 0 auto 38px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px; }
 .roster button { background: none; border: 0; cursor: pointer; color: var(--ink); text-transform: uppercase; perspective: 700px; }
 .medalTilt {
   display: block;
