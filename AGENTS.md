@@ -115,6 +115,13 @@ record the change in `SPEC.md`.
   CloneDirector's `ReplyToCommand` and `Log` lines appear on the netcon stream (port 2121). Send the command
   through MatchBridge and read netcon at the same time. Trust `puzzle_status` (`phase=Running`), not the
   player count or game state, before saying a puzzle loaded.
+- **Choose action puzzles from recorded events, not proximity alone.** Prefer a full 30-second window
+  with a recorded kill early in the round or a confirmed enemy approach; positions and event data do not
+  prove that the opponent will be visible in CS2. Keep the seed-data regression test for the selected
+  moments.
+- **Treat puzzle retries as separately unverified.** A direct service start can prove the attempt callback
+  and result, but not the frontend's `Practice in CS2` button. Verify the button from the puzzle page before
+  calling the retry flow end to end.
 - **Plugin DLLs hot-reload.** Copying a new `CloneDirector.dll` into the plugin folder reloads it within
   seconds (`log-all<date>.txt` shows "Loading plugin"). Back up the old DLL first.
 - **CS2 can drop to an empty map** (`status` shows spawngroup `<empty>`, game state `map: null`), for
