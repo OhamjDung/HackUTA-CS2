@@ -52,7 +52,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Learned-quirk clones `donkL` and `brokyL`: per-quirk rules fitted from recordings | Arjun (Claude) | Done as files and code; **not run in CS2**. 27 quirks measured, 10 distinctive per player. CloneDirector now applies five: jump rate, burst length, single-shot share, crouching while shooting, and restlessness (standing-still share). Teamwork needs a manual personality-file edit. Turning speed and grenade mix cannot be driven yet. 23 pipeline tests and 30 C# tests pass. **Teammates: please add `donkL` and `brokyL` next to `donk_v1` and `broky_v1` so we can compare** (`clones/README.md`). | `clone-pipeline/clone_pipeline/quirks.py`, `clones/donkL.json`, `clones/brokyL.json`, `clone-director/` | 2026-11-14 |
 | Quirk test ("who is it?" plus per-quirk checks), looser than the first identity test | Arjun (Claude) | Done. Rule fixed before scoring. Real players pass on their own held-back matches: donk 1st of 5 and 8 of 10 quirks, broky 1st of 5 and 9 of 10. No bot match or model output scored yet. | `clone-pipeline/clone_pipeline/quirks.py`, section 8.8 | 2026-11-14 |
 | Diagnosis of the failed neural identity model | Arjun (Claude) | Done. Adapters judged not usable: no change in 64% to 72% of test windows. Not offered as bots. | `clone-model/results/diagnosis-2026-11-14.md` | 2026-11-14 |
-| Second learned-identity experiment (`v2.py`): many identities, identity at every step, likelihood "who is it?" test | Arjun (Claude) | In progress. Code written; 19 CPU tests pass (12 existing, 7 new). Pass rule fixed in the code before any run. Training run on Colab: see section 8.9 for its state. No result yet. | `clone-model/v2.py`, `clone-model/colab_train2.ipynb` | 2026-11-14 |
+| Second learned-identity experiment (`v2.py`): many identities, identity at every step, likelihood "who is it?" test | Arjun (Claude) | Blocked: the Colab session is a processor-only runtime, and the agent cannot change that setting. Arjun must pick a GPU runtime, then run the first cell once. Code written; 19 CPU tests pass (12 existing, 7 new). Pass rule fixed in the code before any run. No training has run and there is no result. | `clone-model/v2.py`, `clone-model/colab_train2.ipynb` | 2026-11-14 |
 | Offline weapon-role and habit audit handoff | Arjun's friend (handoff prepared) | Not started. CPU-only audit/fix handoff ready; recipient must remove consumed handoff docs on task branch after reading. | `handoffs/friend/01-HABIT-AUDIT-AND-FIX.md` | 2026-11-14 |
 | Independent mock replay QA handoff | Arjun's friend (optional second task) | Not started. Existing Ashirwad replay implementation remains with its owner; QA/report only. | `handoffs/friend/02-MOCK-REPLAY-QA.md` | 2026-11-14 |
 | Claude continuation handoff | Arjun (Codex) | Done and consumed. Claude read it on 2026-11-14 and removed the folder, as its own instructions said. | removed (`handoffs/claude-continuation/`) | 2026-11-14 |
@@ -858,7 +858,7 @@ play. Free-running generation with these identities needs a further change, beca
 prediction engine builds the per-step inputs itself. `guided_logits` (amplify what the identity
 changes) is written and tested for that later step.
 
-**State of the run:** see the status board row. Results go in `clone-model/results/`.
+**State of the run (2026-11-14):** not started. The launch notebook is `clone-model/colab_train2.ipynb`: one cell starts setup, data preparation, training (up to 2,000 steps, early stop on development rounds) and the held-back test in the background; a second cell shows progress. It needs a GPU runtime. Results go in `clone-model/results/`.
 
 ## 9. Architecture
 
@@ -1396,6 +1396,8 @@ demo. A released product would need each player's or team's permission.
 - 2026-11-14, Arjun (Codex): corrected canonical donk identity and excluded one ambiguous-account match before optimization; added empty-match cache rejection. Ten parsed public matches transferred to A100, nine selected for learning. CS2 base download completed successfully on Arjun's PC.
 
 Newest first. One line per change: date, who, what changed.
+
+- 2026-11-14, Arjun (with Claude): added the launch notebook for the second learned experiment (`clone-model/colab_train2.ipynb`). The run is blocked on a GPU runtime that only Arjun can select; nothing has trained.
 
 - 2026-11-14, Arjun (with Claude): CloneDirector now applies four more quirks (burst length, single-shot share, crouching while shooting, restlessness); `donkL` and `brokyL` rebuilt with them. Added the second learned-identity experiment (`clone-model/v2.py`, section 8.9) with its pass rule fixed before any run. Recorded similarity numbers for the first neural model in the diagnosis note. Ran: 23 pipeline tests, 30 C# tests, plugin compile, 19 model tests on the processor. Not run: anything in CS2.
 
