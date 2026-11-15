@@ -339,6 +339,12 @@ def run(args):
     saved = torch.load(args.out / "best_lora.pt", map_location="cpu")
     for lora, state in zip(loras, saved["lora"]):
         lora.load_state_dict(state)
+    if getattr(args, "dev_only", False):
+        torch.save({"lora": saved["lora"], "iteration": best, "rank": args.rank, "player": donk.PLAYER}, args.out / "imagined_lora.pt")
+        record.update(player=donk.PLAYER, test="not run: development experiment; consumed final sets remain untouched", deployed=False)
+        write_json(args.out / "imagination.json", record)
+        print("DEVELOPMENT_COMPLETE player=" + donk.PLAYER, flush=True)
+        return
     donk.set_lora(loras, False)
     base_test, real_test = free_run(recorder, args.cache, test_moments, args.samples, seed=7)
     donk.set_lora(loras, True)
