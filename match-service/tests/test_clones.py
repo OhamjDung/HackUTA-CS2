@@ -15,7 +15,7 @@ from match_service.main import create_app, make_clone_channel
 from tests.test_cs2 import gsi, settings, wait_for, wait_sent, wingman
 
 REPO_CLONES = Path(__file__).resolve().parents[2] / "clones"
-NAMES = {"donk_v1": "donk", "broky_v1": "broky"}
+NAMES = {"donk_v1": "donk_v1", "broky_v1": "broky_v1"}  # each clone has its own bot entry
 
 
 def clone_app(tmp_path, personalities=NAMES, **extra):
@@ -44,7 +44,7 @@ def test_clone_match_uses_clone_add_through_the_plugin(tmp_path):
 
 
 def test_clone_that_never_joins_fails_the_match(tmp_path):
-    app, main, _ = clone_app(tmp_path, personalities={"donk_v1": "donk"})  # broky never appears
+    app, main, _ = clone_app(tmp_path, personalities={"donk_v1": "donk_v1"})  # broky never appears
     with TestClient(app) as client:
         match_id = start(client, main)
         m = wait_for(client, match_id, "failed")
@@ -55,7 +55,7 @@ def test_clone_that_never_joins_fails_the_match(tmp_path):
 def test_clone_on_the_wrong_team_does_not_count(tmp_path):
     app, main, bridge = clone_app(tmp_path)
     with TestClient(app) as client:
-        bridge.personalities = {"broky_v1": "broky"}
+        bridge.personalities = {"broky_v1": "broky_v1"}
         bridge.bot_list = [{"name": "donk", "team": 2}]  # a donk bot, but on T; donk_v1 wants CT
         match_id = start(client, main)
         assert "donk_v1" in wait_for(client, match_id, "failed")["error"]

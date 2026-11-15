@@ -47,7 +47,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | donk clone (`donk_v1`): profile, purchases, grenades, 80 route files | Arjun | Done. Built from 4 matches, 80 rounds. | `clones/` | 2026-11-14 |
 | broky clone (`broky_v1`): data-built profile and routes | Arjun (Codex) | Done. Built from 4 matches, 79 rounds/routes; held back 22 rounds. Files load in C#; not run in game. | `clones/broky_v1.json`, `clones/README.md` | 2026-11-14 |
 | Route converter: recording data to the bot playback format | Arjun | In progress. Files are written. **Not tested in the game.** Several field values are guesses (`HANDOFF.md` section 5.1). | `clone-pipeline/clone_pipeline/recording.py` | 2026-11-14 |
-| CloneDirector plugin: applies a clone to a bot inside CS2 | Arjun (Codex) | In progress. Compiles; 26 C# tests pass, including all 159 donk/broky files. Not run in CS2. | `clone-director/` | 2026-11-14 |
+| CloneDirector plugin: applies a clone to a bot inside CS2 | Arjun (Codex) | In progress. Built with .NET SDK 10 and installed on Tom's PC; it loads, and `clone_add` attached donk_v1 and donkL in CS2 (via MatchBridge, after a listen-server fix). donkL played a recorded donk route. Purchases, combat hand-off and the jump quirk not confirmed; C# tests cannot run on Tom's PC. | `clone-director/` | 2026-11-15 |
 | Generating model: CS-NET v4 plus player identity | Arjun (Codex) | In progress. First A100 experiment trained 600 updates, selected step 400; both held-out identity tests failed. Experimental checkpoints/results preserved; offline review export verified, identity fidelity not established. | `clone-model/` | 2026-11-14 |
 | Learned-quirk clones `donkL` and `brokyL`: per-quirk rules fitted from recordings | Arjun (Claude) | Done as files and code; **not run in CS2**. 27 quirks measured, 10 distinctive per player. CloneDirector now applies five: jump rate, burst length, single-shot share, crouching while shooting, and restlessness (standing-still share). Teamwork needs a manual personality-file edit. Turning speed and grenade mix cannot be driven yet. 23 pipeline tests and 30 C# tests pass. **Teammates: please add `donkL` and `brokyL` next to `donk_v1` and `broky_v1` so we can compare** (`clones/README.md`). | `clone-pipeline/clone_pipeline/quirks.py`, `clones/donkL.json`, `clones/brokyL.json`, `clone-director/` | 2026-11-14 |
 | Quirk test ("who is it?" plus per-quirk checks), looser than the first identity test | Arjun (Claude) | Done. Rule fixed before scoring. Real players pass on their own held-back matches: donk 1st of 5 and 8 of 10 quirks, broky 1st of 5 and 9 of 10. No bot match or model output scored yet. | `clone-pipeline/clone_pipeline/quirks.py`, section 8.8 | 2026-11-14 |
@@ -283,6 +283,18 @@ Checked on 2026-11-14.
   the one failed response is the harness's own injected 500). A 390 px replay screenshot was looked
   at: no sideways overflow. Re-run after merging with main (Tom's demo-page changes included): 73
   match service tests, 11 edge tests, browser harness 31 of 31, no page errors.
+- Tom's MVP test on his PC (2026-11-15, `handoffs/tom-mvp-test.md`; report in `handoffs/arjun-donkL-report.md`).
+  **Step 1 pass:** `css_replay <T bot slot> donk_v1_t_2393226_r13` made a T bot follow the route file: mean
+  distance 11 units from the path in the file (0 to 1 unit for 12 s) and 1,939 units moved, against 790 units
+  and 476 moved for a control T bot with no replay. One file of 159 tried; view angles and jumps during playback
+  not checked. **Step 3 partly done:** CloneDirector built (.NET SDK 10) and loaded; `clone_add` attached
+  donkL (T) and donk_v1 (CT); donkL played a recorded route (`TSpawn > PalaceAlley > TRamp`). Two fixes were needed:
+  CloneDirector refused MatchBridge's commands on a listen server (caller is the host in slot 0), and two clones
+  built on the bot `donk` could not share a match because the game refuses duplicate bot names and a rename after
+  joining did not stick; the fix is a bot entry per clone in `botprofile.vpk`
+  (`clone-director/tools/add_clone_bot_entries.py`). donk_v1 (CT) vs donkL (T) then ran in one match under
+  those names. **Not confirmed:** purchases, combat hand-off, donkL's jump quirk (one 70 s sample per bot gave
+  8.6 and 14.6 jumps a minute, but the method is confounded and says nothing). **Step 4 not run:** `-Record tv` untried.
 - Every GitHub repository in section 4 exists. Stars, licenses, and update dates come from GitHub.
 - The OpenCS2 counts in section 7 come from queries against its index tables.
 - The match service's cs2 backend, against a fake console and hand-written game state updates
@@ -1494,6 +1506,10 @@ demo. A released product would need each player's or team's permission.
 
 Newest first. One line per change: date, who, what changed.
 
+- 2026-11-15, Tom (with Claude): ran Arjun's MVP test on Tom's PC. Step 1 passed (converted T route followed
+  within about 11 units); CloneDirector installed and attached clones; added `clone-director/tools/add_clone_bot_entries.py`
+  and set each clone's `stand_in_bot` to its own id; wrote `handoffs/arjun-donkL-report.md`; removed the consumed
+  `handoffs/tom-mvp-test.md`. Step 4 (`-Record tv`) not run. Section 3 and the CloneDirector row updated.
 - 2026-11-14, Tom (with Claude): first clone played in CS2. On a listen server CloneDirector refused
   MatchBridge's commands (caller is the host in slot 0, not null); fixed in `CloneDirectorPlugin.cs`.
   Then donkL attached and played a recorded donk route (TSpawn > PalaceAlley > TRamp). donk_v1 vs donkL

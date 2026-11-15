@@ -1,6 +1,7 @@
 {
   "clone_id": "broky_v1",
   "display_name": "broky",
+  "stand_in_bot": "broky_v1",
   "source": "pro",
   "reaction_ms": null,
   "aim_skill": 1.0,
