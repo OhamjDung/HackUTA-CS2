@@ -1412,6 +1412,9 @@ voice delivery has been verified.
 
 ### 9.6 Replay puzzles (added 2026-11-15, Tom with Claude)
 
+- **Attempt result delivery (2026-11-15, user/Codex):** the service copies a puzzle with a unique temporary game ID so the unchanged plugin callback identifies the attempt. One attempt can run at a time; it expires after 120 seconds, and a late or duplicate callback is rejected. The practice page polls `GET /puzzle-attempts/{attempt_id}` and shows the game result, or a timeout. An unsaved death retry returns a result without adding it to the library or player ratings. Completed results stay in service memory for five minutes; a service restart loses pending and completed status. Manual library results still use the original result endpoint. MatchBridge only confirms command delivery, so loading is not confirmed until a result arrives. Tested with service fakes and frontend typecheck; not exercised in CS2 or a browser.
+
+
 Plan and interview answers: `.plans/replay-puzzles-spec.md`. Built from zero; the restore calls follow
 CS2PracticeMod (MIT, CounterStrikeSharp), the library follows Lichess's puzzle model.
 
@@ -1791,6 +1794,10 @@ demo. A released product would need each player's or team's permission.
 - 2026-11-15, Tom (Codex): MatchBridge enumerates connected player controllers when checking clone joins; Release build passed, live CS2 check pending.
 
 - 2026-11-15, user (Codex): practice page watches for the newly recorded CS2 attempt and displays its outcome; the launch message says the command was sent. Automated logic and type checks noted below; no live CS2 test.
+
+- 2026-11-15, user (Codex): correlated puzzle callbacks with unique temporary game IDs, rejected overlapping and late attempts, displayed result and timeout, and handled unsaved death retries. 33 puzzle tests pass; full service suite 112 pass and the known Windows symlink privilege failure; frontend typecheck passes. No live CS2 or browser test.
+
+- 2026-11-15, user (Codex): practice page watches the per-attempt CS2 result and displays its outcome; the launch message says the command was sent. No live CS2 or browser test.
 
 - 2026-11-15, Codex (for user): connected FaZe match setup to the match-service demo API; frontend typecheck and mode tests passed, browser and CS2 not checked.
 
