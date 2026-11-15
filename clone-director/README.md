@@ -76,9 +76,7 @@ The personality name is `stand_in_bot` when present, otherwise `display_name`. T
 preferences, reaction time, or teamwork at runtime. Without a manually installed custom entry,
 purchases and routes use the existing named bot's personality. See the fallback in `SPEC.md`.
 
-The match service currently adds stand-in bots. To use CloneDirector manually, add the clone
-bots with these commands instead. Automatic match-service integration remains its owner's task;
-the service's endpoints and profile fields have not changed.
+The match service defaults to stand-in bots and now supports `CS2_BOTS=clone`, using MatchBridge to submit CloneDirector commands. That integration is tested against fakes; live attachment/playback still needs verification. The commands above also support manual server-console testing. The service endpoints and profile fields are unchanged.
 
 ## Round behavior and current assumptions
 

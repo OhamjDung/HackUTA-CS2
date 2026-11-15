@@ -47,10 +47,10 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | broky clone (`broky_v1`): data-built profile and routes | Arjun (Codex) | Done. Built from 4 matches, 79 rounds/routes; held back 22 rounds. Files load in C#; not run in game. | `clones/broky_v1.json`, `clones/README.md` | 2026-11-14 |
 | Route converter: recording data to the bot playback format | Arjun | In progress. Files are written. **Not tested in the game.** Several field values are guesses (`HANDOFF.md` section 5.1). | `clone-pipeline/clone_pipeline/recording.py` | 2026-11-14 |
 | CloneDirector plugin: applies a clone to a bot inside CS2 | Arjun (Codex) | In progress. Compiles; 26 C# tests pass, including all 159 donk/broky files. Not run in CS2. | `clone-director/` | 2026-11-14 |
-| Generating model: CS-NET v4 plus player identity | Arjun (Codex) | In progress. First A100 experiment trained 600 updates, selected step 400; both held-out identity tests failed. Experimental checkpoints/results preserved; review/export work next. | `clone-model/` | 2026-11-14 |
+| Generating model: CS-NET v4 plus player identity | Arjun (Codex) | In progress. First A100 experiment trained 600 updates, selected step 400; both held-out identity tests failed. Experimental checkpoints/results preserved; offline review export verified, identity fidelity not established. | `clone-model/` | 2026-11-14 |
 | Offline weapon-role and habit audit | Ashirwad (Codex) | In progress. Independent build-data audit and narrow pipeline correction; candidate bundles only, no playable-clone promotion. | `tools/habit-audit/`, `clone-pipeline/` | 2026-11-14 |
-| Independent mock replay QA | Ashirwad (Codex) | In progress. Separate task branch for mock-only browser/API checks and reproducible defect report; implementation unchanged. | `tools/replay-qa/` | 2026-11-14 |
-| Offline generated-path review export | Arjun (Codex) | In progress. Development-only real/own/other/base export written; 12 CPU tests pass. GPU export check pending. | `clone-model/review.py` | 2026-11-14 |
+| Independent mock replay QA | Ashirwad (Codex) | Done (QA/report only). Existing 47 tests pass; independent edge suite has 3 pass / 8 strict expected failures. Chromium desktop/mobile checks report unresolved replay/state, resilience, layout and labeling issues; implementations unchanged. | `tools/replay-qa/` | 2026-11-14 |
+| Offline generated-path review export | Arjun (Codex) | Done. Eight development cases exported on A100 (24 generated paths plus real paths), JSON checked and plots inspected; 12 CPU tests pass. No route promotion. | `clone-model/review.py` | 2026-11-14 |
 | Replay page: real player next to clone | Unassigned | In progress (demo version by Ashirwad: 2D map from positions, no video, no generated path) | `match-service/demo/replay.html` | 2026-11-14 |
 | Clone profile page | Unassigned | Not started | Not decided | 2026-11-14 |
 | Caster voice (Gemini script, ElevenLabs audio) | Unassigned | Not started | Not decided | 2026-11-14 |
@@ -205,6 +205,11 @@ Checked on 2026-11-14.
 
 - MatchBridge Release compilation ran on Windows with .NET SDK 10.0.404: zero warnings, zero errors. The existing project targets net8.0 and CounterStrikeSharp.API 1.0.367; no C# changes were needed. Re-ran all 42 service tests, including seven clone-mode tests against fakes; all pass. This does not verify loading the plugin or clone playback in CS2.
 
+- CS2 base-game download completed on Arjun's PC: Steam manifest reports all download/staging bytes complete, state 4, update result 0, 74.3 GB installed. No bot-base installer was run by this agent.
+- Learned movement: A100-SXM4-80GB optimization completed 600 updates, selected step 400; final held-out identity comparison ran 213 predictions across 71 windows and failed for both players (section 8.6). Twelve CPU integration tests pass. Eight development examples were then exported on the A100 and plotted for review; no model or route was promoted.
+
+- Independent mock replay QA (Ashirwad/Codex, 2026-11-14): existing 47 service tests pass. `tools/replay-qa/test_edges.py` adds 3 passing checks (all 159 routes, invalid IDs, trace order) and 8 strict expected failures documenting unresolved synthetic route/trace/mock edge cases. Playwright 1.49.1 / Chromium 131 ran desktop and 390px browser checks across all five pages, match lifecycles and replay controls. Normal flow, simulated badges, ceiling labels and a shared radar clock were observed; selection/error/empty-state, reload, overflow and accessibility/skill-label issues remain. See `tools/replay-qa/REPORT.md` and ignored `data/replay-qa/` evidence. No CS2 or implementation change.
+
 **Checked by reading source or documentation, not by running:**
 - What each open-source project can do (section 4).
 - The calls in the CS2-Bot-Controller programming interface (section 6).
@@ -215,10 +220,9 @@ Checked on 2026-11-14.
 - CS2 Game State Integration field names (`map.phase`, `map.team_ct.score`, `round.win_team`), from
   the CounterStrike2GSI and cs2-gsi library docs.
 
-**Not checked. Nobody has run any of this yet:**
-- Playing a pipeline-produced route inside CS2 (the format loads in C#; movement is still untested).
+**Not fully checked:**
+- Correct-side full-path fidelity and CloneDirector-driven playback inside CS2. A converted T-side file loaded and moved a CT bot in Tom's manual check, but hit a wall from the wrong spawn.
 - Adding a custom entry to the bot personality file.
-- Running or training CS-NET v4 on this project's data.
 - Every time estimate in section 11.
 - Sending console commands to CS2 through RCON (`-usercon`, `rcon_password`) or the MatchBridge
   plugin. Not needed while netcon works.
@@ -281,6 +285,7 @@ One install of CS2-Bot-Improver gives the first four rows.
 | Generating model: reading recordings into its training format | CS-NET v4's own parser (`demo_parser/`) and data scripts |
 | Model test numbers | CS-NET v4's `scripts/evaluate_pretrain.py` |
 | Replay page | CS-NET v4's viewer (`visualizer/`) |
+| Independent mock replay QA | Existing match-service tests/FastAPI TestClient and pytest; Playwright (Apache-2.0) drives the existing pages. New task-specific synthetic fixtures and report, no second viewer |
 | Path to key presses (after the hackathon) | cs2-movesim |
 | Match control API | This repository's `match-service/` |
 | Match service: events from the game | CS2's Game State Integration (Valve). Field names from the [CounterStrike2GSI](https://github.com/antonpup/CounterStrike2GSI) README; read only, no code copied |
@@ -356,7 +361,7 @@ Treat the measured value as an estimate.
 **Current limit:** reaction time is actually `null` in both built profiles, and `aim_skill=1` /
 `Skill=100` are maximum base-bot settings, not measured player ratings. The true-level goal in
 section 2.1 is unproven. After the opening route, the existing bot AI makes decisions; no
-player-specific combat or generating model has been trained or evaluated.
+player-specific combat model has been trained or evaluated. A movement identity adapter was trained and tested offline, but both identities failed (section 8.6).
 
 ### 5.4 The clone profile file
 
@@ -627,7 +632,7 @@ model, without retraining the network.
 
 ### 8.5 How generated movement reaches the demo (made by hand)
 
-The model does not run during the match. `clone-model/review.py` now exports development-only diagnostic examples via the same pinned PredictionEngine: actual, own identity, other identity and base paths, with timing/side/identity/provenance and native early-stop lengths. This new `cs2.clone.review.v1` offline file does not alter the match-service API. It is not a recorded bot match or an approved playback file; failed-validation identities are not promoted. Twelve CPU tests pass, including development/holdout exclusion, dead-anchor fallback and trace timing/channel checks. The exporter has not yet run on the GPU at this commit. Full test validation now writes an explicit final pass/fail state; dev reviews do not change it. For the demo, a person builds generated segments offline:
+The model does not run during the match. `clone-model/review.py` now exports development-only diagnostic examples via the same pinned PredictionEngine: actual, own identity, other identity and base paths, with timing/side/identity/provenance and native early-stop lengths. This new `cs2.clone.review.v1` offline file does not alter the match-service API. It is not a recorded bot match or an approved playback file; failed-validation identities are not promoted. Twelve CPU tests pass, including development/holdout exclusion, dead-anchor fallback and trace timing/channel checks. The exporter ran on the A100 with the step-400 adapter: eight development cases, four per player, 24 generated paths plus eight actual paths. Downloaded JSON was checked for timestamps/channels and held-out exclusion. `plot_review.py` rendered the XY comparisons with Matplotlib; the figure was visually checked. Artifacts and interpretation are attached to prerelease `learned-clones-a100-v1`. Six of eight own paths equal the base exactly; seven equal the other identity exactly. This diagnostic selection is not a validation score. Full test validation now writes an explicit final pass/fail state; dev reviews do not change it. For the demo, a person builds generated segments offline:
 
 1. Pick a real moment from a held-back game, for example the start of a round.
 2. Ask the model for the next 4 seconds of the clone's movement, with the clone's identity vector.
@@ -804,6 +809,8 @@ of the replay.
   Rigs integrated and verified (C2).
   Per-character rim-light/HUD accent sync (`rimColor`/`accentColor`); `scripts/verify-models.mjs`
   gates artist GLB drops (size, Idle clip, skins, meshopt).
+
+**Independent QA (2026-11-14):** `tools/replay-qa/REPORT.md` records unresolved replay selection races, stale empty/error panels, play-page reload loss, narrow-screen overflow, unnamed playback controls, and proof-label limits. Synthetic tests also expose missing/corrupt/empty route handling, nonfinite coordinates, post-death samples and mock trace finalization/download placeholders. QA owns only the report/harness; the service implementation remains with its owner and is not fixed by this report.
 
 ### 9.4 Sponsor services
 
@@ -1081,7 +1088,11 @@ demo. A released product would need each player's or team's permission.
 
 ## 19. Change log
 
+- 2026-11-14, Ashirwad (Codex): completed independent mock replay QA with reproducible browser/edge harnesses, ignored screenshots/logs and a prioritized report; 47 existing tests pass, 3 added checks pass and 8 expected failures record unresolved edge defects. Service/frontend implementations and APIs unchanged.
+
 - 2026-11-14, Ashirwad (Codex): read and consumed Arjun's friend handoff package, removed only its temporary directory, and claimed the CPU habit audit/correction and independent mock replay QA. Instructions preserved outside the checkout.
+- 2026-11-14, Arjun (Codex): verified the offline path exporter on the real A100 checkpoint (eight development examples / 24 predictions), checked its JSON and Matplotlib review figure, and preserved the artifacts in the experimental release. Updated obsolete not-run model/download statements; live clone gameplay and identity likeness remain unproven.
+
 - 2026-11-14, Arjun (Codex): added development-only generated-path review export from the pinned prediction engine and explicit completed validation states. Twelve CPU tests pass; GPU export check pending. No failed identity or generated path is promoted.
 
 - 2026-11-14, Arjun (Codex): preserved and reported the first completed A100 learned-clone experiment (600 updates, selected 400); both held-out identity tests failed, so no promotion. Published experimental adapter/metrics artifacts and a syntax-checked reproduction notebook. Added Arjun's explicit recipient cleanup instructions to the temporary friend handoffs.
