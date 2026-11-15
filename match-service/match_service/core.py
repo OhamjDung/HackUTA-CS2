@@ -76,6 +76,9 @@ class Settings:
     clone_join_seconds: float = 20.0  # how long to wait for every clone bot to join
     # How long to wait for every clone bot to show in `status` before removing extra bots (see _settle_bots).
     cs2_settle_seconds: float = 6.0
+    # Seconds after the match restart at which the extra-bot cleanup runs again, because the bot base can
+    # fill the teams again on `mp_restartgame` (Tom's 2026-11-15 run: four bots in a two-clone match).
+    cs2_recheck_seconds: tuple[float, ...] = (2.0, 6.0, 15.0)
     # After "Practice in CS2" loads the puzzle's map: wait for the plugins and the player to load
     # before joining a team and sending puzzle_load. Not measured; 5 s is a guess.
     puzzle_settle_seconds: float = 5.0
@@ -126,6 +129,8 @@ class Settings:
             clone_join_seconds=float(env.get("CS2_CLONE_JOIN_SECONDS", cls.clone_join_seconds)),
             cs2_routes=env.get("CS2_CLONE_ROUTES", cls.cs2_routes),
             cs2_settle_seconds=float(env.get("CS2_SETTLE_SECONDS", cls.cs2_settle_seconds)),
+            cs2_recheck_seconds=tuple(float(x) for x in env["CS2_RECHECK_SECONDS"].split(",") if x.strip())
+                if env.get("CS2_RECHECK_SECONDS") is not None else cls.cs2_recheck_seconds,
             puzzle_settle_seconds=float(env.get("CS2_PUZZLE_SETTLE_SECONDS", cls.puzzle_settle_seconds)),
             coach=CoachSettings.from_env(dict(env), env_file=[ENV_FILE, ROOT_ENV_FILE]),
             log_file=Path(env["MATCH_LOG_FILE"]) if env.get("MATCH_LOG_FILE") else None,

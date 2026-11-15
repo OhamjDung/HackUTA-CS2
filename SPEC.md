@@ -84,7 +84,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Replay page: real player next to clone | Unassigned | In progress (demo version by Ashirwad: 2D map from positions, no video; a generated-path tab shows the model's offline development review files, run against the mock in a browser) | `match-service/demo/replay.html`, `match-service/match_service/generated.py` | 2026-11-14 |
 | Clone profile page | Ashirwad | Done locally. Four clone profiles; side-specific time-weighted opening heat maps, weapons, purchases, quirk filter and labelled real-player reference scores. 85 service/3 calculation tests and desktop/mobile browser checks pass; no CS2 run. | `match-service/demo/profile.html` | 2026-11-15 |
 | Replay puzzles: 10 s rewind on death, Puzzles tab, library with ratings, instant mistake feedback, multi-POV form | Tom (with Claude) | In progress. Service, library, feedback, seed puzzles (two real pro moments) and the Puzzles tab built and tested without CS2 (25 service tests, 9 C# tests, browser check on a mock). **The in-game rewind and playback in CloneDirector is written and compiled but never run in CS2.** The multi-POV form stores footage only. See section 9.6 | `match-service/match_service/puzzles.py`, `feedback.py`, `puzzle_routes.py`, `seed_puzzles/`, `clone-director/PuzzleMode.cs`, `frontend/app/puzzles/`, `frontend/components/puzzles/` | 2026-11-15 |
-| Death coach: Gemini advice in CS2 chat and the user's own voice (ElevenLabs) after the player dies | Ashirwad | In progress. Written and tested against fakes only: 19 coach tests, 145 match service tests pass on a Mac after merging main; voice chosen per player of the clone in the match; silent playback through `sounddevice` ran. **No real Gemini or ElevenLabs call made yet (keys not added), never run in CS2.** It depends on CloneDirector's death recorder, which has also never run in CS2. **Handed to Tom to test on his PC** (keys are there): double-click `start-everything.bat` (updates, installs, starts the service, CS2 in Bot Mode and the website), `POST /coach/puzzles/pro_2393226_r7_donk` to hear the voices, a `-Bots clone` match with a donk or broky clone, then `match-service\collect-logs.ps1` to send logs. Both scripts written on a Mac, **never run on Windows**. See section 9.7 | `match-service/match_service/coach.py`, `match-service/tests/test_coach.py`, `start-everything.ps1`, `match-service/collect-logs.ps1` | 2026-11-15 |
+| Death coach: Gemini advice in CS2 chat and the user's own voice (ElevenLabs) after the player dies | Ashirwad | In progress. Written and tested against fakes only: 19 coach tests, 145 match service tests pass on a Mac after merging main; voice chosen per player of the clone in the match; silent playback through `sounddevice` ran. **First live run on Tom's PC (2026-11-15, from his service log):** CloneDirector saved two human deaths in a clone match, the coach picked each up within a second, Gemini (`gemini-3.5-flash-lite`) answered in 1.2 s with specific advice, donk (as the opponent) was chosen as speaker, and the chat command was sent. ElevenLabs answered 401 (invalid API key), so no voice yet. Whether the chat line appeared in CS2 is not reported. **Handed to Tom to test on his PC** (keys are there): double-click `start-everything.bat` (updates, installs, starts the service, CS2 in Bot Mode and the website), `POST /coach/puzzles/pro_2393226_r7_donk` to hear the voices, a `-Bots clone` match with a donk or broky clone, then `match-service\collect-logs.ps1` to send logs. Both scripts written on a Mac, **never run on Windows**. See section 9.7 | `match-service/match_service/coach.py`, `match-service/tests/test_coach.py`, `start-everything.ps1`, `match-service/collect-logs.ps1` | 2026-11-15 |
 | Caster voice (Gemini script, ElevenLabs audio) | Unassigned | Not started | Not decided | 2026-11-14 |
 | Pro bot voices: donk and broky (ElevenLabs) | Unassigned (research by Codex) | In progress. MVP targets verified voice packs for `donk_v1` and `broky_v1`. Player authorization, verified voices, and playback tests pending. | Section 9.5 | 2026-11-14 |
 | Similarity search (MongoDB Atlas) | Unassigned | Not started | Not decided | 2026-11-14 |
@@ -155,6 +155,8 @@ only when no usable base exists, and say so here.
 Checked on 2026-11-14.
 
 **Checked by running a query or request:**
+- Death coach live (Tom's PC, 2026-11-15, read from the service log he sent): two deaths in a private clone match were saved by CloneDirector and coached; Gemini 200 OK in 1.2 s each; `say` sent; ElevenLabs 401 invalid API key (a key problem on that PC, not the voice ids). Not confirmed: how the chat line looks in CS2, any audio.
+
 - Odyssey authored profiles (Arjun/Codex, 2026-11-15): Release builds with zero warnings/errors against API1.0.378 and the pinned controller contract.77 C# tests pass (including four actual profiles, lethal damage decision, scope and invalid persona settings),10 native-entry/profile tools tests pass,21 targeted catalogue/driver tests pass. Full service suite148 pass/1 existing Windows symlink privilege failure. No CS2 launch, VPK replacement, actual hook behavior, purchase-alias verification, balance, voice call or UI flow test was performed. The14 quirks/player are authored controls, not measured or neural-trained behavior.
 - Death coach (Ashirwad, 2026-11-15): 19 coach tests and the full match service suite (145, on main as of 19857ed) pass on a Mac against fake
   Gemini/ElevenLabs servers and a fake console: rule fallback without keys, Gemini text used when it answers, fallback on a
@@ -1258,6 +1260,11 @@ setup steps.
   `bot_quota <number of clones>` in one batch, kicks first. `bot_quota 0` would remove every bot and a
   lower quota alone removes a random one. It changes nothing if a clone's bot is missing or another
   bot's name is not a plain name. No endpoint or message changed.
+  Again after the restart (2026-11-15, Ashirwad): Tom's run of a two-clone wingman match showed four
+  bots, with no cleanup failure in the log, so the bot base most likely refilled the teams on
+  `mp_restartgame`. The cleanup now runs again 2, 6 and 15 s after the restart (`CS2_RECHECK_SECONDS`),
+  kicking only non-clone bots by name, and every run logs the bots it saw and kicked. Tested against a fake
+  game only; not yet run in CS2.
 - Event loop (2026-11-15). On Windows `start-cs2.ps1` starts uvicorn with
   `--loop match_service.loop:selector_loop`. With the default loop, a reset connection could close
   the listening socket (`WinError 64`, "Accept failed on a socket"): the process stayed alive, nothing
@@ -1964,6 +1971,10 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-15, Ashirwad: four bots in Tom's two-clone match: the extra-bot cleanup now also runs 2, 6 and 15 s after `mp_restartgame` and logs what it sees and kicks (section 9.2). 151 service tests pass against a fake game; not run in CS2. Also recorded the coach's first live run (death recorder, Gemini and chat work; ElevenLabs key rejected).
+
+- 2026-11-15, Ashirwad: recorded the death coach's first live run from Tom's log (death recorder, Gemini and chat work; ElevenLabs key rejected with 401).
 
 - 2026-11-15, Arjun (Codex): corrected Odyssey deployment instructions against the actual start script: use CS2_CLONE_ROUTES=recorded plus -Bots clone, not an unsupported -Routes flag. Persona behavior/code unchanged.
 

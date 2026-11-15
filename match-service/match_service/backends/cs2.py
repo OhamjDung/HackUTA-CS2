@@ -308,8 +308,16 @@ class Cs2Backend:
         await asyncio.sleep(self.s.restart_seconds)
         self.started = True
         # From here, game state updates (handle_gsi) move the match to live, count rounds, and end it.
+        # The bot base can fill the teams again on the restart, so clean up a few more times.
+        waited = 0.0
+        for at in self.s.cs2_recheck_seconds:
+            await asyncio.sleep(max(0.0, at - waited))
+            waited = at
+            if not record.active:
+                return
+            await self._settle_bots(f"{at:g} s after the restart", wait=False)
 
-    async def _settle_bots(self) -> None:
+    async def _settle_bots(self, when: str = "after adding bots", wait: bool = True) -> None:
         """Remove the bots the bot base adds on its own, so a match has exactly its clones.
 
         The bot base keeps a bot quota (2 after any bot is added). With one clone in the match, as when a
@@ -323,20 +331,25 @@ class Cs2Backend:
         if not expected:
             return
         loop = asyncio.get_running_loop()
-        deadline = loop.time() + self.s.cs2_settle_seconds
+        deadline = loop.time() + (self.s.cs2_settle_seconds if wait else 0.0)
         try:
             while True:
                 names = BOT_LINE.findall(await self.ch.query("status", wait_seconds=1.5))
                 if all(name in names for name in expected):
                     break
                 if loop.time() >= deadline:
-                    log.info("clone bots not all in `status`; leaving the bot quota alone")
+                    log.warning("bot cleanup %s: clone bots %s not all in `status` (bots there: %s); "
+                                "leaving the bot quota alone", when, expected, names)
                     return
                 await asyncio.sleep(0.5)
             extra = [name for name in names if name not in expected]
             if not all(SAFE_BOT_NAME.match(name) for name in extra):
-                log.warning("a bot has an unusual name; leaving the bot quota alone: %r", extra)
+                log.warning("bot cleanup %s: a bot has an unusual name; leaving the bot quota alone: %r", when, extra)
                 return
+            log.info("bot cleanup %s: bots in `status` %s, clones %s, kicking %s, bot_quota %d",
+                     when, names, expected, extra or "none", len(expected))
+            if not extra and when != "after adding bots":
+                return  # nothing to do; the quota was already set
             await self.ch.send([f'bot_kick "{name}"' for name in extra] + [f"bot_quota {len(expected)}"])
         except (OSError, asyncio.TimeoutError, UnsafeCommand) as exc:
             log.warning("could not remove extra bots: %s", exc)

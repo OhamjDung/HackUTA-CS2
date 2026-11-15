@@ -64,3 +64,31 @@ def test_two_clones_set_the_quota_to_two(tmp_path):
             "clones": [{"clone_id": "donk_v1", "team": "CT"}, {"clone_id": "broky_v1", "team": "T"}]}
     sent = play(tmp_path, status, body)
     assert "bot_quota 2" in sent and not [c for c in sent if c.startswith('bot_kick "')]
+
+
+def test_bots_that_come_back_after_the_restart_are_kicked_again(tmp_path):
+    """Tom's 2026-11-15 run: four bots in a two-clone wingman match. The bot base refills on mp_restartgame."""
+    import time
+    channel = RecordingChannel()
+    two = STATUS.format(extra="").replace("2 [NoChan]    0    0     active      0 ''\n",
+                                          "2 [NoChan]    0    0     active      0 'donk'\n")
+    channel.status_text = two
+    body = {"map": "de_mirage", "mode": "wingman", "players": [],
+            "clones": [{"clone_id": "donk_v1", "team": "CT"}, {"clone_id": "broky_v1", "team": "T"}]}
+    with TestClient(create_app(settings(tmp_path, cs2_recheck_seconds=(0.3,)), channel=channel)) as client:
+        match_id = client.post("/matches", json=body).json()["match_id"]
+        wait_sent(channel, "map de_mirage")
+        gsi(client)
+        wait_for(client, match_id, "ready")
+        wait_sent(channel, "mp_restartgame 1")
+        assert not [c for c in channel.sent if c.startswith('bot_kick "')]
+        # The restart brings two random bots back.
+        channel.status_text = two + "   3 [NoChan]    0    0     active      0 'Yamii'\n   4 [NoChan]    0    0     active      0 'Rex'\n"
+        deadline = time.time() + 3
+        while 'bot_kick "Rex"' not in channel.sent and time.time() < deadline:
+            time.sleep(0.02)
+    sent = channel.sent
+    assert 'bot_kick "Yamii"' in sent and 'bot_kick "Rex"' in sent
+    assert sent.index('bot_kick "Rex"') > sent.index("mp_restartgame 1")
+    assert sent[-1] == "bot_quota 2" or "bot_quota 2" in sent[sent.index('bot_kick "Rex"'):]
+    assert 'bot_kick "donk"' not in sent and 'bot_kick "broky"' not in sent
