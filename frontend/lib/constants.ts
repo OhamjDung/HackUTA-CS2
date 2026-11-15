@@ -27,6 +27,9 @@ export const CHARACTERS: CharacterConfig[] = [
     scale: [1, 1, 1],
     position: [0, 0, 0],
     idleAnimationName: 'Idle',
+    // Tactical Amber / Counter-Strike Gold key rim, cool blue fill.
+    rimColor: '#F59E0B',
+    accentColor: '#38BDF8',
   },
   {
     id: 'smash',
@@ -35,6 +38,9 @@ export const CHARACTERS: CharacterConfig[] = [
     scale: [1, 1, 1],
     position: [0, 0, 0],
     idleAnimationName: 'Idle',
+    // Electric Crimson key rim, blue fill.
+    rimColor: '#EF4444',
+    accentColor: '#3B82F6',
   },
   {
     id: 'fortnite',
@@ -43,6 +49,9 @@ export const CHARACTERS: CharacterConfig[] = [
     scale: [1, 1, 1],
     position: [0, 0, 0],
     idleAnimationName: 'Idle',
+    // Rift Neon Purple key rim, cyan fill.
+    rimColor: '#A855F7',
+    accentColor: '#06B6D4',
   },
   {
     id: 'fifa',
@@ -51,6 +60,9 @@ export const CHARACTERS: CharacterConfig[] = [
     scale: [1, 1, 1],
     position: [0, 0, 0],
     idleAnimationName: 'Idle',
+    // Pitch Neon Green key rim, sky blue fill.
+    rimColor: '#10B981',
+    accentColor: '#38BDF8',
   },
   {
     id: 'halo',
@@ -59,6 +71,9 @@ export const CHARACTERS: CharacterConfig[] = [
     scale: [1, 1, 1],
     position: [0, 0, 0],
     idleAnimationName: 'Idle',
+    // Mjolnir Visor Gold key rim, Cortana Cyan fill.
+    rimColor: '#EAB308',
+    accentColor: '#22D3EE',
   },
 ];
 

@@ -32,6 +32,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Match service, real version (starts and controls a real CS2 match) | Ashirwad | In progress. Written (`MATCH_BACKEND=cs2`) with three console channels (netcon, RCON, MatchBridge plugin) and a Windows start script; tested only against fake servers, not in CS2 | `match-service/match_service/backends/cs2.py` | 2026-11-14 |
 | Character showcase viewer (WebGPU hot-swap stage, 5 blockouts, B1-B3) | Nikesh | Done. B1-B3 verified in headless-Chromium GPU QA: real WebGPU backend, initial model ~20ms, 5/5 GLBs cached, clean swaps, zero console errors | `frontend/` | 2026-11-14 |
 | Character showcase: auto-cycle loop + AnimationMixer fallback (B4) | Nikesh | Done. Full 5-model auto-loop verified live (CS2→Smash→Fortnite→FIFA→Halo→CS2), pause freeze + manual override verified, mixer path unit-verified, 0 errors, 0 refetches | `frontend/` | 2026-11-14 |
+| Character showcase: chromatic lighting/HUD sync + GLB gatekeeper | Nikesh | Done. Per-character rim/accent verified live (artist FIFA rig renders through mixer path, 0 errors); `verify-models.mjs`: 5/5 PASS (Idle clip, skins, meshopt, 0.31MB/10MB) | `frontend/` | 2026-11-14 |
 | Stand-in bots: built-in CS2-Bot-Improver pro bots used in place of clones until CloneDirector works | Ashirwad | In progress. `donk_v1` and `broky_v1` profiles use the `donk` and `broky` bots; not run in CS2 | `match-service/sample_clones/` | 2026-11-14 |
 | Side-by-side page, stand-in version (two synced panels; replay page content replaces it) | Ashirwad | Not started | Not decided | 2026-11-14 |
 | Lobby page | Tom (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
@@ -694,6 +695,8 @@ of the replay.
   numbers. An AI-written scouting report. Similarity scores. "Most similar professionals".
 - **Character showcase viewer (`frontend/`).** Five blockout models on a WebGPU canvas with a TSL
   glitch hot-swap transition. Drop-in point for the 3D artist's rigged AAA models.
+  Per-character rim-light/HUD accent sync (`rimColor`/`accentColor`); `scripts/verify-models.mjs`
+  gates artist GLB drops (size, Idle clip, skins, meshopt).
 
 ### 9.4 Sponsor services
 
@@ -962,6 +965,11 @@ demo. A released product would need each player's or team's permission.
 ## 19. Change log
 
 Newest first. One line per change: date, who, what changed.
+
+- 2026-11-14, Nikesh: chromatic sync + gatekeeper in `frontend/` — per-character `rimColor`/
+  `accentColor` drive the rim/fill lights, active pill, signal bar and locked dot; added
+  `scripts/verify-models.mjs` (`npm run verify:models`). Artist FIFA rig verified live through
+  the mixer path; gatekeeper: 5/5 PASS. macOS `* 2.*` duplicates git-ignored.
 
 - 2026-11-14, Nikesh: Node B4 in `frontend/` — dual-mode CharacterModel (AnimationMixer when clips
   exist, procedural bob otherwise), 4 s auto-cycle showcase loop with pause/play and manual

@@ -1,6 +1,14 @@
 'use client';
 
-export default function SceneLighting() {
+export default function SceneLighting({
+  rimColor,
+  fillColor,
+}: {
+  /** Key rim light — per-character signature color, shifts at the swap midpoint. */
+  rimColor: string;
+  /** Cool front fill — the character's accent color. */
+  fillColor: string;
+}) {
   return (
     <>
       {/* Base fill so baked textures are never pitch black */}
@@ -8,9 +16,9 @@ export default function SceneLighting() {
       {/* Key light */}
       <directionalLight position={[5, 8, 5]} intensity={2.5} />
       {/* Rim light for silhouette separation on pure-black background */}
-      <directionalLight position={[-6, 4, -6]} intensity={1.4} color="#88ccff" />
-      {/* Low front fill to lift baked-texture shadows */}
-      <directionalLight position={[0, 1.5, 6]} intensity={0.6} color="#fff2e0" />
+      <directionalLight position={[-6, 4, -6]} intensity={1.4} color={rimColor} />
+      {/* Low front fill in the character's accent tone */}
+      <directionalLight position={[0, 1.5, 6]} intensity={0.6} color={fillColor} />
     </>
   );
 }

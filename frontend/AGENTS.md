@@ -76,6 +76,8 @@ export interface CharacterConfig {
   scale: [number, number, number];
   position: [number, number, number];
   idleAnimationName: string;
+  accentColor: string; // HUD accent (active pill, signal bar, locked dot) + cool fill light
+  rimColor: string;    // Key rim light color for the OLED stage
 }
 
 export interface AssetCacheEntry {

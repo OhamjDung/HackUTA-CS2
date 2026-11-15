@@ -7,3 +7,7 @@ dist/
 .DS_Store
 .env
 .env*.local
+# macOS/iCloud sync conflict duplicates (e.g. "AssetManager 2.ts") — never stage these.
+*\ 2.*
+*\ 3.*
+**/*\ [0-9].*

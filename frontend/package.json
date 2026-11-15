@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "gen-models": "node scripts/gen-blockout-models.mjs"
+    "gen-models": "node scripts/gen-blockout-models.mjs",
+    "verify:models": "node scripts/verify-models.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

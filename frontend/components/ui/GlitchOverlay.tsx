@@ -12,6 +12,7 @@ interface GlitchOverlayProps {
 
 export default function GlitchOverlay({ activeCharacter, intensity, backend }: GlitchOverlayProps) {
   const glitching = intensity > 0.05;
+  const accent = activeCharacter.accentColor;
 
   return (
     <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-between p-6">
@@ -38,7 +39,10 @@ export default function GlitchOverlay({ activeCharacter, intensity, backend }: G
         </div>
         <div className="text-right text-[11px] uppercase tracking-[0.25em] text-white/50">
           <p>{backend === 'webgl2' ? 'WebGL2 / 60fps' : 'WebGPU / 60fps'}</p>
-          <p className={glitching ? 'text-red-500' : 'text-emerald-400'}>
+          <p
+            className={glitching ? 'text-red-500' : undefined}
+            style={glitching ? undefined : { color: accent }}
+          >
             {glitching ? '● swapping' : '● locked'}
           </p>
         </div>
@@ -48,8 +52,8 @@ export default function GlitchOverlay({ activeCharacter, intensity, backend }: G
       <footer className="relative">
         <div className="h-[3px] w-full overflow-hidden bg-white/10">
           <div
-            className="h-full bg-cyan-300 transition-[width] duration-150"
-            style={{ width: `${glitching ? 100 : 12}%` }}
+            className="h-full transition-[width] duration-150"
+            style={{ width: `${glitching ? 100 : 12}%`, backgroundColor: accent }}
           />
         </div>
         <p className="mt-2 text-[11px] uppercase tracking-[0.3em] text-white/40">

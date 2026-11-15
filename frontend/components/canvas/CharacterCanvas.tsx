@@ -136,7 +136,7 @@ export default function CharacterCanvas({ activeId, glitchIntensity, onBackendRe
           onBackendReady?.(backendName);
         }}
       >
-        <SceneLighting />
+        <SceneLighting rimColor={activeConfig.rimColor} fillColor={activeConfig.accentColor} />
         <CharacterModel key={activeConfig.id} config={activeConfig} />
         <RenderDriver targetIntensity={glitchIntensity} />
       </Canvas>
