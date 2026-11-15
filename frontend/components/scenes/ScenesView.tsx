@@ -40,8 +40,12 @@ export default function ScenesView({ initialTab }: { initialTab: ScenesTab }) {
     router.replace(t === 'famous' ? famousHref : famousHref.replace('tab=famous', 'tab=upload'), { scroll: false });
   };
 
-  const famous = CURATED_SCENES.filter((s) => s.game === bot.game);
-  const others = CURATED_SCENES.filter((s) => s.game !== bot.game);
+  // The selected bot's game first. A game with no curated scenes (Smash Bros) shows the others as the main set.
+  const own = CURATED_SCENES.filter((s) => s.game === bot.game);
+  const rest = CURATED_SCENES.filter((s) => s.game !== bot.game);
+  const famous = own.length ? own : rest;
+  const others = own.length ? rest : [];
+  const famousTitle = `${famous[0]?.game ?? bot.game} moments`;
 
   return (
     <div>
@@ -128,7 +132,7 @@ export default function ScenesView({ initialTab }: { initialTab: ScenesTab }) {
         </section>
       ) : (
         <section className="mt-[32px]" aria-label="Famous games">
-          <SceneGrid title={`${bot.game} moments`} scenes={famous} botId={bot.id} />
+          <SceneGrid title={famousTitle} scenes={famous} botId={bot.id} />
           {others.length > 0 && <SceneGrid title="Other games" scenes={others} botId={bot.id} muted />}
           <p className="mt-[18px] text-[12.5px] text-[#9E9EA8]">Curated set · preview</p>
         </section>

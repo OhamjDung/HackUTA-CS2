@@ -11,8 +11,6 @@ const FAZE_SCENES = new Set([
   'mirage-mid',
   'dust2-awp-long',
   'mirage-b-anchor',
-  'smash-last-stock',
-  'smash-edgeguard',
 ]);
 const ODYSSEY_BOTS = new Set(['telemachus', 'menelaus', 'odysseus', 'poseidon']);
 const ODYSSEY_SCENES = new Set(['upload', 'legendary']);

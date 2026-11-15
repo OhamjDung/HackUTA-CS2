@@ -8,8 +8,10 @@ export const metadata = { title: 'Puzzles — DoppelGamer.' };
 type Search = Promise<{ tab?: string; death?: string }>;
 
 const tab = (on: boolean) =>
-  `flex h-[40px] items-center whitespace-nowrap rounded-full px-[22px] text-[16px] tracking-[-0.01em] transition-colors ${
-    on ? 'bg-[#F5F4F0] font-bold text-[#111111]' : 'border border-white/[0.22] font-medium text-[#E8E8EC] hover:border-white/45'
+  `relative -mb-px flex items-center whitespace-nowrap px-[20px] pb-[14px] pt-[2px] text-[18px] tracking-[-0.01em] transition-colors ${
+    on
+      ? 'font-bold text-white after:absolute after:inset-x-[8px] after:bottom-0 after:h-[3px] after:rounded-full after:bg-[#E4002B]'
+      : 'font-semibold text-[#9E9EA8] hover:text-white'
   }`;
 
 export default async function PuzzlesPage({ searchParams }: { searchParams: Search }) {
@@ -18,16 +20,10 @@ export default async function PuzzlesPage({ searchParams }: { searchParams: Sear
   return (
     <PageShell
       eyebrow="Puzzles"
-      title={
-        <>
-          Try that
-          <br />
-          moment again.
-        </>
-      }
+      title="Try that moment again."
       subtitle="Every death can be replayed from 10 seconds earlier. Save the good ones, practise pro moments, climb the rating."
     >
-      <nav aria-label="Puzzles sections" className="mb-[28px] flex gap-[12px]">
+      <nav aria-label="Puzzles sections" className="-mt-[10px] mb-[26px] flex gap-[6px] border-b border-white/[0.15]">
         <Link href="/puzzles" aria-current={create ? undefined : 'page'} className={tab(!create)}>
           Library
         </Link>

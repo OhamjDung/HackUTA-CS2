@@ -63,8 +63,6 @@ export const CURATED_SCENES: CuratedScene[] = [
   { id: 'mirage-mid', title: 'Mid control', game: 'CS2', setting: 'Mirage', blurb: 'Win the Window duel, then split B.', image: mirage },
   { id: 'dust2-awp-long', title: 'Long A AWP duel', game: 'CS2', setting: 'Dust II', blurb: 'Hold the doors against an aggressive push.', image: dust2 },
   { id: 'mirage-b-anchor', title: 'B anchor hold', game: 'CS2', setting: 'Mirage', blurb: 'Survive the Apartments rush alone.', image: mirage },
-  { id: 'smash-last-stock', title: 'Last-stock comeback', game: 'Smash Bros', setting: 'Battlefield', blurb: 'One stock each, 150% behind.' },
-  { id: 'smash-edgeguard', title: 'Edgeguard drill', game: 'Smash Bros', setting: 'Final Destination', blurb: 'Read the recovery and close the stock.' },
 ];
 
 export const LEADERBOARD_FULL = Array.from({ length: 10 }, (_, i) => ({
