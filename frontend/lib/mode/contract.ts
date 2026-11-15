@@ -14,8 +14,8 @@ const FAZE_SCENES = new Set([
   'smash-last-stock',
   'smash-edgeguard',
 ]);
-const ODYSSEY_BOTS = new Set(['atlas', 'echo']);
-const ODYSSEY_SCENES = new Set(['launch-bay', 'deep-space']);
+const ODYSSEY_BOTS = new Set(['telemachus', 'menelaus', 'odysseus', 'poseidon']);
+const ODYSSEY_SCENES = new Set(['upload', 'legendary']);
 
 export type QueryInput = URLSearchParams | Record<string, string | string[] | undefined>;
 

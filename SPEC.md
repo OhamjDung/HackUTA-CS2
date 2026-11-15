@@ -35,7 +35,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Character showcase: auto-cycle loop + AnimationMixer fallback (B4) | Nikesh | Done. Full 5-model auto-loop verified live (CS2→Smash→Fortnite→FIFA→Halo→CS2), pause freeze + manual override verified, mixer path unit-verified, 0 errors, 0 refetches | `frontend/` | 2026-11-14 |
 | Character showcase: chromatic lighting/HUD sync + GLB gatekeeper | Nikesh | Done. Per-character rim/accent verified live (artist FIFA rig renders through mixer path, 0 errors); `verify-models.mjs`: 5/5 PASS (Idle clip, skins, meshopt, 0.31MB/10MB) | `frontend/` | 2026-11-14 |
 | 3D Character Glitch-Swap Showcase (Nodes A1-A5, B1-B4, C1-C2) | Nikesh | COMPLETE & VERIFIED. Artist KTX2+Meshopt rigs integrated (5/5 gatekeeper PASS, 0.31MB); 5-character live sweep: mixer path, 1.85m framing, chromatic rim/HUD, KTX transcode clean, 0 errors, 0 refetches | `frontend/`, `frontend/scripts/chargen/` | 2026-11-14 |
-| DoppelGamer dual-mode foundation (FaZe + Odyssey) | Nikesh (Codex) | Done in working tree; user will commit. Six public routes resolve explicit `mode=faze\|odyssey` on the server, default invalid/absent modes to FaZe, filter cross-mode query IDs, preserve per-mode route memory and session-only uploads, and mount exactly one mode. Odyssey is CSS/HTML-only; production build, typecheck, 4 contract tests and 5/5 model verification pass. Browser smoke covered 12 route/mode combinations, invalid URLs, history and rapid switching. | `frontend/lib/mode/`, `frontend/components/mode/`, `frontend/modes/odyssey/`, `frontend/tests/mode-contract.test.ts` | 2026-11-15 |
+| DoppelGamer dual-mode foundation + complete Odyssey experience | Nikesh (Codex) | Done in working tree; user will commit. Six public routes resolve explicit `mode=faze\|odyssey` on the server. Odyssey now implements the approved parchment/engraving composition, exact four-bot roster, persistent selection and feature dialogue, upload/legendary scene flows, semantic sample leaderboard, coherent play/studio placeholders and illustrated footer. Odyssey mounts zero canvases across all six routes. Production build, typecheck, 4 contract tests and 5/5 model verification pass; both-mode 12-route smoke and repeated switching passed with zero browser errors. | `frontend/lib/mode/`, `frontend/components/mode/`, `frontend/modes/odyssey/`, `frontend/public/images/odyssey/`, `frontend/tests/mode-contract.test.ts` | 2026-11-15 |
 | Stand-in bots: built-in CS2-Bot-Improver pro bots used in place of clones until CloneDirector works | Ashirwad | In progress. `donk_v1` and `broky_v1` profiles use the `donk` and `broky` bots; not run in CS2 | `match-service/sample_clones/` | 2026-11-14 |
 | In-game similarity score: a bot's rounds in CS2 against the real player's held-back match (section 10.2) | Ashirwad | In progress. Scorer, map-area lookup and both held-back references written and tested; served as `GET /matches/{id}/score` and shown on the proof page (run against the mock in a browser); no real CS2 trace scored yet | `clone-pipeline/clone_pipeline/ingame.py`, `clone-pipeline/references/`, `match-service/match_service/scoring.py` | 2026-11-14 |
 | Side-by-side page, stand-in version (two synced panels; replay page content replaces it) | Ashirwad (live check by Codex) | In progress. Both live map panels drew bot positions from CS2. Replay played the donk stand-in and a recorded pro donk opening on one clock. The event list showed the service's halftime scoring error. | `match-service/demo/`, `match-service/match_service/replay.py` | 2026-11-14 |
@@ -1672,6 +1672,20 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-15, Nikesh (Codex): moved the Odyssey footer brand/navigation into the illustration's
+  clear upper band so neither overlaps the blue decorative plaques; added a separate mobile
+  position. Typecheck and browser visual verification pass.
+
+- 2026-11-15, Nikesh (Codex): removed the duplicate Odyssey ship-and-waves background from the
+  leaderboard section; the combined illustration now renders once, in the footer only. Typecheck
+  and browser visual verification pass.
+
+- 2026-11-15, Nikesh (Codex): completed the Odyssey side from the approved mockup and supplied
+  engraved assets. Added the exact four challengers, persistent selection, scene/upload flows,
+  sample leaderboard, play/studio placeholders, responsive artwork composition and footer. Build,
+  typecheck, 4 contract tests, 5/5 model gate, 12-route browser smoke and repeated switching pass;
+  Odyssey mounted zero canvases. Backend match reconstruction/live scoring remain explicit gaps.
 
 - 2026-11-15, Nikesh (Codex): implemented the DoppelGamer FaZe/Odyssey foundation across all six
   existing routes. Added server-resolved mode boundaries, validated mode-aware links and switching,
