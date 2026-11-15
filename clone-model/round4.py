@@ -109,9 +109,7 @@ def main():
     original_summary=imagine.summary
     def joint_summary(run,real):
         s=original_summary(run,real)
-        s["path_ade"]=s["mean_ade"]
-        s["mean_ade"]=s["path_ade"]+68*(s["turn_w1"]/45+2*s["move_w1"]/68)
-        s["selection_score"]=s["mean_ade"]
+        s["selection_score"]=s["mean_ade"]+68*(s["turn_w1"]/45+2*s["move_w1"]/68)
         return s
     imagine.summary=joint_summary
     args.out.mkdir(parents=True,exist_ok=True)
