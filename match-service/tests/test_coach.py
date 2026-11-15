@@ -274,3 +274,13 @@ def test_the_running_match_picks_the_voice_through_the_api(tmp_path):
         assert r["speaker"] == {"player": "broky", "clone_id": "broky_v1", "relation": "teammate"}
         assert r["voice_id"] == "voice-broky"  # no ElevenLabs key here, so nothing is spoken
         assert not r["voice"]
+
+
+def test_env_files_accept_bom_utf16_aliases_and_a_second_file(tmp_path):
+    first, second = tmp_path / "service.env", tmp_path / "root.env"
+    first.write_bytes("﻿ELEVENLABS_VOICE_DONK=vd\nGEMINI_API_KEY=\n".encode("utf-8"))
+    second.write_bytes("GOOGLE_API_KEY=g-root\r\nXI_API_KEY=e-root\r\nELEVENLABS_VOICE_DONK=other\r\n".encode("utf-16"))
+    s = CoachSettings.from_env({}, env_file=[first, second])
+    assert s.voices == {"donk": "vd"}  # the first file wins
+    assert s.gemini_api_key == "g-root" and s.elevenlabs_api_key == "e-root"  # empty line does not hide the other file
+    assert CoachSettings.from_env({"GEMINI_API_KEY": "env"}, env_file=[first, second]).gemini_api_key == "env"

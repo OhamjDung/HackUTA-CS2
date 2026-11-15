@@ -28,6 +28,7 @@ DEFAULT_DEATH_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "de
 
 # Local secrets for the coach (GEMINI_API_KEY, ELEVENLABS_*). Git-ignored.
 ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
+ROOT_ENV_FILE = ENV_FILE.parent.parent / ".env"  # also read; match-service/.env wins
 
 # emit(record, event_name, data) records an event and sends it to the match's callback_url.
 Emit = Callable[["MatchRecord", str, dict], Awaitable[None]]
@@ -126,7 +127,7 @@ class Settings:
             cs2_routes=env.get("CS2_CLONE_ROUTES", cls.cs2_routes),
             cs2_settle_seconds=float(env.get("CS2_SETTLE_SECONDS", cls.cs2_settle_seconds)),
             puzzle_settle_seconds=float(env.get("CS2_PUZZLE_SETTLE_SECONDS", cls.puzzle_settle_seconds)),
-            coach=CoachSettings.from_env(dict(env), env_file=ENV_FILE),
+            coach=CoachSettings.from_env(dict(env), env_file=[ENV_FILE, ROOT_ENV_FILE]),
             log_file=Path(env["MATCH_LOG_FILE"]) if env.get("MATCH_LOG_FILE") else None,
         )
 

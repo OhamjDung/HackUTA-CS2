@@ -63,6 +63,12 @@ SYSTEM_PROMPT = (
     "comms (teammate) or as the opponent who just watched them (opponent), but never claim to be the real person."
 )
 
+# Other names the keys are often saved under; the first one set is used.
+ALIASES = {
+    "GEMINI_API_KEY": ("GOOGLE_API_KEY", "GEMINI_KEY", "GOOGLE_GENAI_API_KEY"),
+    "ELEVENLABS_API_KEY": ("ELEVEN_LABS_API_KEY", "ELEVENLABS_KEY", "ELEVEN_API_KEY", "XI_API_KEY"),
+}
+
 # Anything that could end a console command or break the quoted argument is removed.
 _UNSAFE_CHARS = re.compile(r'[;"\r\n\0\x00-\x1f\x7f]')
 
@@ -71,9 +77,14 @@ def read_env_file(path: Path) -> dict[str, str]:
     """KEY=value lines from a .env file (comments and blank lines skipped). Missing file: {}."""
     out: dict[str, str] = {}
     try:
-        text = path.read_text(encoding="utf-8")
+        raw = path.read_bytes()
     except OSError:
         return out
+    # Notepad and PowerShell's `>` can save UTF-16 or UTF-8 with a BOM.
+    if raw.startswith((b"\xff\xfe", b"\xfe\xff")):
+        text = raw.decode("utf-16", errors="replace")
+    else:
+        text = raw.decode("utf-8-sig", errors="replace")
     for line in text.splitlines():
         line = line.strip()
         if not line or line.startswith("#") or "=" not in line:
@@ -219,8 +230,18 @@ class CoachSettings:
     max_age_seconds: float = 30.0  # skip a death file older than this when it is first seen
 
     @classmethod
-    def from_env(cls, env: dict[str, str], env_file: Path | None = None) -> "CoachSettings":
-        values = {**(read_env_file(env_file) if env_file else {}), **env}
+    def from_env(cls, env: dict[str, str], env_file: Path | list[Path] | None = None) -> "CoachSettings":
+        """Settings from the environment, then the .env files in order (the first file that has a name wins).
+
+        Other common spellings of the key names are accepted (ALIASES)."""
+        files = [env_file] if isinstance(env_file, Path) else (env_file or [])
+        values: dict[str, str] = {}
+        for f in reversed(files):
+            values.update({k: v for k, v in read_env_file(f).items() if v})
+        values.update({k: v for k, v in env.items() if v})
+        for name, others in ALIASES.items():
+            if not values.get(name):
+                values[name] = next((values[o] for o in others if values.get(o)), "")
 
         def flag(name: str, default: bool) -> bool:
             return values.get(name, "on" if default else "off").strip().lower() not in ("0", "off", "false", "no")

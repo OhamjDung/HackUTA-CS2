@@ -85,11 +85,11 @@ Step "Updating the code"
 Set-Location $repo
 if ($NoPull) {
     Write-Host "   skipped (-NoPull)"
-} elseif (git status --porcelain) {
-    Warn "Local changes in the repo, so git pull is skipped. Commit or stash them to update."
 } else {
+    # git refuses (and changes nothing) if a local change would be overwritten, so this is safe to try.
+    if (git status --porcelain) { Warn "There are local changes; trying git pull anyway (git keeps them)." }
     git pull --ff-only
-    if ($LASTEXITCODE -ne 0) { Warn "git pull failed; continuing with the code on disk." }
+    if ($LASTEXITCODE -ne 0) { Warn "git pull failed (a local change touches an updated file?); continuing with the code on disk." }
 }
 Write-Host "   commit $(git rev-parse --short HEAD) on $(git rev-parse --abbrev-ref HEAD)"
 
@@ -120,12 +120,46 @@ if (-not (Test-Path $envFile)) {
     Read-Host "Press Enter to close"
     exit 1
 }
-$values = @{}
-foreach ($line in Get-Content $envFile) {
-    if ($line -match '^\s*([A-Za-z0-9_]+)\s*=\s*(.*)$') { $values[$Matches[1]] = $Matches[2].Trim() }
+# Same rules as the service (coach.py): match-service\.env first, then the repo's .env, and other common key names.
+$aliases = @{ "GEMINI_API_KEY" = @("GOOGLE_API_KEY", "GEMINI_KEY", "GOOGLE_GENAI_API_KEY");
+              "ELEVENLABS_API_KEY" = @("ELEVEN_LABS_API_KEY", "ELEVENLABS_KEY", "ELEVEN_API_KEY", "XI_API_KEY") }
+function Read-EnvValues {
+    $v = @{}
+    foreach ($file in @((Join-Path $repo ".env"), $envFile)) {
+        if (-not (Test-Path $file)) { continue }
+        foreach ($line in Get-Content $file) {
+            if ($line -match '^\s*(?:export\s+)?([A-Za-z0-9_]+)\s*=\s*(.*)$') {
+                $val = $Matches[2].Trim().Trim('"').Trim("'")
+                if ($val) { $v[$Matches[1]] = $val }
+            }
+        }
+    }
+    foreach ($name in $aliases.Keys) {
+        if (-not $v[$name]) { foreach ($o in $aliases[$name]) { if ($v[$o]) { $v[$name] = $v[$o]; break } } }
+    }
+    return $v
+}
+# Add any missing voice line, so a .env made by hand still gets the voices.
+$voiceLines = @{ "ELEVENLABS_VOICE_DONK" = "lV7P6Y2mGb44Kor32e4R"; "ELEVENLABS_VOICE_BROKY" = "fHsClnnDBfxszcOczXEB" }
+$values = Read-EnvValues
+foreach ($name in $voiceLines.Keys) {
+    if (-not $values[$name]) {
+        Add-Content -Path $envFile -Value "$name=$($voiceLines[$name])" -Encoding UTF8
+        Write-Host "   added $name to $envFile"
+    }
+}
+$names = (Get-Content $envFile | Where-Object { $_ -match '^\s*([A-Za-z0-9_]+)\s*=' } | ForEach-Object { $Matches[1] }) -join ", "
+Write-Host "   names in match-service\.env: $names"
+$values = Read-EnvValues
+if (-not $values["GEMINI_API_KEY"] -or -not $values["ELEVENLABS_API_KEY"]) {
+    Warn "A key is missing. Notepad opens match-service\.env: put the keys after GEMINI_API_KEY= and ELEVENLABS_API_KEY=, save, close Notepad."
+    if (-not (Select-String -Path $envFile -Pattern '^\s*GEMINI_API_KEY\s*=' -Quiet)) { Add-Content -Path $envFile -Value "GEMINI_API_KEY=" -Encoding UTF8 }
+    if (-not (Select-String -Path $envFile -Pattern '^\s*ELEVENLABS_API_KEY\s*=' -Quiet)) { Add-Content -Path $envFile -Value "ELEVENLABS_API_KEY=" -Encoding UTF8 }
+    Start-Process notepad -ArgumentList $envFile -Wait
+    $values = Read-EnvValues
 }
 foreach ($name in $wanted) {
-    if ($values[$name]) { Write-Host "   $name set" } else { Warn "$name is EMPTY: that part of the coach stays off" }
+    if ($values[$name]) { Write-Host "   $name set" } else { Warn "$name is EMPTY or missing: that part of the coach stays off" }
 }
 
 # --- 4. the PC and Bot Mode files --------------------------------------------------------------------
