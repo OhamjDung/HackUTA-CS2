@@ -90,6 +90,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Similarity search (MongoDB Atlas) | Unassigned | Not started | Not decided | 2026-11-14 |
 | Hosting on Vultr, domain from GoDaddy Registry | Unassigned | Not started | Not decided | 2026-11-14 |
 | DEV article | Unassigned | Not started | Not decided | 2026-11-14 |
+| Odyssey authored bot roster: Poseidon, Odysseus, Menelaus, Telemachus | Arjun (Codex) | Implemented, not deployed/live-validated. Four matching UI IDs,14 mapped quirks each, distinct native difficulty presets, scoped Poseidon damage immunity and Odysseus1.08x enemy damage. Release build clean;77 C# tests,10 tool tests pass; service suite148 pass/1 known Windows symlink failure. Voices/trash talk remain Tom's work. | `clones/ODYSSEY.md`, `clones/{poseidon,odysseus,menelaus,telemachus}.json`, `clone-director/OdysseyMode.cs`, section6.5 | 2026-11-15 |
 
 ### 0.3 Things this spec does not know yet
 
@@ -154,6 +155,7 @@ only when no usable base exists, and say so here.
 Checked on 2026-11-14.
 
 **Checked by running a query or request:**
+- Odyssey authored profiles (Arjun/Codex, 2026-11-15): Release builds with zero warnings/errors against API1.0.378 and the pinned controller contract.77 C# tests pass (including four actual profiles, lethal damage decision, scope and invalid persona settings),10 native-entry/profile tools tests pass,21 targeted catalogue/driver tests pass. Full service suite148 pass/1 existing Windows symlink privilege failure. No CS2 launch, VPK replacement, actual hook behavior, purchase-alias verification, balance, voice call or UI flow test was performed. The14 quirks/player are authored controls, not measured or neural-trained behavior.
 - Death coach (Ashirwad, 2026-11-15): 19 coach tests and the full match service suite (145, on main as of 19857ed) pass on a Mac against fake
   Gemini/ElevenLabs servers and a fake console: rule fallback without keys, Gemini text used when it answers, fallback on a
   Gemini error, console-command injection stripped, chat sent through MatchBridge only, ElevenLabs PCM streamed to the
@@ -495,6 +497,12 @@ One install of CS2-Bot-Improver gives the first four rows.
 | Odyssey layered art and motion | Layer cut-out: Pillow and NumPy (open source, HPND and BSD licences), run through `uv`. Motion: plain CSS plus small React hooks, the same approach as the FaZe home page; no animation library was added because CSS covers every effect used and FaZe already works this way. Written from zero on that base. |
 | Death coach (Gemini advice, chat, voice) | Written from zero: no existing open-source CS2 coach reads CloneDirector's death files. Calls the documented REST APIs (Gemini `generateContent`, ElevenLabs `text-to-speech/{voice_id}/stream`) with `httpx`, no SDK; playback with `sounddevice` (MIT). Reuses `feedback.py` and CloneDirector's death recorder (section 9.6). |
 
+Odyssey gameplay starting point (6.5): existing CloneDirector profiles, purchase/quirk/game-sense rules
+and `add_clone_bot_entries.py`, built on the already selected CS2-Bot-Controller/CS2-Smarter-Bot bases.
+The new scoped fantasy damage policy uses CounterStrikeSharp1.0.378's documented
+`Listeners.OnEntityTakeDamagePre` (MIT framework), not copied engine offsets. Character-to-setting
+translation is original authored design; there is no existing implementation of these four personas.
+
 ### 4.3 Rejected
 
 - **CQ-AVATAR dataset.** 37 GB. Positions are rescaled, so real map positions cannot be read. No key
@@ -709,6 +717,49 @@ current playback and applies the chosen source next round. `clone_record` is not
 The same interface records human players. The plugin can call `StartRecord` on each human at round
 start and save the segment at round end. These segments are already in the playback format. A user
 who plays ten rounds has a route library at the end.
+
+### 6.5 Odyssey authored personas (2026-11-15)
+
+The current UI's exact four IDs are `poseidon`, `odysseus`, `menelaus`, `telemachus`. Each has14
+authored character quirks and existing profile/driver compatibility; `source: user`, `model: null`,
+no source demos, no pro routes and no neural training. Native AI drives navigation/combat/utility;
+the existing burst/crouch/jump and sound-conditioned walk rules add persona tendencies. Full plan,
+trait rationale and every consumed control: `clones/ODYSSEY.md`. The deterministic generator is
+`clone-director/tools/make_odyssey_profiles.py`. No existing real-player clone was retuned.
+
+The optional, backward-compatible profile section `odyssey` carries version1, difficulty,
+invulnerable, damage_multiplier, authored native bot-profile settings and quirk rationale/provenance.
+Only the four exact persona IDs accept the scoped fantasy rules; their profiles fail loading if
+the section is absent or the identity/rule combination is invalid. Existing profile fields and
+service request/response shapes remain unchanged. The service's existing `source: user` represents
+custom authored personas; these are not labeled as pros or measured player models.
+
+| ID | Difficulty | Native Skill / reaction setting | Fantasy rule |
+|---|---|---|---|
+| poseidon | impossible |100 /0ms | Block all incoming gameplay damage before application |
+| odysseus | superhuman |100 /100ms |1.08x outgoing enemy-player damage |
+| menelaus | medium |65 /320ms | Normal damage/health |
+| telemachus | easy |20 /650ms | Normal damage/health |
+
+These are starting design knobs, not measured ELO or a proven ranking above the best pro. Poseidon
+uses the pre-damage listener, not post-hit healing or a huge health pool. Immunity is scoped to the
+currently attached bot pawn; no global god mode and no persisted health flags. It covers damage,
+not entity removal/admin slay/map cleanup or objective scoring. Odysseus's8% advantage is an explicit
+fantasy modifier, not learned reasoning. Medium/easy remain killable and money-limited.
+
+Install both updated plugin/Core DLLs and four native bot entries: the patcher reads per-character
+settings from the JSON, overriding the inherited donk template. Its `--plain` flag does not remove
+the authored Odyssey differences; it only resets L2/LF human-aim limits. Original pro/v2 settings
+are preserved. Service stand-in mode refuses Odyssey because damage rules would not run; generated
+mode refuses it because no neural routes exist. Existing `-Bots clone -Routes recorded` allows the
+route-free native personas alongside recorded-route pro clones. The frontend already has matching
+IDs; Challenge/Play-to-match wiring remains with the frontend/Tom integration, not changed here.
+
+Voices/trash talk belong to Tom's existing ElevenLabs work; no audio, voice IDs, credentials or new
+voice system were created. Handoff and private acceptance checklist: `handoffs/tom-odyssey-bots.md`.
+No CS2 deployment/live validation was performed. Pure policy/profile/native-config tests and a clean
+plugin build establish code wiring only; live damage immunity, native configuration acceptance,
+purchase aliases, quiet-walk behavior and difficulty balance still require private-game checks.
 
 ## 7. Data
 
@@ -1913,6 +1964,8 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-15, Arjun (Codex): added the four UI-matching Odyssey authored personas with14 mapped quirks each, separate native difficulty/aim settings, scoped pre-damage immunity for Poseidon and8% enemy-damage edge for Odysseus. Added fail-closed service mode checks, deterministic profile/native-entry tooling and Tom's voice/deployment handoff. Clean Release build;77 C# and10 tools tests pass;148 service tests pass with1 known Windows symlink privilege failure. No neural training, voice generation or CS2 deployment claimed.
 
 - 2026-11-15, Nikesh (with Claude): Odyssey bot feature card text placement (`modes/odyssey/`). The quote is centred inside the cloud's inner area (x 47-93%, y 8-44% of the art, measured from the four `*-feature/cloud.webp` layers) and the name plate ("POSEIDON" over a ruled "THE TEMPEST") and Challenge button are centred in the clear parchment between cloud and waves (y 49-70%), sized with container units so they no longer overlap the waves or the meander at narrower widths. On phones the name plate and button sit below the art. Checked in the browser at 1440, 875 and 375 px; `tsc` clean. Not run: `next build`.
 - 2026-11-15, Nikesh (with Claude): Odyssey and login logo, crest and login card. Odyssey header, hero and footer now use the FaZe home sign component (`components/ui/HeroSign`, 14-segment LED) with blue lit segments and a gold glow instead of the LED-font text. The wave-crest plume was cut out of `layers/hero/waves.webp` into `crest.webp` and now rides on the smaller left helmet; the clone helmet gets a mirrored binary crest (`crest-twin-mask.webp`) with a blue glow, and its 1s and 0s are larger and brighter (`matrix-digits.webp`). Helmets and crests are placed from four CSS variables (`--ax`, `--bx`, `--hy`, `--hw`). Login (`components/auth/DemoGate`): the background's baked-in wordmark is painted out (`public/images/login-background-nosign.webp`; the original PNG is kept), the FaZe home sign sits in its place in FaZe red, and the card is smaller and see-through so it fits between the two soldiers. Checked: `tsc` clean; browser at 1440 px (login and Odyssey) and 375 px (Odyssey). Not checked: login at phone width, `next build`.

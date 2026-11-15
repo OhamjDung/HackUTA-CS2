@@ -56,6 +56,8 @@ public sealed partial class CloneDirectorPlugin : BasePlugin
         public float PendingStopUntil { get; set; }
         public float NextWalkDecision { get; set; }
         public Queue<string> RecentRoutes { get; } = new();
+        public long BlockedDamageEvents { get; set; }
+        public long BoostedDamageEvents { get; set; }
     }
 
     public override void Load(bool hotReload)
@@ -77,6 +79,7 @@ public sealed partial class CloneDirectorPlugin : BasePlugin
         RegisterListener<Listeners.OnTick>(Tick);
         PuzzleLoad();   // replay puzzles: PuzzleMode.cs
         GameSenseLoad();   // v2 game sense: GameSenseMode.cs
+        OdysseyLoad();   // opt-in fictional persona damage rules, never global god mode
     }
 
     public override void OnAllPluginsLoaded(bool hotReload)
@@ -144,6 +147,8 @@ public sealed partial class CloneDirectorPlugin : BasePlugin
         {
             var s = binding.Session;
             command.ReplyToCommand($"slot={s.Slot} clone={s.Profile.Id} side={Side(binding.Player.TeamNum)} route={s.LastRoute?.Label ?? "none"} source={s.LastRoute?.Source ?? "none"} reason={s.Reason}");
+            if (s.Profile.Odyssey is { } persona)
+                command.ReplyToCommand($"ODYSSEY difficulty={persona.Difficulty} blocked_damage_events={binding.BlockedDamageEvents} boosted_damage_events={binding.BoostedDamageEvents}");
         }
     }
 
@@ -175,7 +180,10 @@ public sealed partial class CloneDirectorPlugin : BasePlugin
                 _bots.Add(player.Slot, binding);
                 _pending = null;
                 ApplyBuy(binding);
-                Log($"Attached {session.Profile.Id} to slot {player.Slot}, personality={session.Profile.Personality}. Routes start next round.");
+                Log($"Attached {session.Profile.Id} to slot {player.Slot}, personality={session.Profile.Personality}. " +
+                    (session.Profile.Odyssey is null ? "Routes start next round." : "Authored native AI; purchases applied, no replay route."));
+                if (session.Profile.Odyssey is { } odyssey)
+                    Log($"ODYSSEY {session.Profile.Id} difficulty={odyssey.Difficulty} invulnerable={odyssey.Invulnerable} damage_multiplier={odyssey.DamageMultiplier:F2}; authored native AI, no neural routes.");
             }
             else if (Server.CurrentTime >= pending.Deadline)
             {

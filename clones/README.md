@@ -119,3 +119,11 @@ uv run python -m clone_pipeline.quirks score --profile ../clones/donkL.json --de
 
 The real players pass this test on their own held-back matches: donk 1st of 5 with 8 of 10 quirks,
 broky 1st of 5 with 9 of 10. That is the ceiling for any clone.
+
+## Odyssey roster
+
+Four additional authored personas match the Odyssey UI: `poseidon`, `odysseus`, `menelaus`,
+`telemachus`. They use native AI and 14 explicit character quirks each, not recorded pro routes or
+neural adapters. Poseidon requires the updated director's damage immunity; Odysseus has a scoped 8%
+enemy-player damage edge. Medium Menelaus and easy Telemachus have normal damage/health. See
+[the complete design and limitations](ODYSSEY.md) and [Tom's handoff](../handoffs/tom-odyssey-bots.md).

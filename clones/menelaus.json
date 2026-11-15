@@ -1,0 +1,221 @@
+{
+  "clone_id": "menelaus",
+  "display_name": "Menelaus",
+  "source": "user",
+  "stand_in_bot": "menelaus",
+  "map": "de_mirage",
+  "model": null,
+  "reaction_ms": 320,
+  "aim_skill": 0.65,
+  "aggression": 0.58,
+  "weapons": [
+    "ak47",
+    "m4a1"
+  ],
+  "positions": {},
+  "source_games": [],
+  "similarity": null,
+  "authored": true,
+  "buy_plan": {
+    "T": {
+      "pistol": {
+        "aliases": [
+          "glock",
+          "vest"
+        ]
+      },
+      "eco": {
+        "aliases": [
+          "p250"
+        ]
+      },
+      "force": {
+        "aliases": [
+          "galilar",
+          "vest"
+        ]
+      },
+      "full": {
+        "aliases": [
+          "ak47",
+          "vesthelm",
+          "flashbang",
+          "hegrenade"
+        ]
+      }
+    },
+    "CT": {
+      "pistol": {
+        "aliases": [
+          "hkp2000",
+          "vest"
+        ]
+      },
+      "eco": {
+        "aliases": [
+          "p250"
+        ]
+      },
+      "force": {
+        "aliases": [
+          "famas",
+          "vest"
+        ]
+      },
+      "full": {
+        "aliases": [
+          "m4a1",
+          "vesthelm",
+          "flashbang",
+          "hegrenade",
+          "defuser"
+        ]
+      }
+    }
+  },
+  "routes": {
+    "T": [],
+    "CT": []
+  },
+  "route_shares": {
+    "T": {},
+    "CT": {}
+  },
+  "quirk_controls": {
+    "shots_per_burst": {
+      "value": 5.0
+    },
+    "single_shot_burst_share": {
+      "value": 0.25
+    },
+    "crouched_shot_share": {
+      "value": 0.5
+    },
+    "jumps_per_min": {
+      "value": 0.5
+    },
+    "slow_share": {
+      "value": 0.45
+    }
+  },
+  "game_sense": {
+    "enemy_close_handoff": false,
+    "quiet_walk": true,
+    "quiet_walk_share": 0.45,
+    "heard_memory_seconds": 3.0
+  },
+  "odyssey": {
+    "version": 1,
+    "title": "The Warlord",
+    "difficulty": "medium",
+    "character_basis": "Proud, steadfast veteran and loyal commander; direct rifle fights with dependable support.",
+    "invulnerable": false,
+    "damage_multiplier": 1.0,
+    "bot_profile": {
+      "Skill": "65",
+      "Aggression": "58",
+      "Teamwork": "85",
+      "ReactionTime": "0.32",
+      "AttackDelay": "0.08",
+      "LookAngleMaxAccelNormal": "12000.0",
+      "LookAngleStiffnessNormal": "300.0",
+      "LookAngleDampingNormal": "35.0",
+      "LookAngleMaxAccelAttacking": "12000.0",
+      "LookAngleStiffnessAttacking": "600.0",
+      "LookAngleDampingAttacking": "60.0",
+      "AimFocusInitial": "1.8",
+      "AimFocusDecay": ".2",
+      "AimFocusOffsetScale": "0.35",
+      "AimfocusInterval": ".25"
+    },
+    "behavior_source": "authored persona + native bot AI; not a neural model or pro recording",
+    "live_validated": false,
+    "voice_owner": "Tom; existing ElevenLabs voice mapped by clone_id; no voice IDs embedded",
+    "quirks": [
+      {
+        "id": "menelaus_01",
+        "name": "The direct challenge",
+        "control": "odyssey.bot_profile.Aggression",
+        "effect": "Native aggression 58/100; pressure appetite, not a guaranteed path."
+      },
+      {
+        "id": "menelaus_02",
+        "name": "The loyal commander",
+        "control": "odyssey.bot_profile.Teamwork",
+        "effect": "Native teamwork 85/100; squad preference when teammates exist."
+      },
+      {
+        "id": "menelaus_03",
+        "name": "A fair reaction window",
+        "control": "odyssey.bot_profile.ReactionTime",
+        "effect": "Configured reaction 320 ms, subject to the native AI and server tick."
+      },
+      {
+        "id": "menelaus_04",
+        "name": "The steady veteran",
+        "control": "odyssey.bot_profile.AimFocusOffsetScale",
+        "effect": "Aim offset scale 0.35; finite acceleration cap 12000. Calibration required."
+      },
+      {
+        "id": "menelaus_05",
+        "name": "Sets his shot",
+        "control": "odyssey.bot_profile.AttackDelay",
+        "effect": "Configured attack delay 80 ms after the native AI decides to engage."
+      },
+      {
+        "id": "menelaus_06",
+        "name": "Controlled rifle volleys",
+        "control": "quirk_controls.shots_per_burst.value",
+        "effect": "Burst target 5 shots, single-shot share 25%; existing trigger suppression."
+      },
+      {
+        "id": "menelaus_07",
+        "name": "The planted shield",
+        "control": "quirk_controls.crouched_shot_share.value",
+        "effect": "Extra crouch at burst start with probability 50%; native crouching can also occur."
+      },
+      {
+        "id": "menelaus_08",
+        "name": "Grounded veteran",
+        "control": "quirk_controls.jumps_per_min.value",
+        "effect": "0.5 extra jumps/min target while running outside combat; zero means no injected jumps."
+      },
+      {
+        "id": "menelaus_09",
+        "name": "Disciplined approach",
+        "control": "game_sense.quiet_walk_share",
+        "effect": "45% walk chance per eligible second near a recent heard step/reload; memory 3s. Not global enemy awareness."
+      },
+      {
+        "id": "menelaus_10",
+        "name": "The dependable rifle",
+        "control": "buy_plan.T.full.aliases",
+        "effect": "Full-buy primary T/CT: ak47/m4a1; subject to money and alias support."
+      },
+      {
+        "id": "menelaus_11",
+        "name": "The practical sidearm",
+        "control": "buy_plan.T.eco.aliases",
+        "effect": "Eco sidearm T/CT: p250/p250; no armor/utility splurge."
+      },
+      {
+        "id": "menelaus_12",
+        "name": "The affordable battle line",
+        "control": "buy_plan.T.force.aliases",
+        "effect": "Force primary T/CT: galilar/famas, then vest; subject to affordability."
+      },
+      {
+        "id": "menelaus_13",
+        "name": "Straightforward support",
+        "control": "buy_plan.CT.full.aliases",
+        "effect": "Utility buy palette: flashbang, hegrenade. Native AI chooses deployment; no authored lineups or fakes."
+      },
+      {
+        "id": "menelaus_14",
+        "name": "Armor before ornament",
+        "control": "buy_plan.T.full.aliases",
+        "effect": "Primary then vesthelm before utility, both sides; a protected but normally killable veteran."
+      }
+    ]
+  }
+}
