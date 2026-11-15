@@ -35,6 +35,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Lobby page | Tom (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | Match page | Nikesh (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | CS2 with the bot base installed on the demo laptop | Unassigned | Not started | Demo laptop | 2026-11-14 |
+| CS2 base game download on Arjun's current PC | Arjun (Codex) | In progress. Started in Steam; active transfer confirmed. Bot base not installed by this agent. | Steam default library on C: | 2026-11-14 |
 | Clone pipeline: recording in, clone profile out | Arjun (Codex) | Done. 10 tests pass; purchase order corrected in both clones. | `clone-pipeline/`, `HANDOFF.md` | 2026-11-14 |
 | donk clone (`donk_v1`): profile, purchases, grenades, 80 route files | Arjun | Done. Built from 4 matches, 80 rounds. | `clones/` | 2026-11-14 |
 | broky clone (`broky_v1`): data-built profile and routes | Arjun (Codex) | Done. Built from 4 matches, 79 rounds/routes; held back 22 rounds. Files load in C#; not run in game. | `clones/broky_v1.json`, `clones/README.md` | 2026-11-14 |
@@ -141,6 +142,9 @@ Checked on 2026-11-14.
 - Built broky from four real recordings (79 rounds/routes), reserving match 2393024 (22 rounds).
   Confirmed both profiles load in the match-service catalogue and both holdouts are excluded from
   building matches. Re-ran all 32 match-service tests; all pass (one dependency deprecation warning).
+
+- Re-ran current suites on Windows: 10 pipeline, 26 CloneDirector, and 33 match-service tests pass (69 total). The service has one dependency deprecation warning. This includes reading both clone profiles and all 159 route files.
+- Started the CS2 base-game download in the existing Steam client on Arjun's current PC after confirming no running download or CS2 manifest. Observed active transfer at 6%, 3.3 / 57.6 GB downloaded, with Steam estimating about 33 minutes remaining. This is a progress snapshot, not an installation or in-game test. No CS2-Bot-Improver files were installed or run.
 
 **Checked by reading source or documentation, not by running:**
 - What each open-source project can do (section 4).
@@ -931,6 +935,8 @@ demo. A released product would need each player's or team's permission.
 ## 19. Change log
 
 Newest first. One line per change: date, who, what changed.
+
+- 2026-11-14, Arjun (Codex): confirmed current code is pushed, started the CS2 base-game download in Steam, and re-ran all 69 current automated tests successfully. Game download remains in progress; no in-game clone validation or neural-model training has run.
 
 - 2026-11-14, Ashirwad: recorded Tom's first CS2 run (netcon and game state work; no score, no
   recording); match start now ends warmup, restarts the game, and ignores game state for 2 s.
