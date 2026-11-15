@@ -14,6 +14,21 @@ Everything in the service goes through `send` and `query`, so switching changes 
 import asyncio
 from typing import Protocol
 
+# A newline or `;` ends a console command, so a value containing one could run a second command.
+UNSAFE = ("\n", "\r", ";", "\0")
+
+
+class UnsafeCommand(ValueError):
+    pass
+
+
+def check(commands: list[str]) -> list[str]:
+    """Refuse the whole batch, before anything is sent, if any command could run a second one."""
+    for c in commands:
+        if any(ch in c for ch in UNSAFE):
+            raise UnsafeCommand(f"refusing console command with a newline or ';': {c!r}")
+    return commands
+
 
 class ConsoleChannel(Protocol):
     async def send(self, commands: list[str]) -> None: ...
@@ -29,6 +44,7 @@ class NetconChannel:
         return await asyncio.wait_for(asyncio.open_connection(self.host, self.port), self.connect_timeout)
 
     async def send(self, commands: list[str]) -> None:
+        check(commands)
         reader, writer = await self._open()
         try:
             writer.write("".join(f"{c}\n" for c in commands).encode())
@@ -41,6 +57,7 @@ class NetconChannel:
 
     async def query(self, command: str, wait_seconds: float = 1.0) -> str:
         """Send one command and return whatever console output arrives within wait_seconds."""
+        check([command])
         reader, writer = await self._open()
         try:
             writer.write(f"{command}\n".encode())
@@ -111,11 +128,11 @@ class RconChannel:
             raise ConnectionError("RCON session timed out") from exc
 
     async def send(self, commands: list[str]) -> None:
-        for c in server_side(commands, jointeam_command=None):
+        for c in check(server_side(commands, jointeam_command=None)):
             await self._run(c)
 
     async def query(self, command: str, wait_seconds: float = 1.0) -> str:
-        return await self._run(command)
+        return await self._run(check([command])[0])
 
 
 class PluginChannel:
@@ -148,7 +165,7 @@ class PluginChannel:
             await writer.wait_closed()
 
     async def send(self, commands: list[str]) -> None:
-        await self._exchange(server_side(commands, jointeam_command="matchbridge_jointeam"))
+        await self._exchange(check(server_side(commands, jointeam_command="matchbridge_jointeam")))
 
     async def query(self, command: str, wait_seconds: float = 1.0) -> str:
         # The plugin can't return console output, only that it ran the command.
@@ -166,7 +183,7 @@ class RecordingChannel:
     async def send(self, commands: list[str]) -> None:
         if self.fail_with:
             raise self.fail_with
-        self.sent.extend(commands)
+        self.sent.extend(check(commands))
 
     async def query(self, command: str, wait_seconds: float = 1.0) -> str:
         await self.send([command])

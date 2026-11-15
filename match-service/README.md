@@ -93,7 +93,7 @@ How it controls the game:
      `rcon_password <password>` in its console. Not confirmed that CS2 answers RCON in Bot Mode.
   3. `plugin`: the MatchBridge plugin in `plugin/MatchBridge/`, for CounterStrikeSharp (which
      CS2-Bot-Improver installs). It runs each command inside the game. It must be built once with
-     the .NET 8 SDK.
+     the .NET SDK (8 or newer; SDK 10 also builds CloneDirector).
 
   With `rcon` and `plugin` the commands run on the server side, where `record`, `stop` and
   `jointeam` don't exist. The service sends `tv_record` / `tv_stoprecord` instead (with
@@ -101,6 +101,10 @@ How it controls the game:
   `matchbridge_jointeam`, which moves the person at the PC. With `rcon` nothing can move them, so
   they pick a team themselves.
 - **Events in** through CS2's Game State Integration: CS2 POSTs the map, phase and scores to `/gsi`.
+
+Console safety: every channel refuses a command containing a newline, `\r` or `;` before it
+connects, because those would start a second command. Clone profiles whose `stand_in_bot` is not a
+plain name (letters, digits, `_`, `.`, `-`; at most 32) are skipped with a warning when profiles load.
 
 What a match does: switch to the map and mode, wait for CS2 to report the map, set team names
 (`Alpha` starts CT, `Bravo` starts T, so scores follow teams across halftime), kick bots, add each
@@ -125,7 +129,9 @@ config into `game\csgo\cfg` with a random token, prints what CS2 needs for the c
 with `-Console plugin` builds MatchBridge (if `dotnet` is installed) and copies it into
 `game\csgo\addons\counterstrikesharp\plugins\MatchBridge\` with its `matchbridge.json`. The RCON
 password and plugin token default to the game state token; set them with `-ConsolePassword`.
-Restart CS2 after the first run so it reads the new files. Then open `GET /health`: it says whether
+Restart CS2 after the first run so it reads the new files. The service listens on `127.0.0.1`, so
+only the CS2 PC can reach it. Add `-Listen 0.0.0.0` only when another machine (the lobby on a
+teammate's laptop) needs it: then anyone on the same network can create and stop matches. Then open `GET /health`: it says whether
 the console answers and when game state last arrived. **The script has not been run on Windows
 yet.**
 
@@ -139,7 +145,7 @@ By hand, on any system:
      uv run uvicorn match_service.main:app --host 0.0.0.0 --port 8000
    ```
 
-To build MatchBridge by hand: install the .NET 8 SDK, run `dotnet build plugin/MatchBridge -c Release`,
+To build MatchBridge by hand: install the .NET SDK (8 or newer), run `dotnet build plugin/MatchBridge -c Release`,
 then copy `plugin/MatchBridge/bin/Release/net8.0/MatchBridge.dll` and a `matchbridge.json` (see
 `matchbridge.example.json`; set your own token) into
 `game/csgo/addons/counterstrikesharp/plugins/MatchBridge/`. It listens on 127.0.0.1 only.
@@ -168,3 +174,5 @@ behave as written. The RCON and plugin channels are tested against fake servers 
 ```bash
 uv run pytest
 ```
+
+On Windows PCs where Application Control blocks `uv run pytest`, use `uv run python -m pytest`.

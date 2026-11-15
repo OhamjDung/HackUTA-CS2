@@ -18,7 +18,8 @@ class Clone(BaseModel):
     display_name: str
     source: Literal["user", "pro"]
     # Built-in CS2-Bot-Improver bot that plays this clone until CloneDirector works (SPEC.md 5.4).
-    stand_in_bot: str | None = None
+    # It goes into a console command, so only plain names are allowed (no quotes, spaces, `;`).
+    stand_in_bot: str | None = Field(None, pattern=r"^[A-Za-z0-9_.-]{1,32}$")
 
 
 class PlayerIn(BaseModel):

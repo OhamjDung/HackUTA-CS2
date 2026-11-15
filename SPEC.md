@@ -116,7 +116,10 @@ Checked on 2026-11-14.
   (`match-service/tests/test_cs2.py`, 10 tests, all pass). This checks the service's logic only.
 - The RCON and MatchBridge console channels, against fake servers that speak the same protocols
   (`match-service/tests/test_channels.py`, 5 tests, all pass). This checks the Python side only.
-  All 26 match service tests pass.
+- Console safety: every channel refuses commands with a newline or `;` before connecting, and
+  profiles with an unsafe `stand_in_bot` are skipped (`match-service/tests/test_safety.py`, 6
+  tests). All 32 match service tests pass. Tom ran the 26 earlier tests on Windows: they pass with
+  `uv run python -m pytest` (Application Control blocks `uv run pytest` there).
 
 - CloneDirector Release build with .NET SDK 10.0.404 and CounterStrikeSharp.API 1.0.378:
   zero warnings/errors. The reference contract was built from CS2-Bot-Controller source revision
@@ -595,7 +598,11 @@ setup steps.
   become `tv_record` and `tv_stoprecord` (with `tv_enable 1` before the map loads), and `jointeam`
   becomes `matchbridge_jointeam` (plugin) or is dropped (RCON; the person picks a team).
 - `match-service/start-cs2.ps1` sets up the Windows PC and starts the service: it installs the game
-  state config with a token, builds and installs MatchBridge when asked, and sets the settings.
+  state config with a token, builds and installs MatchBridge when asked, and sets the settings. It
+  listens on `127.0.0.1` unless `-Listen 0.0.0.0` is given, because the API has no login.
+- Values that go into console commands are checked: every channel refuses a command with a newline
+  or `;`, and `stand_in_bot` must be a plain name (letters, digits, `_`, `.`, `-`). Found by Tom's
+  security check.
 - Events come in through CS2's Game State Integration, posted to `/gsi`. Scores come from the team
   scores in game state. Team names `Alpha` (starts CT) and `Bravo` (starts T) keep scores with the
   right team after sides swap.
@@ -882,6 +889,8 @@ demo. A released product would need each player's or team's permission.
 
 Newest first. One line per change: date, who, what changed.
 
+- 2026-11-14, Ashirwad: console safety from Tom's review (refuse newline and `;` in commands; strict
+  `stand_in_bot` names); `start-cs2.ps1` listens on 127.0.0.1 by default and points to .NET SDK 10.
 - 2026-11-14, Arjun (Codex): recovered the local pipeline and resolved its spec rebase; added CloneDirector from the upstream plugin/controller starting points, purchase and route control, combat hand-offs, strict playback loading, AGPL notices, and deployment notes. Release build and 25 C# tests pass; all 80 donk route files load. Pipeline tests pass. In-game playback and service integration remain untested.
 
 - 2026-11-14, Ashirwad: added RCON and MatchBridge plugin fallbacks for match service console

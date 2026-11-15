@@ -5,7 +5,7 @@
 .DESCRIPTION
   1. Finds the CS2 folder (or use -Cs2Dir).
   2. Installs the game state config file into game\csgo\cfg, with the token and this service's address.
-  3. With -Console plugin: builds and installs the MatchBridge plugin (needs the .NET 8 SDK).
+  3. With -Console plugin: builds and installs the MatchBridge plugin (needs the .NET SDK, version 8 or newer).
   4. Starts the service on http://localhost:8000. Open /health to check the connection to CS2.
 
   Run it from the match-service folder:
@@ -13,6 +13,11 @@
     powershell -ExecutionPolicy Bypass -File .\start-cs2.ps1 -Console plugin
 
   Not yet run on Windows.
+
+.PARAMETER Listen
+  Address the service listens on. Default 127.0.0.1: only this PC can reach it. Use 0.0.0.0 only
+  when another machine (for example the lobby on a teammate's laptop) must reach it, because then
+  anyone on the same network can create and stop matches.
 
 .PARAMETER Console
   How to send commands to CS2: netcon (default; needs -netconport 2121 in CS2's launch options),
@@ -24,7 +29,8 @@ param(
     [string]$Cs2Dir = "",
     [string]$Token = "",
     [string]$ConsolePassword = "",
-    [int]$Port = 8000
+    [int]$Port = 8000,
+    [string]$Listen = "127.0.0.1"
 )
 
 $ErrorActionPreference = "Stop"
@@ -105,8 +111,9 @@ switch ($Console) {
             if ($LASTEXITCODE -ne 0) { Write-Host "Plugin build failed." -ForegroundColor Red; exit 1 }
         }
         if (-not (Test-Path $dll)) {
-            Write-Host "MatchBridge.dll is not built, and the .NET 8 SDK is not installed." -ForegroundColor Red
-            Write-Host "Install it with:  winget install Microsoft.DotNet.SDK.8   then run this script again."
+            Write-Host "MatchBridge.dll is not built, and the .NET SDK is not installed." -ForegroundColor Red
+            Write-Host "Install it with:  winget install Microsoft.DotNet.SDK.10   then run this script again."
+            Write-Host "(SDK 10 builds both MatchBridge and CloneDirector.)"
             exit 1
         }
         $pluginsDir = Join-Path $csgo "addons\counterstrikesharp\plugins"
@@ -136,4 +143,7 @@ Write-Host "Starting the match service. Check the connection at  http://localhos
 Write-Host "API docs: http://localhost:$Port/docs    Stop with Ctrl+C."
 Set-Location $here
 uv sync
-uv run uvicorn match_service.main:app --host 0.0.0.0 --port $Port
+if ($Listen -ne "127.0.0.1") {
+    Write-Host "Listening on $Listen : anyone on this network can create and stop matches." -ForegroundColor Yellow
+}
+uv run uvicorn match_service.main:app --host $Listen --port $Port

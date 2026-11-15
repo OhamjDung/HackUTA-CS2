@@ -2,13 +2,18 @@
 
 import asyncio
 import json
+import logging
 import os
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
+from pydantic import ValidationError
+
 from .models import Clone, Event, Match
+
+log = logging.getLogger("match_service")
 
 DEFAULT_CLONES_DIR = Path(__file__).resolve().parent.parent / "sample_clones"
 
@@ -81,12 +86,16 @@ def load_clones(clones_dir: Path) -> dict[str, Clone]:
     clones: dict[str, Clone] = {}
     for path in sorted(clones_dir.glob("*.json")):
         data = json.loads(path.read_text())
-        clone = Clone(
-            clone_id=data["clone_id"],
-            display_name=data["display_name"],
-            source=data["source"],
-            stand_in_bot=data.get("stand_in_bot"),
-        )
+        try:
+            clone = Clone(
+                clone_id=data["clone_id"],
+                display_name=data["display_name"],
+                source=data["source"],
+                stand_in_bot=data.get("stand_in_bot"),
+            )
+        except ValidationError as exc:
+            log.warning("skipping clone profile %s: %s", path.name, exc)
+            continue
         clones[clone.clone_id] = clone
     return clones
 

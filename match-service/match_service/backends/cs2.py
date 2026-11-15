@@ -17,7 +17,7 @@ from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 
-from ..console import ConsoleChannel
+from ..console import ConsoleChannel, UnsafeCommand
 from ..core import Emit, MatchRecord, Settings, now
 from ..models import Clone, MatchCreate, Score, Server
 
@@ -162,6 +162,8 @@ class Cs2Backend:
         commands.append(f"jointeam {JOINTEAM[humans[0].team] if humans else 1}")
         try:
             await self.ch.send(commands)
+        except UnsafeCommand as exc:
+            return await self._fail(record, str(exc))
         except (OSError, asyncio.TimeoutError) as exc:
             return await self._fail(record, f"Lost the CS2 console while adding bots ({exc!r})")
 
