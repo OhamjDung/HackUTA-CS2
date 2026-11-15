@@ -305,11 +305,29 @@ def controls_from_quirks(rules: dict) -> dict:
             "applied_by": "bot personality file (botprofile.db), field Teamwork",
             "status": "written to botprofile.txt; installing it is a manual step",
         }
-    for name in ("still_share", "look_speed_deg_s", "shots_per_burst", "moving_first_shot_share",
-                 "nades_per_round", "first_contact_sec"):
+    plugin = {
+        "shots_per_burst": "CloneDirector: releases the trigger after a drawn number of shots",
+        "single_shot_burst_share": "CloneDirector: share of bursts limited to one shot",
+        "crouched_shot_share": "CloneDirector: crouches for this share of bursts",
+        "still_share": "CloneDirector: sidesteps when the bot has stood still more than this share",
+    }
+    for name, how in plugin.items():
+        if name in rules:
+            controls[name] = {"value": rules[name]["player"], "applied_by": how,
+                              "status": "implemented in the plugin; not run in CS2"}
+    # Distinctive quirks that no bot control can drive today. Stored so the score can still check them.
+    blocked = {
+        "look_speed_deg_s": "the bot interface has no control over view direction",
+        "moving_first_shot_share": "would need movement control during a fight, which belongs to the bot base",
+        "nades_per_round": "grenade throws are not yet installed into the grenade system",
+        "flash_share": "grenade throws are not yet installed into the grenade system",
+        "first_contact_sec": "set by routes and the personality file's Aggression, not by a separate control",
+        "opening_duel_rate": "set by routes and the personality file's Aggression, not by a separate control",
+        "awp_shot_share": "set by the purchase plan, not by a separate control",
+    }
+    for name, why in blocked.items():
         if name in rules and rules[name]["distinctive"]:
-            controls[name] = {"value": rules[name]["player"], "applied_by": "nothing yet",
-                              "status": "measured only; no bot control drives it yet"}
+            controls[name] = {"value": rules[name]["player"], "applied_by": "nothing", "status": f"measured only: {why}"}
     return controls
 
 

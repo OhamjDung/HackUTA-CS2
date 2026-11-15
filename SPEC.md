@@ -49,9 +49,10 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Route converter: recording data to the bot playback format | Arjun | In progress. Files are written. **Not tested in the game.** Several field values are guesses (`HANDOFF.md` section 5.1). | `clone-pipeline/clone_pipeline/recording.py` | 2026-11-14 |
 | CloneDirector plugin: applies a clone to a bot inside CS2 | Arjun (Codex) | In progress. Compiles; 26 C# tests pass, including all 159 donk/broky files. Not run in CS2. | `clone-director/` | 2026-11-14 |
 | Generating model: CS-NET v4 plus player identity | Arjun (Codex) | In progress. First A100 experiment trained 600 updates, selected step 400; both held-out identity tests failed. Experimental checkpoints/results preserved; offline review export verified, identity fidelity not established. | `clone-model/` | 2026-11-14 |
-| Learned-quirk clones `donkL` and `brokyL`: per-quirk rules fitted from recordings | Arjun (Claude) | Done as files and code; **not run in CS2**. 27 quirks measured, 10 distinctive per player. Jump rate applied by CloneDirector; Teamwork needs a manual personality-file edit; other quirks measured only. 23 pipeline tests and 28 C# tests pass. **Teammates: please add `donkL` and `brokyL` next to `donk_v1` and `broky_v1` so we can compare** (`clones/README.md`). | `clone-pipeline/clone_pipeline/quirks.py`, `clones/donkL.json`, `clones/brokyL.json`, `clone-director/` | 2026-11-14 |
+| Learned-quirk clones `donkL` and `brokyL`: per-quirk rules fitted from recordings | Arjun (Claude) | Done as files and code; **not run in CS2**. 27 quirks measured, 10 distinctive per player. CloneDirector now applies five: jump rate, burst length, single-shot share, crouching while shooting, and restlessness (standing-still share). Teamwork needs a manual personality-file edit. Turning speed and grenade mix cannot be driven yet. 23 pipeline tests and 30 C# tests pass. **Teammates: please add `donkL` and `brokyL` next to `donk_v1` and `broky_v1` so we can compare** (`clones/README.md`). | `clone-pipeline/clone_pipeline/quirks.py`, `clones/donkL.json`, `clones/brokyL.json`, `clone-director/` | 2026-11-14 |
 | Quirk test ("who is it?" plus per-quirk checks), looser than the first identity test | Arjun (Claude) | Done. Rule fixed before scoring. Real players pass on their own held-back matches: donk 1st of 5 and 8 of 10 quirks, broky 1st of 5 and 9 of 10. No bot match or model output scored yet. | `clone-pipeline/clone_pipeline/quirks.py`, section 8.8 | 2026-11-14 |
 | Diagnosis of the failed neural identity model | Arjun (Claude) | Done. Adapters judged not usable: no change in 64% to 72% of test windows. Not offered as bots. | `clone-model/results/diagnosis-2026-11-14.md` | 2026-11-14 |
+| Second learned-identity experiment (`v2.py`): many identities, identity at every step, likelihood "who is it?" test | Arjun (Claude) | In progress. Code written; 19 CPU tests pass (12 existing, 7 new). Pass rule fixed in the code before any run. Training run on Colab: see section 8.9 for its state. No result yet. | `clone-model/v2.py`, `clone-model/colab_train2.ipynb` | 2026-11-14 |
 | Offline weapon-role and habit audit handoff | Arjun's friend (handoff prepared) | Not started. CPU-only audit/fix handoff ready; recipient must remove consumed handoff docs on task branch after reading. | `handoffs/friend/01-HABIT-AUDIT-AND-FIX.md` | 2026-11-14 |
 | Independent mock replay QA handoff | Arjun's friend (optional second task) | Not started. Existing Ashirwad replay implementation remains with its owner; QA/report only. | `handoffs/friend/02-MOCK-REPLAY-QA.md` | 2026-11-14 |
 | Claude continuation handoff | Arjun (Codex) | Done and consumed. Claude read it on 2026-11-14 and removed the folder, as its own instructions said. | removed (`handoffs/claude-continuation/`) | 2026-11-14 |
@@ -800,8 +801,14 @@ Each quirk is meant to drive one bot control:
 | Quirk | Bot control | State |
 |---|---|---|
 | Jumps per minute | CloneDirector presses jump at that rate, only while the bot runs, no route is playing, and no fight happened in the last 5 seconds | Code and tests done; not run in CS2 |
+| Shots per burst, and share of single-shot bursts | CloneDirector draws a burst length when a burst starts and releases the trigger for 0.3 seconds when it is reached | Code and tests done; not run in CS2 |
+| Share of shots fired while crouched | CloneDirector holds crouch for 0.6 seconds at the start of that share of bursts | Code and tests done; not run in CS2 |
+| Share of time standing still | CloneDirector makes the bot sidestep for 0.35 seconds when it has stood still for a larger share of its life than the player, and for 2 seconds in a row, outside a fight | Code and tests done; not run in CS2. It can only make a bot less still, not more. |
 | Share of time far from teammates | The personality file's `Teamwork` number | Value written to the profile; installing it is manual |
-| Standing-still share, turning speed, shots per burst, grenade mix, time to first fight | None yet | Measured only |
+| Turning speed while moving | None. The bot interface has no control over view direction. | Measured only |
+| Grenade count and mix | None until grenade throws are installed into the grenade system | Measured only |
+| Time to first fight, share of first kills | Routes and the personality file's `Aggression`, no separate control | Measured only |
+| Sniper rifle share | The purchase plan, no separate control | Measured only |
 
 A clone with quirks has `L` after the player's name: `donkL`, `brokyL`. It reuses the `_v1` clone's
 routes and purchases, sets `stand_in_bot` to the installed bot name, and adds the fields `learned`,
@@ -820,6 +827,38 @@ The same command scores a real match, a recorded bot match, or generated play:
 
 Results so far, real players on their own held-back matches (the ceiling): donk 1st of 5 with 8 of
 10 quirks; broky 1st of 5 with 9 of 10. No bot has been scored.
+
+### 8.9 Second learned-identity experiment (added 2026-11-14)
+
+Code: `clone-model/v2.py`. It keeps the frozen CS-NET v4 base and the same nine cached matches.
+It changes what the first experiment got wrong (`clone-model/results/diagnosis-2026-11-14.md`):
+
+| Change | First experiment | Second experiment |
+|---|---|---|
+| Identities | 2 (donk, broky) | Every player seen in 2 or more non-held-back matches, about 10 |
+| Training targets | One player per window | Every identified, alive player in the window |
+| Where identity enters | The decoder's one starting vector | The starting vector and all three inputs of each of the 16 future steps |
+| Pull-back penalty | Yes | Removed |
+| Identity hidden at random | No | 15% of targets, so "unknown player" stays meaningful |
+| Loss | How well the next move is predicted | The same, plus: the real moves must be more likely under the true identity than under a random teammate's |
+| Test | Path error over 4 seconds, most likely move only | Likelihood "who is it?" over all of a player's windows in a match |
+
+**The test and its pass rule, fixed in the code before any run.** For each identified player, take
+all of the player's windows in a match. Compute how likely the player's real moves are under each
+teammate identity. Rank the true identity.
+- A player passes when the true identity is in the top 2 of the teammate identities.
+- The experiment passes when at least 60% of the players pass.
+- With 5 teammates, guessing puts 40% of players in the top 2.
+
+Development rounds from the building matches choose the checkpoint. The held-back matches
+(2393242, 2393024) are used once, after training, for the final number.
+
+**What this test does not show.** It scores recorded moves under the model. It does not generate
+play. Free-running generation with these identities needs a further change, because the upstream
+prediction engine builds the per-step inputs itself. `guided_logits` (amplify what the identity
+changes) is written and tested for that later step.
+
+**State of the run:** see the status board row. Results go in `clone-model/results/`.
 
 ## 9. Architecture
 
@@ -1357,6 +1396,8 @@ demo. A released product would need each player's or team's permission.
 - 2026-11-14, Arjun (Codex): corrected canonical donk identity and excluded one ambiguous-account match before optimization; added empty-match cache rejection. Ten parsed public matches transferred to A100, nine selected for learning. CS2 base download completed successfully on Arjun's PC.
 
 Newest first. One line per change: date, who, what changed.
+
+- 2026-11-14, Arjun (with Claude): CloneDirector now applies four more quirks (burst length, single-shot share, crouching while shooting, restlessness); `donkL` and `brokyL` rebuilt with them. Added the second learned-identity experiment (`clone-model/v2.py`, section 8.9) with its pass rule fixed before any run. Recorded similarity numbers for the first neural model in the diagnosis note. Ran: 23 pipeline tests, 30 C# tests, plugin compile, 19 model tests on the processor. Not run: anything in CS2.
 
 - 2026-11-14, Arjun (with Claude): diagnosed the failed neural identity model (adapters not usable, not offered as bots). Added per-quirk rules and the looser quirk test to the clone pipeline, the jump-rate quirk to CloneDirector, and the learned-quirk clones `donkL` and `brokyL`. Asked teammates to add both next to the `_v1` clones. Ran: 23 pipeline tests, 28 C# tests, plugin compile, quirk test on both real held-back matches. Not run: anything in CS2. Removed the consumed `handoffs/claude-continuation/`.
 

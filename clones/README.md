@@ -92,10 +92,10 @@ model. The neural identity adapters failed their test and are not used
 
 | Clone | Built on | Distinctive quirks | Applied in the game today | Measured only |
 |---|---|---:|---|---|
-| `donkL` | `donk_v1` | 10 | jump rate 4.1 per minute (CloneDirector), Teamwork 100 | standing-still share, turning speed |
-| `brokyL` | `broky_v1` | 10 | jump rate 6.2 per minute (CloneDirector), Teamwork 90 | shots per burst |
+| `donkL` | `donk_v1` | 10 | jumps 4.1 per minute; bursts of 4.2 shots on average, 26% single shots; crouches for 30% of bursts; sidesteps when still more than 11% of the time; Teamwork 100 | turning speed, flashbang share, first-kill share |
+| `brokyL` | `broky_v1` | 10 | jumps 6.2 per minute; bursts of 2.6 shots on average, 64% single shots; crouches for 25% of bursts; sidesteps when still more than 19% of the time; Teamwork 90 | flashbang share, sniper rifle share |
 
-Checked by running: 23 pipeline tests and 28 CloneDirector tests pass; both L profiles load in the
+Checked by running: 23 pipeline tests and 30 CloneDirector tests pass; both L profiles load in the
 C# loader; the plugin compiles. **Not run in CS2.** The Teamwork number only takes effect if the
 personality file is edited by hand.
 

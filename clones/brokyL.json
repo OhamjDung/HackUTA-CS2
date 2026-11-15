@@ -2102,8 +2102,33 @@
     },
     "shots_per_burst": {
       "value": 2.591,
-      "applied_by": "nothing yet",
-      "status": "measured only; no bot control drives it yet"
+      "applied_by": "CloneDirector: releases the trigger after a drawn number of shots",
+      "status": "implemented in the plugin; not run in CS2"
+    },
+    "single_shot_burst_share": {
+      "value": 0.6366,
+      "applied_by": "CloneDirector: share of bursts limited to one shot",
+      "status": "implemented in the plugin; not run in CS2"
+    },
+    "crouched_shot_share": {
+      "value": 0.2451,
+      "applied_by": "CloneDirector: crouches for this share of bursts",
+      "status": "implemented in the plugin; not run in CS2"
+    },
+    "still_share": {
+      "value": 0.1906,
+      "applied_by": "CloneDirector: sidesteps when the bot has stood still more than this share",
+      "status": "implemented in the plugin; not run in CS2"
+    },
+    "flash_share": {
+      "value": 0.4303,
+      "applied_by": "nothing",
+      "status": "measured only: grenade throws are not yet installed into the grenade system"
+    },
+    "awp_shot_share": {
+      "value": 0.108,
+      "applied_by": "nothing",
+      "status": "measured only: set by the purchase plan, not by a separate control"
     }
   },
   "quirk_reference": {

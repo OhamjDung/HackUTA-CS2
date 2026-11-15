@@ -255,6 +255,39 @@ public sealed class DirectorTests
         Assert.Throws<InvalidDataException>(() => store.Validate(bad));
     }
 
+    [Fact]
+    public void BurstQuirkKeepsTheSingleShotShareAndTheAverageLength()
+    {
+        Assert.Equal(0, Quirks.BurstLength(null, 3, 0, 0));                 // no numbers: no limit
+        Assert.Equal(1, Quirks.BurstLength(0.6, 2.6, 0.59, 0.5));           // below the single-shot share
+        Assert.True(Quirks.BurstLength(0.6, 2.6, 0.61, 0.5) >= 2);
+        var random = new Random(11);
+        int singles = 0; long shots = 0; const int n = 200_000;
+        for (int i = 0; i < n; i++)
+        {
+            int length = Quirks.BurstLength(0.39, 3.8, random.NextDouble(), random.NextDouble());
+            Assert.InRange(length, 1, Quirks.MaxBurst);
+            if (length == 1) singles++;
+            shots += length;
+        }
+        Assert.InRange(singles / (double)n, 0.38, 0.40);
+        Assert.InRange(shots / (double)n, 3.4, 4.2);
+    }
+
+    [Fact]
+    public void CrouchAndRestlessQuirksFollowTheirNumbers()
+    {
+        Assert.False(Quirks.CrouchThisBurst(null, 0));
+        Assert.True(Quirks.CrouchThisBurst(0.2, 0.19));
+        Assert.False(Quirks.CrouchThisBurst(0.2, 0.21));
+        // Player stands still 11% of the time. The bot has stood still 30% of 60 seconds, and 3 seconds in a row.
+        Assert.True(Quirks.NudgeNow(0.11, 64 * 18, 64 * 60, 3));
+        Assert.False(Quirks.NudgeNow(0.11, 64 * 18, 64 * 60, 1));           // not still long enough yet
+        Assert.False(Quirks.NudgeNow(0.11, 64 * 3, 64 * 60, 3));            // already as restless as the player
+        Assert.False(Quirks.NudgeNow(0.11, 64 * 5, 64 * 10, 3));            // too early in the match to judge
+        Assert.False(Quirks.NudgeNow(null, 64 * 18, 64 * 60, 3));
+    }
+
     private static string FindClonesFolder()
     {
         for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)

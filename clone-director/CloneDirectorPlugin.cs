@@ -39,6 +39,15 @@ public sealed class CloneDirectorPlugin : BasePlugin
         public nint Pawn { get; set; }
         // Server time before which the jump quirk stays off (the bot is in or near a fight).
         public float QuietUntil { get; set; }
+        // Burst quirk: shots in the current burst, its drawn limit (0 = none), and the last shot time.
+        public int ShotsInBurst { get; set; }
+        public int BurstLimit { get; set; }
+        public float LastShot { get; set; } = float.NegativeInfinity;
+        // Restless quirk: how long the bot has been alive and still this match, and since when.
+        public long AliveTicks { get; set; }
+        public long StillTicks { get; set; }
+        public float StillSince { get; set; } = float.NaN;
+        public bool NudgeLeft { get; set; }
     }
 
     public override void Load(bool hotReload)
@@ -172,7 +181,47 @@ public sealed class CloneDirectorPlugin : BasePlugin
                 binding.Session.Stop("pawn changed or dead");
             binding.Session.Poll();
             ApplyJumpQuirk(binding, pawn);
+            ApplyRestlessQuirk(binding, pawn);
         }
+    }
+
+    // Learned quirk: a player who rarely stands still. When the bot has stood still for a larger
+    // share of its life than the player does, and for 2 seconds in a row, it takes a short sidestep.
+    // Off during a recorded route and for 5 seconds after any fight.
+    private void ApplyRestlessQuirk(Binding b, CCSPlayerPawn? pawn)
+    {
+        if (!_live || pawn is null || !pawn.IsValid || !b.Player.PawnIsAlive) { b.StillSince = float.NaN; return; }
+        var v = pawn.AbsVelocity;
+        if (v is null) return;
+        bool still = v.X * v.X + v.Y * v.Y < Quirks.StillSpeed * Quirks.StillSpeed;
+        b.AliveTicks++;
+        if (!still) { b.StillSince = float.NaN; return; }
+        b.StillTicks++;
+        if (float.IsNaN(b.StillSince)) b.StillSince = Server.CurrentTime;
+        if (b.Session.Playing || Server.CurrentTime < b.QuietUntil) return;
+        if (!Quirks.NudgeNow(Quirks.Value(b.Session.Profile, "still_share"), b.StillTicks, b.AliveTicks,
+                Server.CurrentTime - b.StillSince)) return;
+        _api!.InjectUsercmd(b.Session.Slot, b.NudgeLeft ? Quirks.MoveLeft : Quirks.MoveRight, 350);
+        b.NudgeLeft = !b.NudgeLeft;
+        b.StillSince = float.NaN;
+    }
+
+    // Learned quirks at the trigger: burst length and crouching while shooting.
+    private void ApplyShotQuirks(Binding b)
+    {
+        var profile = b.Session.Profile;
+        float now = Server.CurrentTime;
+        if (now - b.LastShot > Quirks.BurstGapSeconds)
+        {
+            b.ShotsInBurst = 0;
+            b.BurstLimit = Quirks.BurstLength(Quirks.Value(profile, "single_shot_burst_share"),
+                Quirks.Value(profile, "shots_per_burst"), Random.Shared.NextDouble(), Random.Shared.NextDouble());
+            if (Quirks.CrouchThisBurst(Quirks.Value(profile, "crouched_shot_share"), Random.Shared.NextDouble()))
+                _api!.InjectUsercmd(b.Session.Slot, Quirks.Duck, 600);
+        }
+        b.LastShot = now;
+        if (b.BurstLimit > 0 && ++b.ShotsInBurst >= b.BurstLimit)
+            _api!.SuppressUsercmd(b.Session.Slot, Quirks.Attack, 300);   // release the trigger briefly
     }
 
     // Learned quirk: press jump at the player's measured rate, only while the bot runs outside a fight
@@ -185,7 +234,7 @@ public sealed class CloneDirectorPlugin : BasePlugin
         var v = pawn.AbsVelocity;
         if (v is null || v.X * v.X + v.Y * v.Y < Quirks.MinRunSpeed * Quirks.MinRunSpeed) return;
         if (Quirks.JumpNow(rate, 1.0 / 64, Random.Shared.NextDouble()))
-            _api!.InjectUsercmd(b.Session.Slot, 2UL, 0);
+            _api!.InjectUsercmd(b.Session.Slot, Quirks.Jump, 0);
     }
 
     private HookResult RoundStart(EventRoundStart e, GameEventInfo info)
@@ -256,6 +305,10 @@ public sealed class CloneDirectorPlugin : BasePlugin
         var shooter = e.Userid;
         var shot = shooter?.PlayerPawn.Value?.AbsOrigin;
         if (shooter is null || !shooter.IsValid || shooter.TeamNum is not (2 or 3) || shot is null) return HookResult.Continue;
+        if (_api is not null && _bots.TryGetValue(shooter.Slot, out var own) && own.Player.Handle == shooter.Handle &&
+            !e.Weapon.Contains("knife") && !e.Weapon.Contains("grenade") && !e.Weapon.Contains("flashbang") &&
+            !e.Weapon.Contains("molotov") && !e.Weapon.Contains("decoy") && !e.Weapon.Contains("bayonet"))
+            ApplyShotQuirks(own);
         foreach (var b in _bots.Values)
         {
             if (!b.Player.IsValid || b.Player.TeamNum == shooter.TeamNum) continue;

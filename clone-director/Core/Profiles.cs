@@ -40,6 +40,46 @@ public static class Quirks
     /// <summary>True when a jump should start on this tick. draw is uniform in [0, 1).</summary>
     public static bool JumpNow(double jumpsPerMinute, double tickSeconds, double draw) =>
         jumpsPerMinute > 0 && draw < jumpsPerMinute / 60 * tickSeconds;
+
+    // Engine button bits (Source IN_* values).
+    public const ulong Attack = 1, Jump = 2, Duck = 4, MoveLeft = 512, MoveRight = 1024;
+    // Shots closer together than this belong to one burst. Same rule as clone_pipeline/quirks.py.
+    public const float BurstGapSeconds = 0.25f;
+    public const int MaxBurst = 30;
+    // A bot must stand still this long before the restless quirk makes it sidestep.
+    public const float StillSecondsBeforeNudge = 2;
+    public const float StillSpeed = 5;
+
+    /// <summary>A named quirk value, or null when the profile does not have it.</summary>
+    public static double? Value(CloneProfile profile, string name) =>
+        profile.QuirkControls.TryGetValue(name, out var control) ? control.Value : null;
+
+    /// <summary>
+    /// How many shots the next burst may have, drawn so that single-shot bursts happen with the
+    /// player's measured share and the average burst has the player's measured length.
+    /// Returns 0 (no limit) when the profile lacks either number. Both draws are uniform in [0, 1).
+    /// </summary>
+    public static int BurstLength(double? singleShotShare, double? shotsPerBurst, double draw1, double draw2)
+    {
+        if (singleShotShare is not double single || shotsPerBurst is not double mean) return 0;
+        single = Math.Clamp(single, 0, 1);
+        if (draw1 < single) return 1;
+        // Average length of the bursts that are longer than one shot.
+        double longMean = single < 1 ? (mean - single) / (1 - single) : 2;
+        double extra = Math.Max(0, longMean - 2);
+        // 2 shots plus an exponentially distributed extra; +0.5 keeps the average after rounding down.
+        int length = 2 + (int)Math.Floor(-Math.Log(1 - Math.Clamp(draw2, 0, 0.999999)) * extra + 0.5 * Math.Min(1, extra));
+        return Math.Clamp(length, 2, MaxBurst);
+    }
+
+    /// <summary>True when the bot should crouch for the burst that is starting.</summary>
+    public static bool CrouchThisBurst(double? crouchedShotShare, double draw) =>
+        crouchedShotShare is double share && draw < share;
+
+    /// <summary>True when the bot has stood still longer than the player does and should sidestep.</summary>
+    public static bool NudgeNow(double? targetStillShare, long stillTicks, long aliveTicks, float stillSeconds) =>
+        targetStillShare is double target && aliveTicks > 64 * 20 &&
+        (double)stillTicks / aliveTicks > target && stillSeconds >= StillSecondsBeforeNudge;
 }
 
 public sealed class PurchasePlan
@@ -99,6 +139,11 @@ public sealed class ProfileStore(string root)
             throw new InvalidDataException("Invalid quirk control.");
         if (Quirks.JumpsPerMinute(profile) is < 0 or > Quirks.MaxJumpsPerMinute)
             throw new InvalidDataException("jumps_per_min must be between 0 and 60.");
+        foreach (var share in new[] { "single_shot_burst_share", "crouched_shot_share", "still_share" })
+            if (Quirks.Value(profile, share) is < 0 or > 1)
+                throw new InvalidDataException($"{share} must be between 0 and 1.");
+        if (Quirks.Value(profile, "shots_per_burst") is < 1 or > Quirks.MaxBurst)
+            throw new InvalidDataException("shots_per_burst must be between 1 and 30.");
         foreach (var (side, plans) in profile.BuyPlan)
         {
             CheckSide(side);

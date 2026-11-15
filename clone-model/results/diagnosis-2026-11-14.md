@@ -25,6 +25,23 @@ effect, they cannot drive a bot during a match, and weights may not be committed
 (`AGENTS.md` section 4). They stay downloadable from the release `learned-clones-a100-v1` for anyone
 who wants to inspect them.
 
+### Similarity of the first neural model, as percentages
+
+From the same saved held-out results. "Own" is the model with the player's identity.
+
+| Measure | donk (29 windows) | broky (42 windows) |
+|---|---|---|
+| Own identity gives the closest path of the three options | 3% | 12% |
+| Own identity closer than the other player's identity | 7% | 24% |
+| Own identity makes no difference to the path | 72% | 64% |
+| Generated path within 100 game units of the real path, own identity | 55% | 57% |
+| The same, with no identity | 55% | 60% |
+| Agreement on share of time standing still, own identity | 80% | 78% |
+| The same, with no identity | 80% | 80% |
+
+The model's movement is roughly right about half the time, with or without the identity. The
+identity adds nothing measurable.
+
 ## 2. Where identity is in the data
 
 Measured: 27 quirks per player per match, at 64 ticks per second, for all ten players in each
