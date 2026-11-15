@@ -1,6 +1,7 @@
 {
   "clone_id": "donk_v1",
   "display_name": "donk",
+  "stand_in_bot": "donk_v1",
   "source": "pro",
   "reaction_ms": null,
   "aim_skill": 1.0,

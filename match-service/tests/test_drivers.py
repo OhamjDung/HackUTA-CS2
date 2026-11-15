@@ -52,7 +52,7 @@ def test_generated_routes_need_a_model_in_the_profile(tmp_path):
         profile = json.loads((REPO_CLONES / f"{clone_id}.json").read_text())
         profile["model"] = "cs-net-v4+identity/donk" if clone_id == "donk_v1" else None
         (clones_dir / f"{clone_id}.json").write_text(json.dumps(profile))
-    main, bridge = RecordingChannel(), RecordingChannel({"donk_v1": "donk"})
+    main, bridge = RecordingChannel(), RecordingChannel({"donk_v1": "donk_v1"})
     s = settings(tmp_path, cs2_bots="clone", clones_dir=clones_dir, cs2_routes="generated", clone_join_seconds=0.3)
     with TestClient(create_app(s, channel=main, clone_channel=bridge)) as client:
         clones = listing(client)

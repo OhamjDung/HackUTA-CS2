@@ -1823,7 +1823,7 @@
     }
   },
   "built_at": "2026-11-15T02:08:00+00:00",
-  "stand_in_bot": "broky",
+  "stand_in_bot": "brokyL",
   "learned": {
     "kind": "per-quirk rules fitted from recordings (clone_pipeline/quirks.py)",
     "based_on": "broky_v1",

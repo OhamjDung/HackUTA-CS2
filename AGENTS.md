@@ -72,9 +72,10 @@ record the change in `SPEC.md`.
 - **Bot Mode files can revert.** If `game/csgo/gameinfo.gi` has no `addons/metamod` line, no plugin
   loads and matches get no bots. Copy `backup/WithBots/gameinfo.gi` over it and restart CS2. Read
   plugin errors in `addons/counterstrikesharp/logs/log-all<date>.txt`.
-- **One installed bot name per match.** The game refuses a second bot with a name already in use, so
-  two clones built on the same personality (`donk_v1` and `donkL` both use `donk`) cannot share a
-  match. Renaming the bot after it joins did not stick.
+- **One bot name per clone.** The game refuses a second bot with a name already in use, and renaming
+  a bot after it joins does not stick. Each clone therefore needs its own entry in the bot base's
+  `botprofile.vpk`: run `clone-director/tools/add_clone_bot_entries.py` (keep a copy of the original),
+  and keep each clone profile's `stand_in_bot` equal to its clone id.
 - **Check free memory before a live run.** On Tom's PC the match service was killed for low memory
   once, and CS2 plus a full browser left under 2 GiB free. Ask the user to close heavy apps first.
 - **Live demo runs:** start the service with `.\start-cs2.ps1 -Record off`, then use

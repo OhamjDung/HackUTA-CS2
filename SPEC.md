@@ -48,12 +48,14 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | donk clone (`donk_v1`): profile, purchases, grenades, 80 route files | Arjun | Done. Built from 4 matches, 80 rounds. | `clones/` | 2026-11-14 |
 | broky clone (`broky_v1`): data-built profile and routes | Arjun (Codex) | Done. Built from 4 matches, 79 rounds/routes; held back 22 rounds. Files load in C#; not run in game. | `clones/broky_v1.json`, `clones/README.md` | 2026-11-14 |
 | Route converter: recording data to the bot playback format | Arjun | In progress. Files are written. **Not tested in the game.** Several field values are guesses (`HANDOFF.md` section 5.1). | `clone-pipeline/clone_pipeline/recording.py` | 2026-11-14 |
-| CloneDirector plugin: applies a clone to a bot inside CS2 | Arjun (Codex) | In progress. Compiles; 26 C# tests pass, including all 159 donk/broky files. Not run in CS2. | `clone-director/` | 2026-11-14 |
+| CloneDirector plugin: applies a clone to a bot inside CS2 | Arjun (Codex) | In progress. Built with .NET SDK 10 and installed on Tom's PC; it loads, and `clone_add` attached donk_v1 and donkL in CS2 (via MatchBridge, after a listen-server fix). donkL played a recorded donk route. Purchases, combat hand-off and the jump quirk not confirmed; C# tests cannot run on Tom's PC. | `clone-director/` | 2026-11-15 |
 | Generating model: CS-NET v4 plus player identity | Arjun (Codex) | In progress. First A100 experiment trained 600 updates, selected step 400; both held-out identity tests failed. Experimental checkpoints/results preserved; offline review export verified, identity fidelity not established. | `clone-model/` | 2026-11-14 |
 | Learned-quirk clones `donkL` and `brokyL`: per-quirk rules fitted from recordings | Arjun (Claude) | Done as files and code; **not run in CS2**. 27 quirks measured, 10 distinctive per player. CloneDirector now applies five: jump rate, burst length, single-shot share, crouching while shooting, and restlessness (standing-still share). Teamwork needs a manual personality-file edit. Turning speed and grenade mix cannot be driven yet. 23 pipeline tests and 30 C# tests pass. **Teammates: please add `donkL` and `brokyL` next to `donk_v1` and `broky_v1` so we can compare** (`clones/README.md`). | `clone-pipeline/clone_pipeline/quirks.py`, `clones/donkL.json`, `clones/brokyL.json`, `clone-director/` | 2026-11-14 |
 | Quirk test ("who is it?" plus per-quirk checks), looser than the first identity test | Arjun (Claude) | Done. Rule fixed before scoring. Real players pass on their own held-back matches: donk 1st of 5 and 8 of 10 quirks, broky 1st of 5 and 9 of 10. No bot match or model output scored yet. | `clone-pipeline/clone_pipeline/quirks.py`, section 8.8 | 2026-11-14 |
 | Diagnosis of the failed neural identity model | Arjun (Claude) | Done. Adapters judged not usable: no change in 64% to 72% of test windows. Not offered as bots. | `clone-model/results/diagnosis-2026-11-14.md` | 2026-11-14 |
 | Second learned-identity experiment (`v2.py`): many identities, identity at every step, likelihood "who is it?" test | Arjun (Claude) | Done. **Held-back test passed once**: 8 of 10 players had the true identity in their team's top 2 (rule: 6), 6 of 10 ranked first; donk 1st, broky 3rd (fails individually). Caveat: for 6 of 10 players, no identity fits the real moves slightly better than their own. Scores recorded moves only; generates no play. Weights saved on Arjun's PC (checksum matched); not committed. | `clone-model/v2.py`, `clone-model/results/second-a100.md` | 2026-11-14 |
+| Human limits measured from elite pros (`limits.py`) | Arjun (Claude) | Done. 80 player-matches, 50 pros, 8 non-held-back Mirage matches: turn speed, acceleration, flick time, backwards walking, per-step limits at 4 Hz. 5 tests pass. Also measures any recorded bot match. | `clone-pipeline/clone_pipeline/limits.py`, `clone-model/results/human-limits.csv` | 2026-11-15 |
+| Round 3 design: human limits and perception-first evaluation | Arjun (Claude) | Design only; nothing built. Diagnoses the aimbot flicks (the copied `donk` bot entry has no turn-acceleration limit and zero reaction time) and the backwards walking (not the routes: 5.3% in route files vs donk's 9.2%; suspected restlessness rule). 12 hard limits, a donk envelope, a blind people panel as the main test, then `v3` training. Step 1 (fix the live bot's aim settings) needs Tom's PC. | `clone-model/ROUND3_DESIGN.md`, section 8.10 | 2026-11-15 |
 | Claude continuation handoff | Arjun (Codex) | Done and consumed. Claude read it on 2026-11-14 and removed the folder, as its own instructions said. | removed (`handoffs/claude-continuation/`) | 2026-11-14 |
 | Handoff of the remaining work (`handoffs/remaining-work.md`) | Arjun (Claude) | Done. Lists what is left to finish the spec, the critical path to the MVP (tasks 1 to 4 need Tom's PC), and a paste-in prompt per task. The recipient deletes the file when their tasks are done. | `handoffs/remaining-work.md` | 2026-11-14 |
 | Tom's MVP viability test (`handoffs/tom-mvp-test.md`) | Tom | Not started. Four steps on Tom's PC: route playback from the correct side, sending the real recording if it fails, installing CloneDirector with `clone_add`, and recording and scoring a clone match. Tom deletes the file after recording results here. | `handoffs/tom-mvp-test.md` | 2026-11-14 |
@@ -297,6 +299,18 @@ Checked on 2026-11-14.
   the one failed response is the harness's own injected 500). A 390 px replay screenshot was looked
   at: no sideways overflow. Re-run after merging with main (Tom's demo-page changes included): 73
   match service tests, 11 edge tests, browser harness 31 of 31, no page errors.
+- Tom's MVP test on his PC (2026-11-15, `handoffs/tom-mvp-test.md`; report in `handoffs/arjun-donkL-report.md`).
+  **Step 1 pass:** `css_replay <T bot slot> donk_v1_t_2393226_r13` made a T bot follow the route file: mean
+  distance 11 units from the path in the file (0 to 1 unit for 12 s) and 1,939 units moved, against 790 units
+  and 476 moved for a control T bot with no replay. One file of 159 tried; view angles and jumps during playback
+  not checked. **Step 3 partly done:** CloneDirector built (.NET SDK 10) and loaded; `clone_add` attached
+  donkL (T) and donk_v1 (CT); donkL played a recorded route (`TSpawn > PalaceAlley > TRamp`). Two fixes were needed:
+  CloneDirector refused MatchBridge's commands on a listen server (caller is the host in slot 0), and two clones
+  built on the bot `donk` could not share a match because the game refuses duplicate bot names and a rename after
+  joining did not stick; the fix is a bot entry per clone in `botprofile.vpk`
+  (`clone-director/tools/add_clone_bot_entries.py`). donk_v1 (CT) vs donkL (T) then ran in one match under
+  those names. **Not confirmed:** purchases, combat hand-off, donkL's jump quirk (one 70 s sample per bot gave
+  8.6 and 14.6 jumps a minute, but the method is confounded and says nothing). **Step 4 not run:** `-Record tv` untried.
 - Every GitHub repository in section 4 exists. Stars, licenses, and update dates come from GitHub.
 - The OpenCS2 counts in section 7 come from queries against its index tables.
 - The match service's cs2 backend, against a fake console and hand-written game state updates
@@ -955,6 +969,32 @@ from real moves in a match it has never seen, for 8 of 10 players. Not: it plays
 
 The held-back matches are now used. Do not re-run or re-tune on them.
 
+### 8.10 Round 3: human limits and perception first (added 2026-11-15)
+
+Full design: `clone-model/ROUND3_DESIGN.md`. Summary:
+
+- **Seen in CS2 (Arjun, `donk_v1` vs `donkL`):** `donkL` walks backwards a lot and flicks like an
+  aimbot. Tom's report confirmed routes follow the real path within about 11 units; no clone match is
+  recorded yet.
+- **Flicks, cause read in the source:** the bot base's `donk` entry, copied for every donk clone, has no
+  limit on view acceleration (`LookAngleMaxAccelAttacking` is a 117-digit number), stiffness 3,000, and
+  zero reaction time and attack delay. All fighting after a route is the bot base's, so this is the aim
+  people see. Not specific to `donkL`.
+- **Backwards walking, measured:** real donk 9.2% of moving time (pros 4.9% to 10.8%); the route files
+  replay only 5.3%. Suspected cause: the restlessness rule. Not yet confirmed in the game.
+- **Human limits:** measured with `clone_pipeline/limits.py` on 80 player-matches. 12 hard limits (H1 to
+  H12), for example turn speed at most 1,600 °/s sustained, flicks of 15° or more take at least 0.08 s,
+  backwards walking at most 11% of moving time. Enforced in six layers: bot aim settings, CloneDirector
+  rules, training loss, decoding, smoothing to 64 Hz, and rejection of candidates.
+- **Evaluation, perception first:** tier 1 zero hard-limit violations; tier 2 a blind panel of at least
+  10 people rating clips of real donk, `donkL`, the round 3 clone and a default bot (human or bot, who is
+  it, likeness 1 to 7, robotic moments), with real donk as the control; tier 3 automatic proxies,
+  including the earlier similarity score. A clone ships only if tiers 1 and 2 pass. Pass rules are in the
+  design and fixed now.
+- **Order:** step 1 fixes the live bot's aim settings and rules (no training); step 2 lets the model
+  generate routes; step 3 trains `v3`; step 4 tests. No unused donk Mirage match is left for a final
+  test; the design recommends the people panel as the final test.
+
 ## 9. Architecture
 
 ```
@@ -1539,6 +1579,12 @@ demo. A released product would need each player's or team's permission.
 
 Newest first. One line per change: date, who, what changed.
 
+- 2026-11-15, Arjun (with Claude): added `clone_pipeline/limits.py` and measured human limits on 80 player-matches; diagnosed `donkL`'s aimbot flicks (copied `donk` bot entry: no acceleration limit, zero reaction time) and backwards walking (not the routes); wrote `clone-model/ROUND3_DESIGN.md` (hard limits, perception-first evaluation, round 3 plan) and section 8.10. Removed Tom's consumed report `handoffs/arjun-donkL-report.md`; its findings are in the design's section 1. Ran: limits measurement, 52 pipeline tests. Not run: anything in CS2.
+
+- 2026-11-15, Tom (with Claude): ran Arjun's MVP test on Tom's PC. Step 1 passed (converted T route followed
+  within about 11 units); CloneDirector installed and attached clones; added `clone-director/tools/add_clone_bot_entries.py`
+  and set each clone's `stand_in_bot` to its own id; wrote `handoffs/arjun-donkL-report.md`; removed the consumed
+  `handoffs/tom-mvp-test.md`. Step 4 (`-Record tv`) not run. Section 3 and the CloneDirector row updated.
 - 2026-11-14, Tom (with Claude): first clone played in CS2. On a listen server CloneDirector refused
   MatchBridge's commands (caller is the host in slot 0, not null); fixed in `CloneDirectorPlugin.cs`.
   Then donkL attached and played a recorded donk route (TSpawn > PalaceAlley > TRamp). donk_v1 vs donkL

@@ -1835,7 +1835,7 @@
     }
   },
   "built_at": "2026-11-15T01:39:31+00:00",
-  "stand_in_bot": "donk",
+  "stand_in_bot": "donkL",
   "learned": {
     "kind": "per-quirk rules fitted from recordings (clone_pipeline/quirks.py)",
     "based_on": "donk_v1",
