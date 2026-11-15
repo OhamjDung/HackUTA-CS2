@@ -90,7 +90,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Similarity search (MongoDB Atlas) | Unassigned | Not started | Not decided | 2026-11-14 |
 | Hosting on Vultr, domain from GoDaddy Registry | Unassigned | Not started | Not decided | 2026-11-14 |
 | DEV article | Unassigned | Not started | Not decided | 2026-11-14 |
-| Odyssey authored bot roster: Poseidon, Odysseus, Menelaus, Telemachus | Arjun (Codex) | Implemented, not deployed/live-validated. Four matching UI IDs,14 mapped quirks each, distinct native difficulty presets, scoped Poseidon damage immunity and Odysseus1.08x enemy damage. Release build clean;77 C# tests,10 tool tests pass; service suite148 pass/1 known Windows symlink failure. Voices/trash talk remain Tom's work. | `clones/ODYSSEY.md`, `clones/{poseidon,odysseus,menelaus,telemachus}.json`, `clone-director/OdysseyMode.cs`, section6.5 | 2026-11-15 |
+| Odyssey authored bot roster: Poseidon, Odysseus, Menelaus, Telemachus | Arjun (Codex) | Implemented, not deployed/live-validated. Four matching UI IDs,14 mapped quirks each, distinct native difficulty presets, scoped Poseidon damage immunity and Odysseus1.08x enemy damage. Release build clean;77 C# tests,10 tool tests pass; service suite148 pass/1 known Windows symlink failure. Deployment recipe checked against the start script; voices/trash talk remain Tom's work. | `clones/ODYSSEY.md`, `clones/{poseidon,odysseus,menelaus,telemachus}.json`, `clone-director/OdysseyMode.cs`, section6.5 | 2026-11-15 |
 
 ### 0.3 Things this spec does not know yet
 
@@ -751,7 +751,7 @@ Install both updated plugin/Core DLLs and four native bot entries: the patcher r
 settings from the JSON, overriding the inherited donk template. Its `--plain` flag does not remove
 the authored Odyssey differences; it only resets L2/LF human-aim limits. Original pro/v2 settings
 are preserved. Service stand-in mode refuses Odyssey because damage rules would not run; generated
-mode refuses it because no neural routes exist. Existing `-Bots clone -Routes recorded` allows the
+mode refuses it because no neural routes exist. Existing `-Bots clone` with `CS2_CLONE_ROUTES=recorded` allows the
 route-free native personas alongside recorded-route pro clones. The frontend already has matching
 IDs; Challenge/Play-to-match wiring remains with the frontend/Tom integration, not changed here.
 
@@ -1964,6 +1964,8 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-15, Arjun (Codex): corrected Odyssey deployment instructions against the actual start script: use CS2_CLONE_ROUTES=recorded plus -Bots clone, not an unsupported -Routes flag. Persona behavior/code unchanged.
 
 - 2026-11-15, Arjun (Codex): added the four UI-matching Odyssey authored personas with14 mapped quirks each, separate native difficulty/aim settings, scoped pre-damage immunity for Poseidon and8% enemy-damage edge for Odysseus. Added fail-closed service mode checks, deterministic profile/native-entry tooling and Tom's voice/deployment handoff. Clean Release build;77 C# and10 tools tests pass;148 service tests pass with1 known Windows symlink privilege failure. No neural training, voice generation or CS2 deployment claimed.
 

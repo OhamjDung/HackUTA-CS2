@@ -65,7 +65,7 @@ deterministic and have 14 authored quirks each. Keep this design document aligne
 
 See [Tom's handoff](../handoffs/tom-odyssey-bots.md). This change needs **both** the updated CloneDirector
 DLL/Core DLL and the patched native bot entries. A bare `bot_add_*` bypasses the director's protection.
-The service refuses Odyssey in stand-in/generated modes; `-Bots clone -Routes recorded` uses authored
+The service refuses Odyssey in stand-in/generated modes; `-Bots clone` with `CS2_CLONE_ROUTES=recorded` uses authored
 native AI for these route-free profiles and recorded routes for existing player clones in the same match.
 Do not alter the existing player bots or global bot difficulty to install the roster.
 

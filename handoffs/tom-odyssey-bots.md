@@ -30,7 +30,9 @@ API keys, audio or competing voice system. Use the four clone IDs as keys in you
    separately named copies of the donk template, with distinct per-character overrides from the JSON.
    `--plain` still applies Odyssey overrides; it only removes L2/LF human-aim overrides. Existing v2
    entries and original pro entries stay unchanged. Check `gameinfo.gi`/botprofile after a crash.
-4. Start the service only when Tom asks, using `start-cs2.ps1 -Bots clone -Routes recorded -Record off`.
+4. Start the service only when Tom asks. From `match-service/` in PowerShell, set
+   `$env:CS2_CLONE_ROUTES = 'recorded'`, then run `.\start-cs2.ps1 -Bots clone -Record off`.
+   The script has no `-Routes` parameter; route source is an environment setting.
    Use the usual private Mirage Bot Mode. Never use global god/difficulty cvars or public matchmaking.
    `recorded` is the existing global route mode: Odyssey has no routes, so native AI acts throughout;
    existing real-player clones still use their recorded routes. Generated mode and stand-in mode are
