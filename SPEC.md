@@ -537,7 +537,8 @@ and routes. These bot creation and purchase assumptions still need an in-game ch
 | `clone_record <on or off>` | Planned, not implemented. Records human players' routes (section 6.4). Low priority. |
 
 The commands are server-console only. The real match service (section 9.2) adds stand-in bots by
-default; with `CS2_BOTS=clone` it sends `clone_add` through the MatchBridge plugin instead (not
+default; with `CS2_BOTS=clone` it sends `clone_routes <CS2_CLONE_ROUTES>` and then `clone_add`
+through the MatchBridge plugin instead (not
 run in CS2). `clone_routes` stops
 current playback and applies the chosen source next round. `clone_record` is not implemented.
 
@@ -1313,6 +1314,8 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-14, Ashirwad: reviewed Tom's driver changes; the service now sends `clone_routes recorded` too, before every clone match, because CloneDirector keeps the last route source in memory and a match after a `generated` one would still play generated routes. 73 match service tests pass.
 
 - 2026-11-14, Ashirwad: added `clone-model/map_review.py`, an automated `de_mirage` geometry check of generated review paths (CS-NET ray casting). All 8 development cases pass, real and generated; most generated paths stand still. A person must still review paths. 12 CPU tests; results in `clone-model/results/generated-path-map-review.md`. Ran the check, converter and viewer together on the real review file.
 

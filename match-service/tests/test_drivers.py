@@ -71,12 +71,13 @@ def test_generated_routes_need_a_model_in_the_profile(tmp_path):
     assert bridge.sent == ["clone_routes generated", "clone_add donk_v1 ct"]
 
 
-def test_recorded_routes_send_no_extra_command(tmp_path):
+def test_recorded_routes_are_set_explicitly(tmp_path):
+    """CloneDirector keeps its route source between matches, so `recorded` is sent too."""
     s = settings(tmp_path, cs2_bots="clone", clones_dir=REPO_CLONES, clone_join_seconds=0.3)
     main, bridge = RecordingChannel(), RecordingChannel(NAMES)
     with TestClient(create_app(s, channel=main, clone_channel=bridge)) as client:
         wait_for(client, start(client, main), "ready")
-    assert bridge.sent == ["clone_add donk_v1 ct", "clone_add broky_v1 t"]
+    assert bridge.sent == ["clone_routes recorded", "clone_add donk_v1 ct", "clone_add broky_v1 t"]
 
 
 def test_unknown_route_source_is_rejected(tmp_path):

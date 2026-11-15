@@ -269,8 +269,9 @@ class Cs2Backend:
             return None
         want = Counter((self.bot_names[p.clone_id], JOINTEAM[p.team]) for p in clones)
         try:
-            # `recorded` is CloneDirector's default, so the command is only sent for another source.
-            routes = [f"clone_routes {self.s.cs2_routes}"] if self.s.cs2_routes != "recorded" else []
+            # Always set the route source: CloneDirector keeps the last one in memory, so a match after
+            # a `generated` one would otherwise still play generated routes.
+            routes = [f"clone_routes {self.s.cs2_routes}"]
             await self.clone_ch.send(routes + [f"clone_add {p.clone_id} {p.team.lower()}" for p in clones])
             loop = asyncio.get_running_loop()
             deadline = loop.time() + self.s.clone_join_seconds

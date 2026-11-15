@@ -38,7 +38,7 @@ def test_clone_match_uses_clone_add_through_the_plugin(tmp_path):
         wait_for(client, match_id, "ready")
         # The ordinary commands stay on netcon; only CloneDirector's go through MatchBridge.
         assert "bot_kick" in main.sent and not any(c.startswith("bot_add") for c in main.sent)
-        assert bridge.sent == ["clone_add donk_v1 ct", "clone_add broky_v1 t"]
+        assert bridge.sent == ["clone_routes recorded", "clone_add donk_v1 ct", "clone_add broky_v1 t"]
         assert main.sent.index("bot_kick") < main.sent.index("jointeam 1")
         wait_sent(main, "mp_restartgame 1")
 

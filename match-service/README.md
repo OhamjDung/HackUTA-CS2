@@ -198,7 +198,8 @@ like recorded ones (SPEC.md section 8.5):
    `clone_routes generated` before `clone_add`). A clone with no `model` is shown as not playable in
    that mode, so a failed or missing model never silently plays.
 3. A clone whose identity test failed keeps `model: null` and plays recorded routes
-   (`CS2_CLONE_ROUTES=recorded`, the default).
+   (`CS2_CLONE_ROUTES=recorded`, the default). The service sends `clone_routes <setting>` before
+   every match, `recorded` included, because CloneDirector keeps the last route source in memory.
 
 ### Setup on the CS2 machine (Windows)
 
