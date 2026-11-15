@@ -358,6 +358,27 @@ This lets the model learn from situations donk was never recorded in, which reco
 give. It is also how a discriminator-style reward (as in GAIL) enters without full reinforcement
 learning, which would be too slow for the time left.
 
+### 8.5 Self-training on imagined play: what was built (added 2026-11-15)
+
+Arjun asked for it after the first donk model failed, within a realistic running time. Code:
+`clone-model/imagine.py`. It differs from the 8.4 sketch in two ways, both for time:
+
+- **Judge.** The kept future is the one closest to what donk really did from that moment, among the
+  8 that break no human per-step limit. The round 2 identity model is not used as a judge: wiring its
+  weights into the loop would not fit the time. So this is best-of-N self-distillation towards donk's
+  real play (expert iteration; reward-ranked fine-tuning), not a learned "donk-likeness" reward.
+- **Start.** A fresh adapter on CS-NET, not the failed first model, so the new final test is clean.
+
+What it fixes: the model learns inside the situations its own generated play creates. CS-NET's engine
+computes the decoder's inputs (view depth, position, angle) along each imagined path; `imagine.py`
+records them by wrapping the engine's functions, and trains on them with the same KL anchor.
+
+Rounds. A new final test, **test-C**, is cut before the run: donk's training rounds with
+`round_id % 6 == 3`. They are left out of learning, imagination and selection. Iterations are chosen
+by free-running path error on 80 dev-A moments, and only if their human-limit breaks are no higher
+than the base's. Pass rule on test-C: P1 to P3 of 8.3, unchanged. If no iteration beats the base on
+dev-A, test-C is not used.
+
 ## 7. What is not known yet
 
 - Whether the bot base's aim settings behave like the numbers suggest. Only measuring a recording shows it.
