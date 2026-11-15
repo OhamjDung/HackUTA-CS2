@@ -297,6 +297,8 @@ Checked on 2026-11-14.
 - CS2 base-game download completed on Arjun's PC: Steam manifest reports all download/staging bytes complete, state 4, update result 0, 74.3 GB installed. No bot-base installer was run by this agent.
 - Learned movement: A100-SXM4-80GB optimization completed 600 updates, selected step 400; final held-out identity comparison ran 213 predictions across 71 windows and failed for both players (section 8.6). Twelve CPU integration tests pass. Eight development examples were then exported on the A100 and plotted for review; no model or route was promoted.
 
+- Independent mock replay QA (Ashirwad/Codex, 2026-11-14): existing 47 service tests pass. `tools/replay-qa/test_edges.py` adds 3 passing checks (all 159 routes, invalid IDs, trace order) and 8 strict expected failures documenting unresolved synthetic route/trace/mock edge cases. Playwright 1.49.1 / Chromium 131 ran desktop and 390px browser checks across all five pages, match lifecycles and replay controls. Normal flow, simulated badges, ceiling labels and a shared radar clock were observed; selection/error/empty-state, reload, overflow and accessibility/skill-label issues remain. See `tools/replay-qa/REPORT.md` and ignored `data/replay-qa/` evidence. No CS2 or implementation change.
+
 **Checked by reading source or documentation, not by running:**
 - What each open-source project can do (section 4).
 - The calls in the CS2-Bot-Controller programming interface (section 6).
@@ -372,6 +374,7 @@ One install of CS2-Bot-Improver gives the first four rows.
 | Model test numbers | CS-NET v4's `scripts/evaluate_pretrain.py` |
 | Replay page | CS-NET v4's viewer (`visualizer/`) |
 | Per-bot voice | Existing match/replay events, [ElevenLabs synthesis API](https://elevenlabs.io/docs/overview/capabilities/text-to-speech) (hosted service), then CS2-Bot-Controller's voice API (AGPL-3.0) for optional game audio. Use [Xiph libopus](https://opus-codec.org/license/) (BSD-3-Clause) to encode game packets offline. |
+| Independent mock replay QA | Existing match-service tests/FastAPI TestClient and pytest; Playwright (Apache-2.0) drives the existing pages. New task-specific synthetic fixtures and report, no second viewer |
 | Path to key presses (after the hackathon) | cs2-movesim |
 | Match control API | This repository's `match-service/` |
 | Match service: events from the game | CS2's Game State Integration (Valve). Field names from the [CounterStrike2GSI](https://github.com/antonpup/CounterStrike2GSI) README; read only, no code copied |
@@ -1037,6 +1040,8 @@ of the replay.
   Per-character rim-light/HUD accent sync (`rimColor`/`accentColor`); `scripts/verify-models.mjs`
   gates artist GLB drops (size, Idle clip, skins, meshopt).
 
+**Independent QA (2026-11-14):** `tools/replay-qa/REPORT.md` records unresolved replay selection races, stale empty/error panels, play-page reload loss, narrow-screen overflow, unnamed playback controls, and proof-label limits. Synthetic tests also expose missing/corrupt/empty route handling, nonfinite coordinates, post-death samples and mock trace finalization/download placeholders. QA owns only the report/harness; the service implementation remains with its owner and is not fixed by this report.
+
 ### 9.4 Sponsor services
 
 - **Gemini, scouting report.** Send the clone profile to a Gemini Flash model. It returns a short
@@ -1399,6 +1404,8 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-14, Ashirwad (Codex): completed independent mock replay QA with reproducible browser/edge harnesses, ignored screenshots/logs and a prioritized report; 47 existing tests pass, 3 added checks pass and 8 expected failures record unresolved edge defects. Service/frontend implementations and APIs unchanged.
 
 - 2026-11-14, Ashirwad (Codex): completed independent CPU habit audit and inventory-based weapon-role correction with exact-ID guards, missing-data fallbacks and economy limits. 11 audit/27 pipeline tests pass; seven raw-demo CLI candidates retain 141 byte-identical routes and existing service compatibility. Policy/method frozen before one descriptive 39-round holdout audit. Committed clones and other owners' implementations unchanged.
 
