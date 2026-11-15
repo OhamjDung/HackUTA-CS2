@@ -8,11 +8,13 @@ for donk and broky under the clone ids.
 
 Why human aim limits (added 2026-11-15, clone-model/ROUND3_DESIGN.md section 6, step 1): the bot
 base's donk and broky entries have no limit on view acceleration and zero reaction time, so the
-clones snapped onto targets like an aimbot. The copies get finite settings instead (HUMAN_AIM). The
-original donk and broky entries are left unchanged.
+clones snapped onto targets like an aimbot. The copies named in HUMAN_AIM_IDS (donkL2 and brokyL2, the
+new versions) get finite settings instead (HUMAN_AIM). donk_v1, donkL, broky_v1 and brokyL stay plain
+copies, so earlier versions keep behaving as they did and versions can be compared. The original donk
+and broky entries are left unchanged.
 
     python add_clone_bot_entries.py <game>/csgo/overrides/botprofile.vpk [out.vpk]
-    python add_clone_bot_entries.py --plain ...   # copies without the aim limits (the old behaviour)
+    python add_clone_bot_entries.py --plain ...   # every copy without the aim limits
 
 Needs `pip install vpk`. It never overwrites the input: with no `out.vpk` it writes botprofile.vpk.new
 next to it. Keep a copy of the original, then replace the file while CS2 is closed. Running it again on
@@ -26,7 +28,9 @@ import sys
 import tempfile
 
 # existing bot entry -> the clone ids that get a copy of it
-COPIES = {"donk": ["donk_v1", "donkL"], "broky": ["broky_v1", "brokyL"]}
+COPIES = {"donk": ["donk_v1", "donkL", "donkL2", "donkLF"], "broky": ["broky_v1", "brokyL", "brokyL2", "brokyLF"]}
+# the copies that get human aim settings; the others stay plain copies of the original entry
+HUMAN_AIM_IDS = {"donkL2", "brokyL2", "donkLF", "brokyLF"}
 
 # Starting values chosen by simulating the bot's view as a damped spring with capped acceleration
 # (the model in the original Counter-Strike bot code; assumed, not confirmed, to hold in CS2). With these,
@@ -83,8 +87,8 @@ def patch_db(db: str, settings: dict | None) -> str:
             raise SystemExit(f"No entry named {player!r} in botprofile.db")
         for clone_id in clone_ids:
             copy = block.group(0).replace(f'"{player}"', f'"{clone_id}"', 1)
-            added += with_settings(copy, settings) if settings else copy
-    note = " with human aim limits" if settings else ""
+            added += with_settings(copy, settings) if settings and clone_id in HUMAN_AIM_IDS else copy
+    note = " (" + ", ".join(sorted(HUMAN_AIM_IDS)) + " with human aim limits)" if settings else ""
     return (db.rstrip("\n") + "\n\n" + MARKER + ": copies of donk and broky under the clone ids"
             + note + ".\n" + added)
 
