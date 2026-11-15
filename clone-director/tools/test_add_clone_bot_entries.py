@@ -56,3 +56,17 @@ def test_plain_copies_keep_the_original_settings():
     # A file already patched with human aim can be turned back into plain copies.
     back = patch_db(patch_db(SAMPLE, HUMAN_AIM), None)
     assert back == db
+
+
+def test_v2_keeps_full_strength_aim_and_gets_measured_personality():
+    from add_clone_bot_entries import PERSONALITY
+    db = patch_db(SAMPLE, HUMAN_AIM)
+    for clone_id, player in (("donk_v2", "donk"), ("broky_v2", "broky")):
+        block = entry(db, clone_id)
+        for key, value in PERSONALITY[clone_id].items():
+            assert setting(block, key) == value
+        for key in HUMAN_AIM:                        # no human-aim limits on v2: same as the original entry
+            original = re.search(r"^\s*%s = (\S+)$" % key, entry(SAMPLE, player), re.M)
+            found = re.search(r"^\s*%s = (\S+)$" % key, block, re.M)
+            assert (found and found.group(1)) == (original and original.group(1))
+    assert "99999999999999999999.9.9.9" in entry(db, "donk_v2")   # donk's uncapped aim kept

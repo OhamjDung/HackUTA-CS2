@@ -48,6 +48,14 @@ public sealed partial class CloneDirectorPlugin : BasePlugin
         public long StillTicks { get; set; }
         public float StillSince { get; set; } = float.NaN;
         public bool NudgeLeft { get; set; }
+        // Game sense (GameSenseMode.cs): where an enemy was last heard (blurred) and when; a hand-off waiting
+        // for a pulled grenade; the next quiet-walk decision; route keys of recent rounds.
+        public float[]? HeardAt { get; set; }
+        public float HeardTime { get; set; } = float.NegativeInfinity;
+        public string? PendingStop { get; set; }
+        public float PendingStopUntil { get; set; }
+        public float NextWalkDecision { get; set; }
+        public Queue<string> RecentRoutes { get; } = new();
     }
 
     public override void Load(bool hotReload)
@@ -68,6 +76,7 @@ public sealed partial class CloneDirectorPlugin : BasePlugin
         RegisterListener<Listeners.OnMapStart>(_ => Reset());
         RegisterListener<Listeners.OnTick>(Tick);
         PuzzleLoad();   // replay puzzles: PuzzleMode.cs
+        GameSenseLoad();   // v2 game sense: GameSenseMode.cs
     }
 
     public override void OnAllPluginsLoaded(bool hotReload)
@@ -179,17 +188,18 @@ public sealed partial class CloneDirectorPlugin : BasePlugin
             _pending = new(next, Utilities.GetPlayers().Select(p => p.Handle).ToHashSet(), Server.CurrentTime + 5);
             Server.ExecuteCommand($"bot_add_{(next.Team == 2 ? "t" : "ct")} \"{next.Profile.Personality}\"");
         }
+        _tickCount++;
         foreach (var binding in _bots.Values.ToArray())
         {
             if (!binding.Player.IsValid || !binding.Player.IsBot) { Disconnect(binding.Session.Slot); continue; }
             var pawn = binding.Player.PlayerPawn.Value;
             if (binding.Session.Playing && (pawn is null || !pawn.IsValid || pawn.Handle != binding.Pawn || !binding.Player.PawnIsAlive))
                 binding.Session.Stop("pawn changed or dead");
-            if (binding.Session.Playing && pawn is not null && pawn.IsValid && EnemyClose(binding, pawn))
-            {
-                binding.Session.Stop("enemy close");
-                binding.QuietUntil = Server.CurrentTime + Quirks.QuietSecondsAfterFight;
-            }
+            // v2 clones turn this off: it ignores walls; sight_handoff uses the game's own visibility instead.
+            if (binding.Session.Profile.GameSense.EnemyCloseHandoff && binding.Session.Playing &&
+                pawn is not null && pawn.IsValid && EnemyClose(binding, pawn))
+                HandOff(binding, "enemy close");
+            GameSenseTick(binding, pawn);
             binding.Session.Poll();
             ApplyJumpQuirk(binding, pawn);
             ApplyRestlessQuirk(binding, pawn);
@@ -301,9 +311,17 @@ public sealed partial class CloneDirectorPlugin : BasePlugin
             var pawn = b.Player.PlayerPawn.Value;
             var pos = pawn?.AbsOrigin;
             if (!b.Player.IsValid || !b.Player.PawnIsAlive || pawn is null || pos is null) continue;
-            var route = Choices.Pick(b.Session.Profile, Side(b.Player.TeamNum), b.Session.BuyType, _routeSource,
-                [pos.X, pos.Y, pos.Z], Random.Shared.NextDouble());
+            var profile = b.Session.Profile;
+            var route = profile.GameSense.RouteVariety
+                ? GameSense.PickVaried(profile, Side(b.Player.TeamNum), b.Session.BuyType, _routeSource, [pos.X, pos.Y, pos.Z],
+                    b.RecentRoutes, Random.Shared.NextDouble(), Random.Shared.NextDouble())
+                : Choices.Pick(profile, Side(b.Player.TeamNum), b.Session.BuyType, _routeSource,
+                    [pos.X, pos.Y, pos.Z], Random.Shared.NextDouble());
             if (route is null) { b.Session.Stop("no matching route"); continue; }
+            b.RecentRoutes.Enqueue(route.Key);
+            while (b.RecentRoutes.Count > Math.Max(0, profile.GameSense.RecentRoutes)) b.RecentRoutes.Dequeue();
+            b.HeardAt = null;
+            b.PendingStop = null;
             if (b.Session.Profile.Map != Server.MapName) { b.Session.Stop("map mismatch"); continue; }
             b.Pawn = pawn.Handle;
             b.Session.Begin(route, pawn.Handle, b.Recordings[route.File]);
@@ -353,13 +371,14 @@ public sealed partial class CloneDirectorPlugin : BasePlugin
             !e.Weapon.Contains("knife") && !e.Weapon.Contains("grenade") && !e.Weapon.Contains("flashbang") &&
             !e.Weapon.Contains("molotov") && !e.Weapon.Contains("decoy") && !e.Weapon.Contains("bayonet"))
             ApplyShotQuirks(own);
+        OnNoise(shooter, Noise.Gunfire);   // game sense: remembered as a heard position (v2 clones)
         foreach (var b in _bots.Values)
         {
             if (!b.Player.IsValid || b.Player.TeamNum == shooter.TeamNum) continue;
             var pos = b.Player.PlayerPawn.Value?.AbsOrigin;
             if (pos is null || !Combat.Nearby(shot.X, shot.Y, shot.Z, pos.X, pos.Y, pos.Z)) continue;
             b.QuietUntil = Server.CurrentTime + Quirks.QuietSecondsAfterFight;
-            if (b.Session.Playing) b.Session.Stop("enemy fired nearby");
+            HandOff(b, "enemy fired nearby");
         }
         return HookResult.Continue;
     }
