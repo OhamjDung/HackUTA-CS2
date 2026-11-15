@@ -61,8 +61,6 @@ like the player, generates the player's paths, or beats a model without identity
 
 ## Artifacts
 
-The adapter weights (`best.pt`, `last.pt`) exist only on the Colab virtual machine at
-`/content/run2/out`. They are not committed (`AGENTS.md` section 4) and are lost when Colab
-recycles the runtime unless someone saves them.
+Saved on 2026-11-14 to Arjun's PC: `Documents/Codex/2026-11-14/files-pasted-by-the-user-handoff/work/learned-results-v2/learned-clones-v2.zip` (1,854,456 bytes, SHA256 `3f278e33956ff46660baf1350055242ddc46407550f260c68c1dd941f61abcdd`, the same checksum Colab printed). It holds `best.pt` (step 1,800), `last.pt`, `registry.json`, `training.json`, `test.json` and `progress.json`. `best.pt` was loaded on the PC: 10 identities, all values finite. Not committed (`AGENTS.md` section 4); ask Arjun for a copy.
 
 Data credit: Julien Blanchon / OpenCS2, CC BY 4.0.
