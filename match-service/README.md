@@ -200,8 +200,9 @@ above). Without it, donk and broky move and fight. `start-cs2.ps1` ran as writte
 fix gave `ready` then `live` in the right order. Not yet seen: scores counting through `/gsi` with
 recording off.
 
-Not checked yet: that it answers RCON in Bot Mode; that MatchBridge
-builds and loads (it has never been compiled), and that running commands through `Server.NextFrame`
+MatchBridge compiled on Windows with .NET SDK 10.0.404 in Release: zero warnings and errors; it still targets net8.0. All 42 service tests pass against fakes.
+
+Not checked yet: that CS2 answers RCON in Bot Mode; that MatchBridge loads in CS2; that running commands through `Server.NextFrame`
 and moving the player with `ChangeTeam` work; the exact game state CS2 sends on a map change; that
 `tv_record` writes a `.dem` file in Bot Mode, and where; and that `jointeam` and the team-name commands
 behave as written. The RCON and plugin channels are tested against fake servers only.

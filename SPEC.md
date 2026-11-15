@@ -26,6 +26,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 
 | Part | Owner | State | Where | Updated |
 |---|---|---|---|---|
+| MatchBridge Release compilation | Arjun (Codex) | Done. Builds with .NET SDK 10.0.404, zero warnings/errors; targets net8.0. In-game loading and clone commands still untested. | `match-service/plugin/MatchBridge/` | 2026-11-14 |
 | Research: which bots, dataset, and model to build on | Arjun | Done | Sections 4, 7, 8 | 2026-11-14 |
 | This spec and the agent rules | Arjun | Done | `SPEC.md`, `AGENTS.md`, `CLAUDE.md` | 2026-11-14 |
 | Match service, mock version (Server API with a fake CS2 server) | Ashirwad | Done | `match-service/` | 2026-11-14 |
@@ -176,6 +177,8 @@ Checked on 2026-11-14.
 - Re-ran current suites on Windows: 10 pipeline, 26 CloneDirector, and 33 match-service tests pass (69 total). The service has one dependency deprecation warning. This includes reading both clone profiles and all 159 route files.
 - Started the CS2 base-game download in the existing Steam client on Arjun's current PC after confirming no running download or CS2 manifest. Observed active transfer at 6%, 3.3 / 57.6 GB downloaded, with Steam estimating about 33 minutes remaining. This is a progress snapshot, not an installation or in-game test. No CS2-Bot-Improver files were installed or run.
 
+- MatchBridge Release compilation ran on Windows with .NET SDK 10.0.404: zero warnings, zero errors. The existing project targets net8.0 and CounterStrikeSharp.API 1.0.367; no C# changes were needed. Re-ran all 42 service tests, including seven clone-mode tests against fakes; all pass. This does not verify loading the plugin or clone playback in CS2.
+
 **Checked by reading source or documentation, not by running:**
 - What each open-source project can do (section 4).
 - The calls in the CS2-Bot-Controller programming interface (section 6).
@@ -196,7 +199,7 @@ Checked on 2026-11-14.
 - That the service's game state shows scores counting once `record` is not sent. Tom saw the match
   play on screen; nobody has read the score through `/gsi` in that state.
 - Why `bot_add_ct "donk"` once added other bots straight after `bot_kick`.
-- Building MatchBridge (never compiled), CounterStrikeSharp loading it, `Server.NextFrame` running
+- CounterStrikeSharp loading MatchBridge, `Server.NextFrame` running
   the commands, and `matchbridge_jointeam` moving the player.
 - `tv_record` / `tv_stoprecord` recording a Bot Mode game (`CS2_RECORD=tv`).
 - Clone mode in CS2: MatchBridge's `matchbridge_bots`, CloneDirector accepting `clone_add` from
@@ -1015,6 +1018,8 @@ demo. A released product would need each player's or team's permission.
 ## 19. Change log
 
 Newest first. One line per change: date, who, what changed.
+
+- 2026-11-14, Arjun (Codex): compiled MatchBridge Release with SDK 10 (net8.0 target), zero warnings/errors, and re-ran all 42 service tests successfully. Read CLONE_AUDIT.md; its CS2 evidence is for stand-in presets, while data-built clones still await in-game checks. Updated build status; no C# changes.
 
 - 2026-11-14, Arjun (Codex): added a strict CS-NET parser roster wrapper after broky match 2393037 exposed an extra unassigned person; checked its live-tick roster from the real demo and added a passing regression test. Eight learned-model tests pass.
 
