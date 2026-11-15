@@ -83,17 +83,15 @@ def server_side(commands: list[str], jointeam_command: str | None) -> list[str]:
     """Rewrite client-only commands for channels that run commands on the server side.
 
     RCON and the MatchBridge plugin run commands as the server, not as the player at the PC, so:
-    - `record <name>` / `stop` (a player's own recording) become `tv_record <name>` / `tv_stoprecord`
-      (the server's recording, which needs `tv_enable 1` before the map loads).
+    - `record <name>` / `stop` (a player's own recording) become `tv_record <name>` / `tv_stoprecord`.
+      The backend no longer sends them (CS2_RECORD), but other callers might.
     - `jointeam <n>` moves the player at the PC. Only the plugin can do that (`jointeam_command`);
       over RCON it is dropped and the player picks a team by hand.
     """
     out: list[str] = []
     for c in commands:
         word, _, rest = c.partition(" ")
-        if word == "map":
-            out += ["tv_enable 1", c]
-        elif word == "record":
+        if word == "record":
             out.append(f"tv_record {rest}")
         elif c == "stop":
             out.append("tv_stoprecord")

@@ -19,6 +19,10 @@
   when another machine (for example the lobby on a teammate's laptop) must reach it, because then
   anyone on the same network can create and stop matches.
 
+.PARAMETER Record
+  off (default): no match recording, demo_url is null. tv: record with GOTV (tv_record); not yet
+  tried in CS2. The player's own `record` is never used: over netcon it froze CS2 and once crashed it.
+
 .PARAMETER Console
   How to send commands to CS2: netcon (default; needs -netconport 2121 in CS2's launch options),
   rcon (needs rcon_password in CS2), or plugin (the MatchBridge plugin).
@@ -30,7 +34,9 @@ param(
     [string]$Token = "",
     [string]$ConsolePassword = "",
     [int]$Port = 8000,
-    [string]$Listen = "127.0.0.1"
+    [string]$Listen = "127.0.0.1",
+    [ValidateSet("off", "tv")]
+    [string]$Record = "off"
 )
 
 $ErrorActionPreference = "Stop"
@@ -136,11 +142,13 @@ $env:CS2_CONSOLE = $Console
 $env:CS2_CONSOLE_PASSWORD = $ConsolePassword
 $env:GSI_TOKEN = $Token
 $env:CS2_DEMO_DIR = $csgo
+$env:CS2_RECORD = $Record
 $env:PUBLIC_URL = "http://localhost:$Port"
 
 Write-Host ""
 Write-Host "Starting the match service. Check the connection at  http://localhost:$Port/health" -ForegroundColor Green
 Write-Host "API docs: http://localhost:$Port/docs    Stop with Ctrl+C."
+Write-Host "Recording: $Record"
 Set-Location $here
 uv sync
 if ($Listen -ne "127.0.0.1") {

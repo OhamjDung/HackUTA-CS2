@@ -29,7 +29,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Research: which bots, dataset, and model to build on | Arjun | Done | Sections 4, 7, 8 | 2026-11-14 |
 | This spec and the agent rules | Arjun | Done | `SPEC.md`, `AGENTS.md`, `CLAUDE.md` | 2026-11-14 |
 | Match service, mock version (Server API with a fake CS2 server) | Ashirwad | Done | `match-service/` | 2026-11-14 |
-| Match service, real version (starts and controls a real CS2 match) | Ashirwad | In progress. Written (`MATCH_BACKEND=cs2`) with three console channels (netcon, RCON, MatchBridge plugin) and a Windows start script; tested only against fake servers, not in CS2 | `match-service/match_service/backends/cs2.py` | 2026-11-14 |
+| Match service, real version (starts and controls a real CS2 match) | Ashirwad | In progress. Runs in CS2 on Tom's PC over netcon: map, stand-in bots, team names, `ready` then `live`. Recording is off by default (`CS2_RECORD`); `tv` recording and scores through `/gsi` not yet seen in CS2 | `match-service/match_service/backends/cs2.py` | 2026-11-14 |
 | Stand-in bots: built-in CS2-Bot-Improver pro bots used in place of clones until CloneDirector works | Ashirwad | In progress. `donk_v1` and `broky_v1` profiles use the `donk` and `broky` bots; not run in CS2 | `match-service/sample_clones/` | 2026-11-14 |
 | Side-by-side page, stand-in version (two synced panels; replay page content replaces it) | Ashirwad | Not started | Not decided | 2026-11-14 |
 | Lobby page | Tom (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
@@ -138,7 +138,7 @@ Checked on 2026-11-14.
   (`match-service/tests/test_channels.py`, 5 tests, all pass). This checks the Python side only.
 - Console safety: every channel refuses commands with a newline or `;` before connecting, and
   profiles with an unsafe `stand_in_bot` are skipped (`match-service/tests/test_safety.py`, 6
-  tests). All 33 match service tests pass. Tom ran the 26 earlier tests on Windows: they pass with
+  tests). All 34 match service tests pass. Tom ran the 26 earlier tests on Windows: they pass with
   `uv run python -m pytest` (Application Control blocks `uv run pytest` there).
 
 - CloneDirector Release build with .NET SDK 10.0.404 and CounterStrikeSharp.API 1.0.378:
@@ -180,7 +180,7 @@ Checked on 2026-11-14.
 - Why `bot_add_ct "donk"` once added other bots straight after `bot_kick`.
 - Building MatchBridge (never compiled), CounterStrikeSharp loading it, `Server.NextFrame` running
   the commands, and `matchbridge_jointeam` moving the player.
-- `tv_record` / `tv_stoprecord` recording a Bot Mode game (used by the RCON and plugin channels).
+- `tv_record` / `tv_stoprecord` recording a Bot Mode game (`CS2_RECORD=tv`).
 - What CS2 sends to `/gsi` on a map change. (Game state does arrive; see above.)
 - `jointeam` behaving as the service expects. (`mp_teamname_1`/`_2` and `bot_add_ct "<name>"`
   worked in Tom's run.)
@@ -649,9 +649,8 @@ setup steps.
 - Commands go out through one of three channels in `console.py`, set by `CS2_CONSOLE`:
   `netcon` (CS2's network console, the default), `rcon`, or `plugin` (MatchBridge, a small
   CounterStrikeSharp plugin that runs each command inside the game). RCON and the plugin run
-  commands on the server side, so the service translates the client-only ones: `record` and `stop`
-  become `tv_record` and `tv_stoprecord` (with `tv_enable 1` before the map loads), and `jointeam`
-  becomes `matchbridge_jointeam` (plugin) or is dropped (RCON; the person picks a team).
+  commands on the server side, so `jointeam` becomes `matchbridge_jointeam` (plugin) or is dropped
+  (RCON; the person picks a team).
 - `match-service/start-cs2.ps1` sets up the Windows PC and starts the service: it installs the game
   state config with a token, builds and installs MatchBridge when asked, and sets the settings. It
   listens on `127.0.0.1` unless `-Listen 0.0.0.0` is given, because the API has no login.
@@ -663,11 +662,14 @@ setup steps.
   right team after sides swap.
 - One match at a time. At most one human: the person at the CS2 PC. Bot against bot puts that
   person in spectator.
-- The recording is `match_<id>.dem`, served at `demo_url` from `CS2_DEMO_DIR`.
+- Recording is set by `CS2_RECORD`. `off` (default): nothing is recorded and `demo_url` is `null`
+  (the API already allowed `null`). `tv`: GOTV (`tv_enable 1` before the map, `tv_record
+  match_<id>`, `tv_stoprecord`), served at `demo_url` from `CS2_DEMO_DIR`; not tried in CS2. The
+  player's own `record` is never sent, because over netcon it froze and once crashed CS2 (section 3).
 - `GET /health` reports whether the console answers and when game state last arrived.
 
 netcon works in CS2 Bot Mode (Tom's run, 2026-11-14); RCON and the plugin stay as fallbacks.
-- At match start the service sends `mp_warmup_end`, `mp_restartgame 1` and `record`, then ignores
+- At match start the service sends `mp_warmup_end` and `mp_restartgame 1`, then ignores
   game state for 2 s. Bot Mode reported `live` before the match started, and CS2-Bot-Improver's own
   team commands end with `mp_restartgame 1` after adding bots.
 
@@ -916,9 +918,9 @@ demo. A released product would need each player's or team's permission.
 5. **Project name and domain name.**
 6. **A license file for this repository.**
 7. **Recordings in CS2.** netcon and game state work. `record` over netcon freezes the client and
-   can crash CS2 (section 3), so the service must stop sending it. Next: a way to skip recording,
-   then a run that confirms scores through `/gsi`, then another recording route (`tv_record` or a
-   plugin; neither tested).
+   can crash CS2 (section 3); the service no longer sends it, and recording is off by default.
+   Next: a run that confirms scores through `/gsi`, then a run with `CS2_RECORD=tv` (`tv_record`;
+   not tested).
 
 ## 17. After the hackathon
 
@@ -949,6 +951,9 @@ demo. A released product would need each player's or team's permission.
 
 Newest first. One line per change: date, who, what changed.
 
+- 2026-11-14, Ashirwad: the match service no longer sends `record` (it froze CS2 in Tom's run).
+  New `CS2_RECORD` setting: `off` by default (`demo_url` null) or `tv` (GOTV; untried). Start script
+  gets `-Record`. 34 tests pass.
 - 2026-11-14, Tom (with Claude): claimed the bot base install and marked it done. Found that
   `record` over netcon freezes the client clock (the cause of the 0-0 score) and crashed CS2 once;
   the stand-in match plays without it. Ran `start-cs2.ps1` on Windows. Updated sections 3 and 16.

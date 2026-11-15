@@ -39,6 +39,10 @@ class Settings:
     cs2_console_password: str = ""  # RCON password, or the MatchBridge plugin's token
     gsi_token: str = "change-me"
     demo_dir: Path | None = None
+    # How to record the match. `off`: no recording, demo_url is null. `tv`: GOTV (tv_record), not
+    # tested in CS2. The player's own `record` is not offered: over netcon it froze CS2's client
+    # and once crashed it (Tom's run, SPEC.md section 3).
+    cs2_record: str = "off"
     map_load_seconds: float = 90.0
     restart_seconds: float = 2.0  # wait after mp_restartgame before trusting game state
 
@@ -61,6 +65,7 @@ class Settings:
             cs2_console_password=env.get("CS2_CONSOLE_PASSWORD", cls.cs2_console_password),
             gsi_token=env.get("GSI_TOKEN", cls.gsi_token),
             demo_dir=Path(demo_dir) if demo_dir else None,
+            cs2_record=env.get("CS2_RECORD", cls.cs2_record),
             map_load_seconds=float(env.get("CS2_MAP_LOAD_SECONDS", cls.map_load_seconds)),
             restart_seconds=float(env.get("CS2_RESTART_SECONDS", cls.restart_seconds)),
         )

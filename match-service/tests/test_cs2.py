@@ -69,12 +69,19 @@ def events(client, match_id):
     return [e["event"] for e in client.get(f"/matches/{match_id}/events").json()]
 
 
-def test_full_match(game, tmp_path):
-    client, channel = game
+@pytest.mark.parametrize("record", ["off", "tv"])
+def test_full_match(tmp_path, record):
+    channel = RecordingChannel()
+    with TestClient(create_app(settings(tmp_path, cs2_record=record), channel=channel)) as client:
+        full_match(client, channel, tmp_path, record)
+
+
+def full_match(client, channel, tmp_path, record):
+    tv = record == "tv"
     match_id = client.post("/matches", json=wingman()).json()["match_id"]
 
     wait_sent(channel, "map de_mirage")
-    assert channel.sent[:3] == ["game_type 0", "game_mode 2", "map de_mirage"]
+    assert channel.sent[:4 if tv else 3] == ["game_type 0", "game_mode 2"] + (["tv_enable 1"] if tv else []) + ["map de_mirage"]
     assert gsi(client).status_code == 200  # CS2 reports the map is loaded
 
     m = wait_for(client, match_id, "ready")
@@ -82,8 +89,11 @@ def test_full_match(game, tmp_path):
     assert "jointeam 3" in channel.sent  # the human joins CT
     assert channel.sent.index("bot_kick") < channel.sent.index('bot_add_ct "donk"')
     assert m["join_link"] == "steam://connect/127.0.0.1:27015"
-    wait_sent(channel, f"record match_{match_id}")
-    assert channel.sent[-3:] == ["mp_warmup_end", "mp_restartgame 1", f"record match_{match_id}"]
+    wait_sent(channel, "mp_restartgame 1")
+    if tv:
+        wait_sent(channel, f"tv_record match_{match_id}")
+    # The player's own `record` froze CS2 in Tom's run; it must never be sent.
+    assert not any(c.startswith("record") for c in channel.sent)
 
     gsi(client, phase="live")
     wait_for(client, match_id, "live")
@@ -102,12 +112,16 @@ def test_full_match(game, tmp_path):
     gsi(client, phase="gameover", ct=("Bravo", 2), t=("Alpha", 9))
     m = wait_for(client, match_id, "ended")
     assert m["score"] == {"CT": 9, "T": 2} and m["round"] == 11
-    assert channel.sent[-1] == "stop"
+    assert (channel.sent[-1] == "tv_stoprecord") if tv else ("tv_stoprecord" not in channel.sent)
 
     evs = events(client, match_id)
     assert evs[:2] == ["match.ready", "match.live"] and evs[-1] == "match.ended"
     assert evs.count("round.ended") == 11
-    assert client.get(m["demo_url"].replace("http://localhost:8000", "")).content == b"demo"
+    if tv:
+        assert client.get(m["demo_url"].replace("http://localhost:8000", "")).content == b"demo"
+    else:
+        assert m["demo_url"] is None
+        assert client.get(f"/demos/{match_id}.dem").status_code == 404
 
 
 def test_live_before_start_is_ignored(tmp_path):
@@ -188,7 +202,7 @@ def test_stop(game):
     gsi(client)
     wait_for(client, match_id, "ready")
     assert client.post(f"/matches/{match_id}/stop").json() == {"status": "ended"}
-    assert channel.sent[-2:] == ["stop", "bot_kick"]
+    assert channel.sent[-1] == "bot_kick" and "stop" not in channel.sent
     # The game is free again.
     assert client.post("/matches", json=wingman()).status_code == 201
 

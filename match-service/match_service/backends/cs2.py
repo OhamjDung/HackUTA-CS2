@@ -1,7 +1,8 @@
 """CS2 backend: runs the match in a real CS2 with CS2-Bot-Improver installed.
 
 How it talks to the game:
-- Commands go out through a ConsoleChannel (see console.py): change map, add bots, start recording.
+- Commands go out through a ConsoleChannel (see console.py): change map, add bots, and (with
+  CS2_RECORD=tv) record.
 - Events come back through CS2's Game State Integration (GSI): CS2 POSTs JSON with the map phase
   and team scores to this service's /gsi endpoint. The config file is in gsi/ in this folder.
 
@@ -38,6 +39,8 @@ class Cs2Backend:
     name = "cs2"
 
     def __init__(self, settings: Settings, emit: Emit, channel: ConsoleChannel):
+        if settings.cs2_record not in ("off", "tv"):
+            raise ValueError(f"CS2_RECORD must be off or tv, not {settings.cs2_record!r}")
         self.s = settings
         self.emit = emit
         self.ch = channel
@@ -74,12 +77,15 @@ class Cs2Backend:
         if record.task:
             record.task.cancel()
         try:
-            await self.ch.send(["stop", "bot_kick"])  # stop recording, remove the bots
+            await self.ch.send(self._record_stop() + ["bot_kick"])  # stop recording, remove the bots
         except (OSError, asyncio.TimeoutError) as exc:
             log.warning("could not send stop commands: %s", exc)
 
+    def _record_stop(self) -> list[str]:
+        return ["tv_stoprecord"] if self.s.cs2_record == "tv" else []
+
     def demo_path(self, match_id: str) -> Path | None:
-        if not self.s.demo_dir:
+        if not self.s.demo_dir or self.s.cs2_record == "off":
             return None
         return self.s.demo_dir / f"{self.demo_name(match_id)}.dem"
 
@@ -133,7 +139,9 @@ class Cs2Backend:
     async def _run(self, record: MatchRecord) -> None:
         m = record.match
         try:
-            await self.ch.send(["game_type 0", f"game_mode {GAME_MODE[m.mode]}", f"map {m.map}"])
+            # GOTV must be on before the map loads for tv_record to work.
+            tv = ["tv_enable 1"] if self.s.cs2_record == "tv" else []
+            await self.ch.send(["game_type 0", f"game_mode {GAME_MODE[m.mode]}"] + tv + [f"map {m.map}"])
         except (OSError, asyncio.TimeoutError) as exc:
             hint = {"netcon": "Is CS2 running with -netconport?",
                     "rcon": "Is rcon_password set in CS2, and does the password match?",
@@ -180,7 +188,10 @@ class Cs2Backend:
         # End warmup, then restart so round 1 starts with the bots in place and the score at 0-0.
         # CS2-Bot-Improver's own team commands (Commands.txt) also end with `mp_restartgame 1`.
         try:
-            await self.ch.send(["mp_warmup_end", "mp_restartgame 1", f"record {self.demo_name(m.match_id)}"])
+            start = ["mp_warmup_end", "mp_restartgame 1"]
+            if self.s.cs2_record == "tv":
+                start.append(f"tv_record {self.demo_name(m.match_id)}")
+            await self.ch.send(start)
         except (OSError, asyncio.TimeoutError) as exc:
             return await self._fail(record, f"Lost the CS2 console while starting the match ({exc!r})")
         # Ignore game state until the restart has happened (it takes 1 s), so old scores don't count.
@@ -200,11 +211,13 @@ class Cs2Backend:
     async def _finish(self, record: MatchRecord) -> None:
         m = record.match
         try:
-            await self.ch.send(["stop"])  # stop recording
+            if self._record_stop():
+                await self.ch.send(self._record_stop())
         except (OSError, asyncio.TimeoutError) as exc:
             log.warning("could not stop recording: %s", exc)
         m.status = "ended"
-        m.demo_url = f"{self.s.public_url}/demos/{m.match_id}.dem"
+        if self.s.cs2_record != "off":
+            m.demo_url = f"{self.s.public_url}/demos/{m.match_id}.dem"
         winner = "CT" if m.score.CT > m.score.T else "T" if m.score.T > m.score.CT else None
         await self.emit(record, "match.ended", {"reason": "finished", "winner": winner,
                                                 "score": m.score.model_dump(), "demo_url": m.demo_url})
