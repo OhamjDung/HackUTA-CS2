@@ -43,7 +43,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | In-game similarity score: a bot's rounds in CS2 against the real player's held-back match (section 10.2) | Ashirwad | In progress. Scorer, map-area lookup and both held-back references written and tested; served as `GET /matches/{id}/score` and shown on the proof page (run against the mock in a browser); no real CS2 trace scored yet | `clone-pipeline/clone_pipeline/ingame.py`, `clone-pipeline/references/`, `match-service/match_service/scoring.py` | 2026-11-14 |
 | Side-by-side page, stand-in version (two synced panels; replay page content replaces it) | Ashirwad (live check by Codex) | In progress. Both live map panels drew bot positions from CS2. Replay played the donk stand-in and a recorded pro donk opening on one clock. The event list showed the service's halftime scoring error. | `match-service/demo/`, `match-service/match_service/replay.py` | 2026-11-14 |
 | Demo pages wired to the real CS2 bots, with a seam for learned models | Tom (with Claude) | Done for stand-in bots. With `start-cs2.ps1 -Open`, every demo page was loaded in a browser against a real CS2 match (donk vs broky, 9-4 in 13 rounds, ended by itself) and the Play page started a match with the player on CT. `GET /clones` reports each clone's driver and whether it is playable; `CS2_CLONE_ROUTES=generated` is the hook for a trained model's routes. CloneDirector and generated routes not run in CS2 | `match-service/match_service/drivers.py`, `match-service/demo/`, `match-service/start-cs2.ps1` | 2026-11-14 |
-| Normal frontend match controls | Codex (for user) | Implemented; typecheck and four mode tests pass. Browser and real CS2 match not checked. | `frontend/components/play/MatchControls.tsx`, `frontend/app/play/` | 2026-11-15 |
+| Normal frontend match controls | Codex (for user) | Implemented; typecheck and four mode tests pass. Browser mock verified v2 bot-vs-bot and play-vs-bot, stop and reload; real CS2 not checked. | `frontend/components/play/MatchControls.tsx`, `frontend/app/play/` | 2026-11-15 |
 | Lobby page | Tom (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | Match page | Nikesh (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | CS2 with the bot base installed on the demo laptop | Tom | Done. CS2-Bot-Improver v1.4.9 runs in Bot Mode on Tom's PC. A donk-vs-broky stand-in match on Mirage plays and its score counts through `/gsi`. The bot base's `!record`/`!replay` replays a recorded walk, and a converted donk route file loads and moves a bot; whether it runs the right route is not confirmed. CloneDirector is not installed there yet. | Tom's PC (the demo machine) | 2026-11-14 |
@@ -1196,7 +1196,7 @@ of the replay.
 
 ### 9.3 Web pages
 
-The FaZe `/play` page offers bot-vs-bot and play-vs-bot setup using the match service at `NEXT_PUBLIC_API_URL` (default `http://localhost:8000`), including its playable clone catalogue, existing matches, stop, scores, events and a link to the demo replay/position viewer. Real match and browser checks remain outstanding.
+The FaZe `/play` page offers bot-vs-bot and play-vs-bot setup using the match service at `NEXT_PUBLIC_API_URL` (default `http://localhost:8000`), including its playable clone catalogue, existing matches, stop, scores, events, inline position paths and a link to the demo replay/position viewer. Browser mock checked both v2 clones and match reload; a real CS2 match remains unchecked.
 
 - **Lobby page and match page.** Owned by teammates, built against the match service.
 - **Demo pages (`match-service/demo/`, Ashirwad).** Bare-minimum versions of each feature for the
@@ -1798,6 +1798,8 @@ demo. A released product would need each player's or team's permission.
 - 2026-11-15, user (Codex): correlated puzzle callbacks with unique temporary game IDs, rejected overlapping and late attempts, displayed result and timeout, and handled unsaved death retries. 33 puzzle tests pass; full service suite 112 pass and the known Windows symlink privilege failure; frontend typecheck passes. No live CS2 or browser test.
 
 - 2026-11-15, user (Codex): practice page watches the per-attempt CS2 result and displays its outcome; the launch message says the command was sent. No live CS2 or browser test.
+
+- 2026-11-15, Codex (for user): completed frontend input validation and inline position paths; checked both match modes, v2 selections, stopping and reload in a browser against a separate mock service. No live CS2 test.
 
 - 2026-11-15, Codex (for user): connected FaZe match setup to the match-service demo API; frontend typecheck and mode tests passed, browser and CS2 not checked.
 
