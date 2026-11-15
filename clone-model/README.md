@@ -12,7 +12,7 @@ Source pins and retained notices are in `THIRD_PARTY.md`.
 
 ## Data and validation
 
-- Build from the four matches per player in `SPEC.md` sections 7.2 and 7.3.
+- Build from the verified selection in this directory's `games.json`: three donk and four broky training matches, with one separate holdout per player.
 - Reserve whole rounds from those matches for development using a stable hash (about 20%).
   These select checkpoints and early stopping. Overlapping windows stay in the same split.
 - Never train or select a checkpoint on donk match **2393242** or broky match **2393024**.
