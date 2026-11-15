@@ -52,7 +52,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Learned-quirk clones `donkL` and `brokyL`: per-quirk rules fitted from recordings | Arjun (Claude) | Done as files and code; **not run in CS2**. 27 quirks measured, 10 distinctive per player. CloneDirector now applies five: jump rate, burst length, single-shot share, crouching while shooting, and restlessness (standing-still share). Teamwork needs a manual personality-file edit. Turning speed and grenade mix cannot be driven yet. 23 pipeline tests and 30 C# tests pass. **Teammates: please add `donkL` and `brokyL` next to `donk_v1` and `broky_v1` so we can compare** (`clones/README.md`). | `clone-pipeline/clone_pipeline/quirks.py`, `clones/donkL.json`, `clones/brokyL.json`, `clone-director/` | 2026-11-14 |
 | Quirk test ("who is it?" plus per-quirk checks), looser than the first identity test | Arjun (Claude) | Done. Rule fixed before scoring. Real players pass on their own held-back matches: donk 1st of 5 and 8 of 10 quirks, broky 1st of 5 and 9 of 10. No bot match or model output scored yet. | `clone-pipeline/clone_pipeline/quirks.py`, section 8.8 | 2026-11-14 |
 | Diagnosis of the failed neural identity model | Arjun (Claude) | Done. Adapters judged not usable: no change in 64% to 72% of test windows. Not offered as bots. | `clone-model/results/diagnosis-2026-11-14.md` | 2026-11-14 |
-| Second learned-identity experiment (`v2.py`): many identities, identity at every step, likelihood "who is it?" test | Arjun (Claude) | Blocked: the Colab session is a processor-only runtime, and the agent cannot change that setting. Arjun must pick a GPU runtime, then run the first cell once. Code written; 19 CPU tests pass (12 existing, 7 new). Pass rule fixed in the code before any run. No training has run and there is no result. | `clone-model/v2.py`, `clone-model/colab_train2.ipynb` | 2026-11-14 |
+| Second learned-identity experiment (`v2.py`): many identities, identity at every step, likelihood "who is it?" test | Arjun (Claude) | Done. **Held-back test passed once**: 8 of 10 players had the true identity in their team's top 2 (rule: 6), 6 of 10 ranked first; donk 1st, broky 3rd (fails individually). Caveat: for 6 of 10 players, no identity fits the real moves slightly better than their own. Scores recorded moves only; generates no play. Weights only on the Colab machine. | `clone-model/v2.py`, `clone-model/results/second-a100.md` | 2026-11-14 |
 | Claude continuation handoff | Arjun (Codex) | Done and consumed. Claude read it on 2026-11-14 and removed the folder, as its own instructions said. | removed (`handoffs/claude-continuation/`) | 2026-11-14 |
 | Continuation handoff (Arjun's remaining model and game work) | Ashirwad | Done. Map-geometry check, generated-path viewer, generated-route converter (candidates only) and adapter diagnosis are on main (its experiment-2 plan is superseded by `v2.py` where they conflict); the in-game checks went to Tom as a message. Folder removed; context kept outside the repo. | Removed from the repo | 2026-11-14 |
 | Map-geometry check of generated review paths | Ashirwad | Done. Checks all 8 development cases: all 32 paths pass, real paths included; 15 of 24 generated paths mostly stand still. Automated check only; a person must still review paths. Not run in CS2. 12 CPU tests pass | `clone-model/map_review.py`, `clone-model/results/generated-path-map-review.md` | 2026-11-14 |
@@ -916,7 +916,21 @@ play. Free-running generation with these identities needs a further change, beca
 prediction engine builds the per-step inputs itself. `guided_logits` (amplify what the identity
 changes) is written and tested for that later step.
 
-**State of the run (2026-11-14):** not started. The launch notebook is `clone-model/colab_train2.ipynb`: one cell starts setup, data preparation, training (up to 2,000 steps, early stop on development rounds) and the held-back test in the background; a second cell shows progress. It needs a GPU runtime. Results go in `clone-model/results/`.
+**Result (run once on 2026-11-14, A100, checkpoint step 1,800 picked on development rounds):
+pass.** 8 of 10 players had the true identity in their team's top 2 (the rule needs 6); 6 of 10
+ranked first. donk ranked 1st of 5. broky ranked 3rd of 5 and fails individually; frozen ranked 4th.
+Full table and caveats: `clone-model/results/second-a100.md`.
+
+Caveats that bound the claim:
+- For 6 of the 10 players, the real moves are slightly more likely with no identity than with
+  their own. The true identity wins among teammates by being the least wrong.
+- The gap is under 1% of the loss, about the size of bfloat16 rounding on the development check.
+- It scores real moves. It is not the section 8.6 path test and produces no playable routes.
+
+Pitch wording (agreed with Ashirwad): the model picks out who a player is among their teammates
+from real moves in a match it has never seen, for 8 of 10 players. Not: it plays like them.
+
+The held-back matches are now used. Do not re-run or re-tune on them.
 
 ## 9. Architecture
 
@@ -1469,6 +1483,8 @@ demo. A released product would need each player's or team's permission.
 - 2026-11-14, Arjun (Codex): corrected canonical donk identity and excluded one ambiguous-account match before optimization; added empty-match cache rejection. Ten parsed public matches transferred to A100, nine selected for learning. CS2 base download completed successfully on Arjun's PC.
 
 Newest first. One line per change: date, who, what changed.
+
+- 2026-11-14, Arjun (with Claude): ran the second learned experiment once on a Colab A100 (2,000 steps, checkpoint 1,800). Held-back test passed: 8 of 10 in the top 2, 6 of 10 first; donk 1st, broky 3rd. For 6 of 10 players no identity fits slightly better than their own. Results in `clone-model/results/second-a100.md`. Held-back matches now used.
 
 - 2026-11-14, Arjun (with Claude): added the launch notebook for the second learned experiment (`clone-model/colab_train2.ipynb`). The run is blocked on a GPU runtime that only Arjun can select; nothing has trained.
 
