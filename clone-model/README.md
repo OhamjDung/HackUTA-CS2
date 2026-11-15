@@ -87,4 +87,13 @@ measurements and calibration on the real paths) and one top-down figure per case
 set so all real development paths pass. An automated pass is not an approval: a person must still
 review each path. Results: `results/generated-path-map-review.md`.
 
+## Diagnose an adapter (CPU, development data only)
+
+`diagnose_adapter.py adapter` reads only adapter checkpoints, `training.json` and a development review file: identity vectors, per-identity FiLM scale/shift, how far Adam moved them, the regularizer's share of the objective and exact-equal review paths. `--csnet` also rebuilds the identity table at initialization by replaying the trainer's seeded CPU draws (no weights needed). `diagnose_adapter.py decoder` adds the pinned base checkpoint and a development cache, then compares teacher-forced logits for own, other and no identity, with a shared-only control, a swapped-condition control and optional `--scales` probes. It loads development rounds only (test-split entries of a full cache are never opened) and refuses a cache that lists a held-out match as development data. Findings and the predeclared next experiment: `results/adapter-diagnosis.md`.
+
+```bash
+python diagnose_adapter.py adapter --best run/best.pt --last run/last.pt --training run/training.json --review review.json --manifest manifest.json --lr 3e-4 --csnet /content/csnet --out adapter.json
+python diagnose_adapter.py decoder --csnet /content/csnet --cache /content/dev-cache --checkpoint /content/checkpoints/cs-net-v4-pro.pt --adapter run/best.pt --scales 2 5 10 --out decoder.json
+```
+
 For a static XY review figure, install Matplotlib from PyPI if absent, then run `python plot_review.py /content/review.json --out /content/review.png`. This plot has no map/collision geometry. The first A100 export completed all eight development cases; the resulting figure and JSON are attached to the experimental release.

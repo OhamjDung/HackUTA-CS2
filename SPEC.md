@@ -55,7 +55,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Offline weapon-role and habit audit handoff | Arjun's friend (handoff prepared) | Not started. CPU-only audit/fix handoff ready; recipient must remove consumed handoff docs on task branch after reading. | `handoffs/friend/01-HABIT-AUDIT-AND-FIX.md` | 2026-11-14 |
 | Independent mock replay QA handoff | Arjun's friend (optional second task) | Not started. Existing Ashirwad replay implementation remains with its owner; QA/report only. | `handoffs/friend/02-MOCK-REPLAY-QA.md` | 2026-11-14 |
 | Claude continuation handoff | Arjun (Codex) | Done and consumed. Claude read it on 2026-11-14 and removed the folder, as its own instructions said. | removed (`handoffs/claude-continuation/`) | 2026-11-14 |
-| Continuation handoff (Arjun's remaining model and game work) | Ashirwad | In progress. Handoff read and its context saved outside the repo; folder removed. Tasks: map-geometry review of generated paths (done), generated-path viewer (done: replay page tab), generated-route converter (done: candidates only), adapter diagnosis, CS2 checklist for Tom. | Removed from the repo | 2026-11-14 |
+| Continuation handoff (Arjun's remaining model and game work) | Ashirwad | In progress. Handoff read and its context saved outside the repo; folder removed. Tasks: map-geometry review of generated paths (done), generated-path viewer (done: replay page tab), generated-route converter (done: candidates only), adapter diagnosis (done: development data only, plan for experiment 2), CS2 checklist for Tom. | Removed from the repo | 2026-11-14 |
 | Map-geometry check of generated review paths | Ashirwad | Done. Checks all 8 development cases: all 32 paths pass, real paths included; 15 of 24 generated paths mostly stand still. Automated check only; a person must still review paths. Not run in CS2. 12 CPU tests pass | `clone-model/map_review.py`, `clone-model/results/generated-path-map-review.md` | 2026-11-14 |
 | Generated-path playback candidates (8.5 steps 5-7, candidates only) | Ashirwad | In progress. Converter, gates and provenance written; 13 synthetic tests pass (30 pipeline tests). One real development case converted with a hand-made check file (no geometry check). Output is a candidate for a person to review, never promoted; not run in CS2 | `clone-pipeline/clone_pipeline/generated.py` | 2026-11-14 |
 | Offline generated-path review export | Arjun (Codex) | Done. Eight development cases exported on A100 (24 generated paths plus real paths), JSON checked and plots inspected; 12 CPU tests pass. No route promotion. | `clone-model/review.py` | 2026-11-14 |
@@ -214,6 +214,17 @@ Checked on 2026-11-14.
   synthetic tests cover wrong format, split, `deployed`, held-out matches, path traversal, symlinks
   and a check file with the wrong SHA-256; 67 match service tests pass. No real geometry check file
   was used.
+- Adapter diagnosis on development data (Ashirwad, 2026-11-14; `clone-model/diagnose_adapter.py`,
+  `clone-model/results/adapter-diagnosis.md`). CPU only. No held-out match was opened and the
+  per-window held-out records were not read. The identity vectors stayed at their random start
+  (cosine 0.9996), so the adapter is one constant scale-and-shift per player. On all 756
+  development windows (pinned base, float32), the step-400 adapter changes about 1% of
+  teacher-forced top tokens; 68-94% of its small loss gain is shared by both players; own beats the
+  other identity by 0.0009 ± 0.0003 nats per token for broky and 0.0004 ± 0.0002 for donk. The
+  median top-two logit gap (about 3.8) is far above the typical change (under 0.25), which is why
+  greedy paths come out identical. Scaling the change helps only up to 2×. 25 clone-model tests pass
+  (13 new). The report ends with a predeclared plan for experiment 2 (still Stage A: identity FiLM
+  at the decoder's per-tick inputs, a contrastive term, development gates, held-out test once).
 - Map-geometry check of the generated review paths (Ashirwad, 2026-11-14). `clone-model/map_review.py`
   ran on `Generated-path-review-dev.json` (SHA-256 `f247ddd8…`) against CS-NET's `de_mirage.obj` at
   `268dd21`, using CS-NET's Open3D ray casting. It tests every path for wall crossing, floor support,
@@ -1314,6 +1325,8 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-14, Ashirwad: added `clone-model/diagnose_adapter.py` and `results/adapter-diagnosis.md`: why the first identity adapter failed, measured on development data only (no held-out data opened), and a predeclared Stage A plan for experiment 2 that needs Arjun's agreement before it changes 8.3.
 
 - 2026-11-14, Ashirwad: reviewed Tom's driver changes; the service now sends `clone_routes recorded` too, before every clone match, because CloneDirector keeps the last route source in memory and a match after a `generated` one would still play generated routes. 73 match service tests pass.
 
