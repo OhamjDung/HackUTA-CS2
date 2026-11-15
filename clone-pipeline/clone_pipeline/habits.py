@@ -4,6 +4,8 @@ Every function takes a list of Match objects, so that one match or many use the 
 """
 
 from collections import Counter
+import warnings
+import math
 
 import pandas as pd
 
@@ -43,13 +45,71 @@ def purchase_order(items: list[str]) -> list[str]:
     return sorted(items, key=lambda item: 0 if item in PRIMARY_GUNS else 1 if item in ARMOR else 2)
 
 
+# Inventory names come directly from demoparser2, not CS-NET's per-file weapon IDs.
+# Prices are conservative purchase-policy constraints, not a simulation of the bot's current money.
+PRIMARY_PRICES = {
+    "AK-47": 2700, "M4A4": 2900, "M4A1-S": 2900, "AWP": 4750, "Galil AR": 1800,
+    "FAMAS": 1950, "SSG 08": 1700, "AUG": 3300, "SG 553": 3000, "MAC-10": 1050,
+    "MP9": 1250, "MP7": 1500, "MP5-SD": 1500, "UMP-45": 1200, "P90": 2350,
+    "PP-Bizon": 1400, "Nova": 1050, "XM1014": 2000, "MAG-7": 1300,
+    "Sawed-Off": 1100, "Negev": 1700, "M249": 5200,
+}
+T_ONLY = {"AK-47", "Galil AR", "SG 553", "MAC-10", "Sawed-Off", "Glock-18", "Tec-9", "Molotov"}
+CT_ONLY = {"M4A4", "M4A1-S", "FAMAS", "AUG", "MP9", "MAG-7", "USP-S", "P2000",
+           "Five-SeveN", "Incendiary Grenade", "Defuse Kit"}
+
+
+def _legal(item: str, side: str) -> bool:
+    return item not in (CT_ONLY if side == "T" else T_ONLY)
+
+
+def opening_inventory(match: Match, round_number: int) -> set[str] | None:
+    """Inventory at the first observed live tick (within one tick of freeze end).
+
+    None means unavailable, not an observed absence. An empty list is a known empty inventory.
+    Drops/pickups later in the round cannot change this purchase-policy observation.
+    """
+    if "inventory" not in match.ticks:
+        return None
+    ticks = match.ticks[match.ticks["round"] == round_number].sort_values("tick")
+    live = match.rounds[match.rounds["round"] == round_number]
+    if ticks.empty or live.empty or ticks.iloc[0]["tick"] - live.iloc[0]["freeze_end"] > 1:
+        return None
+    row = ticks.iloc[0]
+    if pd.isna(row["is_alive"]) or not bool(row["is_alive"]):
+        return None
+    inventory = row["inventory"]
+    if not isinstance(inventory, (list, tuple)):
+        return None
+    if any(not isinstance(item, str) for item in inventory):
+        return None
+    return set(inventory)
+
+
 def weapon_preferences(matches: list[Match], top: int = 6) -> list[str]:
-    """Guns ordered by the number of shots the player fired with them."""
+    """Rank primaries by rounds carried at the live opening, then other guns by shots.
+
+    This counts retained rifles even while a knife is active. Missing inventory falls back
+    explicitly to shot ranking; no missing inventory is counted as zero possession.
+    """
+    carried: Counter[str] = Counter()
     fired: Counter[str] = Counter()
+    missing = 0
     for match in matches:
-        shots = match.shots[match.shots["weapon"].map(is_combat_weapon)]
+        for r in match.rounds.itertuples():
+            inv = opening_inventory(match, r.round)
+            if inv is None:
+                missing += 1
+            else:
+                carried.update(inv & PRIMARY_GUNS)
+        shots = match.shots.loc[match.shots["weapon"].map(is_combat_weapon).astype(bool)]
         fired.update(shots["weapon"].astype(str).str.removeprefix("weapon_").value_counts().to_dict())
-    return [weapon for weapon, _ in fired.most_common(top)]
+    if missing:
+        warnings.warn(f"Opening inventory missing in {missing} rounds; possession counts cover observed rounds only. "
+                      "Shot ranking is a fallback for weapons without possession evidence.", RuntimeWarning)
+    primary = [BUY_ALIAS[item] for item, _ in sorted(carried.items(), key=lambda kv: (-kv[1], kv[0]))]
+    fallback = [weapon for weapon, _ in sorted(fired.items(), key=lambda kv: (-kv[1], kv[0])) if weapon not in primary]
+    return (primary + fallback)[:top]
 
 
 def opening_duel_rates(matches: list[Match]) -> dict[str, float]:
@@ -116,43 +176,71 @@ def seconds_to_first_contact(matches: list[Match]) -> dict[str, list[float]]:
 
 
 def buy_plan(matches: list[Match]) -> dict[str, dict[str, dict]]:
-    """Per side and purchase type: the items the player bought in at least half of those rounds.
+    """Retain one side-legal primary from opening possession, with purchase fallback.
 
-    Exact purchase lists rarely repeat, because players buy extra items to drop for teammates.
-    So each item is judged on its own, and counted once per round.
+    Full plans choose the modal carried primary; force/eco primaries are capped at $2,000/
+    $1,000 (Director's bucket floors), and pistol rounds never buy a primary. The full AWP
+    plan requires $4,750 before armor: the existing Director's $4,000 full floor does NOT
+    guarantee affordability. Static plans cannot express a money-dependent fallback.
+    Other items retain the existing >=50% purchase rule and existing public output keys.
     """
     item_rounds: dict[tuple[str, str], Counter[str]] = {}
+    carried: dict[tuple[str, str], Counter[str]] = {}
+    observed: Counter[tuple[str, str]] = Counter()
+    missing: Counter[tuple[str, str]] = Counter()
     round_counts: Counter[tuple[str, str]] = Counter()
     for match in matches:
         for row in match.rounds.itertuples():
             if row.side not in ("T", "CT"):
                 continue
+            if not math.isfinite(float(row.equip_value)):
+                warnings.warn(f"Skipping unknown equipment category: {match.match_id} round {row.round}", RuntimeWarning)
+                continue
             key = (row.side, buy_type(int(row.round), float(row.equip_value)))
             round_counts[key] += 1
             items = set(match.purchases[match.purchases["round"] == row.round]["item_name"].astype(str))
             item_rounds.setdefault(key, Counter()).update(items)
+            inv = opening_inventory(match, row.round)
+            if inv is None:
+                missing[key] += 1
+            else:
+                observed[key] += 1
+                carried.setdefault(key, Counter()).update(inv & PRIMARY_GUNS)
     out: dict[str, dict[str, dict]] = {}
     for key in sorted(round_counts):
         side, kind = key
         total = round_counts[key]
         counts = sorted(item_rounds.get(key, Counter()).items(), key=lambda kv: (-kv[1], kv[0]))
-        share = {item: n / total for item, n in counts}  # most-bought first, ties by name
-        usual = [item for item, s in share.items() if s >= 0.5]
-        # A player who survives a round keeps their gun and armor and does not buy them again, so
-        # both are under-counted. A bot buys from nothing each round, so a force or full buy always
-        # gets the player's most-bought gun and armor of that round type.
-        if kind in ("force", "full"):
-            for group in (PRIMARY_GUNS, ARMOR):
-                if not any(item in group for item in usual):
-                    bought = [item for item in share if item in group]  # most-bought first
-                    usual += bought[:1]
+        share = {item: n / total for item, n in counts}
+        usual = [item for item, value in share.items() if value >= 0.5 and item not in PRIMARY_GUNS and _legal(item, side)]
+        cap = {"pistol": 0, "eco": 1000, "force": 2000, "full": float("inf")}[kind]
+        def eligible(item):
+            return item in PRIMARY_GUNS and _legal(item, side) and PRIMARY_PRICES[item] <= cap
+        evidence = carried.get(key, Counter())
+        candidates = [item for item, _ in sorted(evidence.items(), key=lambda kv: (-kv[1], kv[0])) if eligible(item)]
+        # Observed no-primary inventories are real evidence: do not replace them with a dropped
+        # gun someone bought for a teammate. Purchase fallback is only for missing inventory.
+        if not observed[key] or (evidence and not candidates):
+            # A retained unaffordable gun is not a buy recommendation for a low-money bot.
+            # Use an affordable purchase observed in this bucket when one exists.
+            candidates = [item for item in share if eligible(item)]
+        if missing[key]:
+            warnings.warn(f"{side}/{kind}: opening inventory missing in {missing[key]}/{total} rounds; "
+                          + ("using purchase-frequency primary fallback." if not observed[key]
+                             else "primary selected only from observed opening inventories."), RuntimeWarning)
+        usual = candidates[:1] + usual
+        if kind in ("force", "full") and not any(item in ARMOR for item in usual):
+            usual += [item for item in share if item in ARMOR][:1]
+        # Never issue competing armor aliases either.
+        armor = next((item for item in usual if item in ARMOR), None)
+        usual = [item for item in usual if item not in ARMOR or item == armor]
         usual = purchase_order(usual)
         out.setdefault(side, {})[kind] = {
             "items": usual,
             "aliases": [BUY_ALIAS[i] for i in usual if i in BUY_ALIAS],
             "unmapped_items": [i for i in usual if i not in BUY_ALIAS],
             "rounds_of_this_type": total,
-            "share_of_rounds_bought": {item: round(s, 2) for item, s in share.items()},
+            "share_of_rounds_bought": {item: round(value, 2) for item, value in share.items()},
         }
     return out
 

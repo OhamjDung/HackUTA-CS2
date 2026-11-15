@@ -18,7 +18,7 @@ TICK_PROPS = [
     "X", "Y", "Z", "velocity_X", "velocity_Y", "velocity_Z", "pitch", "yaw",
     "last_place_name", "is_alive", "team_num", "buttons", "FORWARD", "BACK", "LEFT", "RIGHT",
     "duck_amount", "ducked", "ducking", "item_def_idx", "move_type",
-    "balance", "current_equip_value", "total_rounds_played",
+    "balance", "current_equip_value", "total_rounds_played", "inventory",
 ]
 
 # Weapons that do not count as "meeting an enemy" when fired.
@@ -81,6 +81,22 @@ def _assign_round(ticks: pd.Series, rounds: pd.DataFrame, lead_ticks: int = 0) -
     return out
 
 
+# Verified targets, not weapon-role rules. Other players may be selected by exact Steam ID.
+CANONICAL_IDS = {"donk": "76561198386265483", "broky": "76561198201620490"}
+
+
+def resolve_player(info: pd.DataFrame, player: str) -> tuple[str, str]:
+    """Resolve one identity; never merge same-name accounts or guess an alternate account."""
+    expected = CANONICAL_IDS.get(player.lower(), player if player.isdigit() else None)
+    if expected is not None:
+        found = info[info["steamid"].astype(str) == expected]
+    else:
+        found = info[info["name"].str.lower() == player.lower()]
+    if len(found) != 1 or found["steamid"].astype(str).nunique() != 1:
+        raise ValueError(f"Missing or ambiguous player {player!r}; select one exact Steam ID.")
+    return str(found.iloc[0]["steamid"]), str(found.iloc[0]["name"])
+
+
 def load_match(path: str | Path, player_name: str) -> Match:
     """Parse one recording for the named player. Raises ValueError if the player is not in it."""
     path = Path(path)
@@ -88,11 +104,7 @@ def load_match(path: str | Path, player_name: str) -> Match:
     header = parser.parse_header()
 
     info = parser.parse_player_info()
-    found = info[info["name"].str.lower() == player_name.lower()]
-    if found.empty:
-        raise ValueError(f"{player_name!r} is not in {path.name}. Players: {sorted(info['name'])}")
-    steam_id = str(found.iloc[0]["steamid"])
-    name = str(found.iloc[0]["name"])
+    steam_id, name = resolve_player(info, player_name)
 
     rounds = _build_rounds(parser)
 

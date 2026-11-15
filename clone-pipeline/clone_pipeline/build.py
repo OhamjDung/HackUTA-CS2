@@ -57,6 +57,9 @@ def build_clone(player: str, demo_paths: list[Path], holdout_ids: set[str], clon
     if not train:
         raise ValueError("No recordings left to build from after removing the held-back ones.")
 
+    if len({m.steam_id for m in matches}) != 1:
+        raise ValueError("All recordings must resolve to the same Steam ID; names alone are not identity.")
+
     train_segments = [s for m in train for s in cut_segments(m)]
     held_segments = [s for m in held for s in cut_segments(m)]
 
