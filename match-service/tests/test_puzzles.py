@@ -247,9 +247,60 @@ def test_spectator_scene_uses_all_tracks_and_does_not_record_an_attempt(tmp_path
         run_id = response.json()['attempt_id']
         assert bridge.sent[-1] == f'scene_load {run_id}'
         assert len(json.loads((game / f'{run_id}.json').read_text())['players']) == len(make_puzzle()['players'])
-        assert client.post('/puzzles/seed1/start', json={'player': 'tom'}).status_code == 409
         assert client.post(f'/puzzles/{run_id}/result', json={'survived': True, 'kills': 0}).status_code == 200
         assert client.get('/players/spectator').json()['attempts'] == 0
+
+
+# --- a new start replaces whatever CS2 is running (no "stop it first") ------------------------------
+
+def test_a_new_puzzle_replaces_a_running_scene(tmp_path):
+    from tests.test_cs2 import gsi
+    app, main, bridge, game = cs2_client(tmp_path)
+    with TestClient(app) as client:
+        gsi(client)
+        scene = client.post('/scenes/seed1/start').json()['attempt_id']
+        r = client.post('/puzzles/seed1/start', json={'player': 'tom'})
+        assert r.status_code == 200, r.text
+        assert bridge.sent[-2:] == ['puzzle_stop', f"puzzle_load {r.json()['attempt_id']}"]
+        assert client.get(f'/puzzle-attempts/{scene}').json() == {'state': 'cancelled', 'reason': 'a new puzzle started'}
+        assert not (game / f'{scene}.json').exists()
+        # A late result for the replaced scene is refused, like an expired attempt.
+        assert client.post(f'/puzzles/{scene}/result', json={'survived': True, 'kills': 0}).status_code == 404
+
+
+def test_a_puzzle_ends_a_running_match_and_a_new_match_stops_the_puzzle(tmp_path):
+    from tests.test_clones import start
+    from tests.test_cs2 import wait_for, wingman
+    app, main, bridge, game = cs2_client(tmp_path)
+    with TestClient(app) as client:
+        match_id = start(client, main)   # bot vs bot: donk_v1 against broky_v1
+        wait_for(client, match_id, 'ready')
+        r = client.post('/puzzles/seed1/start', json={'player': 'tom'})
+        assert r.status_code == 200, r.text
+        run_id = r.json()['attempt_id']
+        assert client.get(f'/matches/{match_id}').json()['status'] == 'ended'
+        assert client.get(f'/matches/{match_id}/events').json()[-1]['data']['reason'] == 'stopped'
+        assert bridge.sent[-1] == f'puzzle_load {run_id}'
+
+        again = client.post('/matches', json=wingman(players=[]))
+        assert again.status_code == 201, again.text
+        assert bridge.sent[bridge.sent.index(f'puzzle_load {run_id}') + 1] == 'puzzle_stop'
+        assert client.get(f'/puzzle-attempts/{run_id}').json() == {'state': 'cancelled', 'reason': 'a new match started'}
+
+
+def test_a_puzzle_that_cannot_start_does_not_end_the_match(tmp_path):
+    from match_service.main import create_app
+    from match_service.console import RecordingChannel
+    from tests.test_cs2 import settings, wingman
+    seed = tmp_path / "seed"
+    seed.mkdir()
+    (seed / "seed1.json").write_text(json.dumps(make_puzzle("seed1")), encoding="utf-8")
+    s = settings(tmp_path, puzzle_dir=tmp_path / "puzzles", puzzle_seed_dir=seed, game_puzzle_dir=tmp_path / "g")
+    with TestClient(create_app(s, channel=RecordingChannel())) as client:   # stand-in bots: no MatchBridge
+        match_id = client.post("/matches", json=wingman()).json()["match_id"]
+        r = client.post("/puzzles/seed1/start", json={"player": "tom"})
+        assert r.status_code == 409 and "MatchBridge" in r.json()["detail"]
+        assert client.get(f"/matches/{match_id}").json()["status"] == "starting"
 
 
 def test_start_copies_the_puzzle_and_sends_puzzle_load_through_the_plugin(tmp_path):
@@ -349,7 +400,6 @@ def test_game_attempt_callbacks_are_correlated_and_cannot_be_replayed(tmp_path):
         assert client.post("/puzzles/seed1/start", json={"player": "tom"}).status_code == 200
         run_id = bridge.sent[-1].split()[-1]
         assert run_id != "seed1"
-        assert client.post("/puzzles/seed1/start", json={"player": "other"}).status_code == 409
         r = client.post(f"/puzzles/{run_id}/result", json={"survived": True, "kills": 2})
         assert r.status_code == 200 and r.json()["solved"]
         assert client.get("/players/tom").json()["attempts"] == 1

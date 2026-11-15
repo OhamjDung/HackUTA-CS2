@@ -27,7 +27,7 @@ Interactive docs: http://localhost:8000/docs
 | Endpoint | Purpose |
 | --- | --- |
 | `GET /clones` | Playable clones, read from `sample_clones/*.json` |
-| `POST /matches` | Create a match; returns `{match_id, status: "starting"}` (201) |
+| `POST /matches` | Create a match; returns `{match_id, status: "starting"}` (201). cs2 backend: a valid request first ends the running match (`match.ended`, reason `stopped`) and any running puzzle or scene |
 | `GET /matches/{id}` | Status, server, `join_link`, score, players, `demo_url` |
 | `POST /matches/{id}/stop` | End early; 409 if already ended or failed |
 | `GET /matches/{id}/events` | Every event sent so far, for testing without a webhook receiver (not in the spec) |
@@ -194,7 +194,10 @@ restart (`CS2_RESTART_SECONDS`), because Bot Mode can report `live` before the m
 and the end of the match come from game state. At halftime CS2 can send one update with the team
 names swapped and the scores not, so the service only accepts the reading of the two scores where
 neither team's score drops (the names break a tie). One match at a time; at most one
-human (the person at the CS2 PC).
+human (the person at the CS2 PC). A new match, puzzle, death retry or scene replaces whatever CS2 is
+running instead of answering 409: the running match ends as if stopped, and a running puzzle or scene gets
+`puzzle_stop` and then reads `{"state": "cancelled", "reason": ...}` at `GET /puzzle-attempts/{id}`.
+A request that fails validation, or a puzzle start without MatchBridge, ends nothing.
 
 ### Demo pages in the real game, and where a trained model plugs in
 

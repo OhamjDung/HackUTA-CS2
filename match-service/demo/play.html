@@ -57,6 +57,13 @@
 <script>
 const $ = id => document.getElementById(id);
 let clones = [], radar = null, matchId = null, timer = null;
+// Keep the player's Steam ID in this browser, so the form fills it in next time (only a valid ID is kept).
+const STEAM_KEY = "doppelgamer.steamId";
+try { const saved = localStorage.getItem(STEAM_KEY); if (saved) $("steam").value = saved; } catch {}
+$("steam").addEventListener("input", () => {
+  const v = $("steam").value.trim();
+  if (/^7656119\d{10}$/.test(v)) try { localStorage.setItem(STEAM_KEY, v); } catch {}
+});
 
 function checkboxes(el, prefix, preset) {
   el.innerHTML = clones.filter(c => c.playable !== false).map(c => `<label style="display:flex;gap:6px;align-items:center;color:var(--text)">

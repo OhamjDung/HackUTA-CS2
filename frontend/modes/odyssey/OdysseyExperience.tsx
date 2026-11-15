@@ -7,6 +7,7 @@ import ModeLink from '@/components/mode/ModeLink';
 import ModeSwitch from '@/components/mode/ModeSwitch';
 import HeroSign from '@/components/ui/HeroSign';
 import { call } from '@/lib/puzzles';
+import { getSavedSteamId, saveSteamId, STEAM_ID_RE } from '@/lib/steam';
 import styles from './OdysseyExperience.module.css';
 import { useOdysseyMusic } from './useOdysseyMusic';
 
@@ -554,10 +555,11 @@ function Play({ selectedId }: { selectedId: OdysseyBotId }) {
   const [side, setSide] = useState<'CT' | 'T'>('CT');
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
+  useEffect(() => setSteam(getSavedSteamId()), []);   // the Steam ID saved in this browser last time
   const scene = search.get('scene') === 'legendary' ? 'Legendary trial' : search.get('scene') === 'upload' ? 'Your uploaded game' : 'Quick challenge';
   async function startPoseidon(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!/^7656119\d{10}$/.test(steam.trim())) { setNotice('Enter your 17-digit Steam ID.'); return; }
+    if (!STEAM_ID_RE.test(steam.trim())) { setNotice('Enter your 17-digit Steam ID.'); return; }
     setBusy(true); setNotice('Starting your private match…');
     try {
       const result = await call<{ match_id: string }>('/matches', { method: 'POST', json: {
@@ -580,7 +582,7 @@ function Play({ selectedId }: { selectedId: OdysseyBotId }) {
       </article>
       <div className={styles.setupAction} data-reveal style={cssVars({ '--i': 2 })}>
         {id === 'poseidon' ? <form onSubmit={startPoseidon} className={styles.poseidonForm}>
-          <label>Your Steam ID<input value={steam} onChange={e => setSteam(e.target.value)} inputMode="numeric" placeholder="7656119…" /></label>
+          <label>Your Steam ID<input value={steam} onChange={e => { setSteam(e.target.value); saveSteamId(e.target.value); }} inputMode="numeric" placeholder="7656119…" /></label>
           <label>Your side<select value={side} onChange={e => setSide(e.target.value as 'CT' | 'T')}><option value="CT">Counter-Terrorist</option><option value="T">Terrorist</option></select></label>
           <button type="submit" className={styles.blueButton} disabled={busy}>{busy ? 'Starting…' : 'Play against Poseidon'} <span>→</span></button>
           {notice && <p role="status">{notice}</p>}

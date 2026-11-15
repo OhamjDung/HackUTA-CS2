@@ -292,6 +292,73 @@ def test_poseidon_uses_god_voice_and_roast_with_advice(tmp_path):
     assert calls[1].url.path.endswith('/god-voice/stream')
 
 
+# --- Odyssey characters (personas.py) ------------------------------------------------------------
+
+def odyssey_coach(tmp_path, clone_id, team="T", **kw):
+    """A coach in a match where the person is on CT and one Odyssey character is on `team`."""
+    client, calls = fake_apis()
+    said = []
+
+    async def say(commands):
+        said.extend(check(commands))
+    s = CoachSettings(**{"gemini_api_key": "g", "elevenlabs_api_key": "e", **kw})
+    match = {"human_team": "CT", "clones": [{"clone_id": clone_id, "team": team}]}
+    return Coach(s, tmp_path, lambda: client, say, FakeSink(), match=lambda: match), calls, said
+
+
+import pytest  # noqa: E402
+
+from match_service.personas import PERSONAS  # noqa: E402
+
+
+@pytest.mark.parametrize("clone_id", ["poseidon", "odysseus", "menelaus", "telemachus"])
+def test_every_odyssey_character_speaks_in_character(tmp_path, clone_id):
+    coach, calls, said = odyssey_coach(tmp_path, clone_id, voices={clone_id: f"{clone_id}-voice"})
+    result = asyncio.run(coach.coach(make_puzzle()))
+    prompt = json.loads(calls[0].content)["systemInstruction"]["parts"][0]["text"].lower()
+    assert clone_id in prompt and "roast" in prompt and "advice" in prompt and "never claim" in prompt
+    assert result["character"] == PERSONAS[clone_id].name and result["voice_id"] == f"{clone_id}-voice"
+    assert calls[1].url.path.endswith(f"/{clone_id}-voice/stream") and result["voice"]
+    assert said[0].startswith(f"say [{PERSONAS[clone_id].name} AI] ")
+
+
+def test_odysseus_and_menelaus_have_built_in_voices_and_the_env_overrides_them():
+    s = CoachSettings.from_env({"ELEVENLABS_API_KEY": "e"})
+    assert s.voice_for("odysseus") == "FangqgztrnBTEZOcQGlS"
+    assert s.voice_for("menelaus") == "8EtUzdCdbEciYteHJVug"
+    assert s.can_speak() and {"odysseus", "menelaus"} <= set(s.all_voices())
+    assert CoachSettings.from_env({"ELEVENLABS_VOICE_ODYSSEUS": "mine"}).voice_for("odysseus") == "mine"
+
+
+def test_a_character_without_a_voice_never_borrows_the_default_voice(tmp_path):
+    coach, calls, said = odyssey_coach(tmp_path, "telemachus", gemini_api_key="", elevenlabs_voice_id="users-own")
+    result = asyncio.run(coach.coach(make_puzzle()))
+    assert result["voice_id"] is None and not result["voice"] and calls == []  # chat only
+    assert said and said[0].startswith("say [Telemachus AI] Wait, I actually got you?")
+    assert coach.s.voice_for("ash") == "users-own"  # anyone else still gets the default voice
+
+
+def test_a_teammate_character_teases_instead_of_roasting_without_gemini(tmp_path):
+    coach, _, _ = odyssey_coach(tmp_path, "menelaus", team="CT", gemini_api_key="")
+    result = asyncio.run(coach.coach(make_puzzle()))
+    assert result["speaker"]["relation"] == "teammate" and result["text"].startswith("Hold the line, soldier.")
+    coach, _, _ = odyssey_coach(tmp_path, "poseidon", gemini_api_key="")
+    assert asyncio.run(coach.coach(make_puzzle()))["text"].startswith("The sea claims another fool.")
+
+
+def test_a_character_in_the_death_file_speaks_without_a_match_record():
+    p = make_puzzle()
+    p["players"][2]["name"] = "telemachus"  # an enemy; he has no voice, but still speaks in chat
+    assert speaker_for(p, None, {})["player"] == "telemachus"
+
+
+def test_status_lists_which_characters_have_a_voice(tmp_path):
+    coach = Coach(CoachSettings(voices={"poseidon": "god"}), tmp_path, lambda: None, None, FakeSink())
+    chars = coach.status()["characters"]
+    assert {k: v["voice"] for k, v in chars.items()} == \
+        {"poseidon": True, "odysseus": True, "menelaus": True, "telemachus": False}
+
+
 def test_no_voice_for_the_player_and_no_default_stays_quiet(tmp_path):
     client, calls = fake_apis()
     s = CoachSettings(elevenlabs_api_key="e", voices={"donk": "vd"})

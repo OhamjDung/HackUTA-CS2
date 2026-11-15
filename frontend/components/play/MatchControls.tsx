@@ -6,6 +6,7 @@ import dust2 from "@/components/img/dust2.jpeg";
 import inferno from "@/components/img/inferno.webp";
 import mirage from "@/components/img/De_mirage_cs2.webp";
 import { API_URL } from "@/lib/puzzles";
+import { getSavedSteamId, saveSteamId, STEAM_ID_RE } from "@/lib/steam";
 
 type Clone = { clone_id: string; display_name: string; label?: string; playable?: boolean; reason?: string | null };
 type Match = { match_id: string; status: string; round: number; score: { CT: number; T: number }; players: { display_name: string; team: string; is_clone: boolean }[]; error?: string; join_link?: string };
@@ -64,6 +65,7 @@ export default function MatchControls() {
   const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
   const [watchPick, setWatchPick] = useState("");
   useEffect(() => {
+    setSteam(getSavedSteamId());   // the Steam ID saved in this browser last time
     api<Clone[]>("/clones").then(all => {
       const available = all.filter(c => c.playable !== false); setClones(all); setCatalogueLoaded(true);
       setCt(available.find(c => c.clone_id === "broky_v1")?.clone_id ?? available[0]?.clone_id ?? "");
@@ -89,7 +91,7 @@ export default function MatchControls() {
   async function start() {
     setError(""); setCoachNotice("");
     if (kind === "watch" && ct === t) { setError("Choose a different clone for each side."); return; }
-    if (kind === "play" && !/^7656119\d{10}$/.test(steam.trim())) { setError("Enter your 17-digit Steam ID."); return; }
+    if (kind === "play" && !STEAM_ID_RE.test(steam.trim())) { setError("Enter your 17-digit Steam ID."); return; }
     if (kind === "play" && !enemies.length) { setError("Choose at least one opponent."); return; }
     setBusy(true);
     try {
@@ -171,7 +173,7 @@ export default function MatchControls() {
             <label className="grid gap-2 text-[14px] font-semibold text-[#B8B8C2]">Your side
               <select style={chevron} className={selectBox} value={side} onChange={e => setSide(e.target.value)}><option value="CT">Counter-Terrorist (CT)</option><option value="T">Terrorist (T)</option></select></label>
             <label className="grid gap-2 text-[14px] font-semibold text-[#B8B8C2]">Your Steam ID
-              <input className={selectBox} placeholder="7656119…" inputMode="numeric" value={steam} onChange={e => setSteam(e.target.value)} /></label>
+              <input className={selectBox} placeholder="7656119…" inputMode="numeric" value={steam} onChange={e => { setSteam(e.target.value); saveSteamId(e.target.value); }} /></label>
           </div>
           <div className="space-y-2"><p className="text-[14px] font-semibold text-[#B8B8C2]">Opponents</p><div className="flex flex-wrap gap-3">{roster.map(c => chip(c, enemies, setEnemies))}</div></div>
           {offline && <p className="text-sm text-[#B8B8C2]">Connect to the match service to load the bot catalogue.</p>}

@@ -58,6 +58,9 @@ public sealed partial class CloneDirectorPlugin : BasePlugin
         public Queue<string> RecentRoutes { get; } = new();
         public long BlockedDamageEvents { get; set; }
         public long BoostedDamageEvents { get; set; }
+        // No-self-kill guardrail (SafetyMode.cs): hits and suicide commands refused, and the last log time.
+        public long SelfHarmBlocked { get; set; }
+        public float LastSelfHarmLog { get; set; } = float.NegativeInfinity;
     }
 
     public override void Load(bool hotReload)
@@ -79,7 +82,8 @@ public sealed partial class CloneDirectorPlugin : BasePlugin
         RegisterListener<Listeners.OnTick>(Tick);
         PuzzleLoad();   // replay puzzles: PuzzleMode.cs
         GameSenseLoad();   // v2 game sense: GameSenseMode.cs
-        OdysseyLoad();   // opt-in fictional persona damage rules, never global god mode
+        OdysseyLoad();   // pre-damage hook: no-self-kill guardrail for every clone, then opt-in Odyssey rules
+        SafetyLoad();   // no-self-kill guardrail: refuse `kill` and `explode` for clone bots (SafetyMode.cs)
     }
 
     public override void OnAllPluginsLoaded(bool hotReload)
@@ -146,7 +150,7 @@ public sealed partial class CloneDirectorPlugin : BasePlugin
         foreach (var binding in _bots.Values)
         {
             var s = binding.Session;
-            command.ReplyToCommand($"slot={s.Slot} clone={s.Profile.Id} side={Side(binding.Player.TeamNum)} route={s.LastRoute?.Label ?? "none"} source={s.LastRoute?.Source ?? "none"} reason={s.Reason}");
+            command.ReplyToCommand($"slot={s.Slot} clone={s.Profile.Id} side={Side(binding.Player.TeamNum)} route={s.LastRoute?.Label ?? "none"} source={s.LastRoute?.Source ?? "none"} reason={s.Reason} self_harm_blocked={binding.SelfHarmBlocked}");
             if (s.Profile.Odyssey is { } persona)
                 command.ReplyToCommand($"ODYSSEY difficulty={persona.Difficulty} blocked_damage_events={binding.BlockedDamageEvents} boosted_damage_events={binding.BoostedDamageEvents}");
         }

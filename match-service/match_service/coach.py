@@ -15,6 +15,8 @@ ELEVENLABS_API_KEY, one voice per player as ELEVENLABS_VOICE_<PLAYER> (ELEVENLAB
 ELEVENLABS_VOICE_BROKY), and optionally ELEVENLABS_VOICE_ID as the voice for anyone else. The voice is the
 player whose clone is in your match: a clone on your team first, else the one you play against
 (`speaker_for`). A missing key turns that part off; nothing else changes.
+When the speaker is an Odyssey character (Poseidon, Odysseus, Menelaus, Telemachus), it speaks in character
+with that character's own voice: personas.py.
 No Server API endpoint or message changes; the /coach routes are additions.
 
 Written from zero on the documented REST APIs (no SDK), so the only new dependency is the optional
@@ -38,6 +40,7 @@ from typing import Protocol
 import httpx
 
 from .feedback import GRENADES, _at, _hero, death_time, feedback_for
+from .personas import PERSONAS, Persona, persona_for
 
 log = logging.getLogger("match_service.coach")
 
@@ -68,12 +71,7 @@ TRASH_TALK_PROMPT = (
     "facts. Keep it about their in-game decisions and skill; do not invent events or claim to be a real person. "
     "Plain text only, no lists or quotation marks, under 200 characters."
 )
-POSEIDON_PROMPT = (
-    "You are Poseidon, a fictional wrathful sea god and an AI opponent in a private Counter-Strike 2 match. "
-    "The player just died: deliver a savage, witty roast of their gameplay in your imperious godlike voice, "
-    "then give one concrete piece of advice based on the supplied facts. Use ocean or divine imagery naturally. "
-    "Do not invent events. One or two short sentences, under 200 characters, plain text without quotation marks."
-)
+# The Odyssey characters' prompts (Poseidon's first, by Tom) are in personas.py.
 
 # Other names the keys are often saved under; the first one set is used.
 ALIASES = {
@@ -274,12 +272,21 @@ class CoachSettings:
             chat=flag("COACH_CHAT", cls.chat),
         )
 
+    def all_voices(self) -> dict[str, str]:
+        """Every known voice: the Odyssey characters' built-in voices, overridden by ELEVENLABS_VOICE_<NAME>."""
+        return {**{p.clone_id: p.voice_id for p in PERSONAS.values() if p.voice_id}, **self.voices}
+
     def voice_for(self, player: str | None) -> str | None:
-        """The ElevenLabs voice for this player, else the default voice, else None."""
-        return (self.voices.get(player or "") or self.elevenlabs_voice_id) or None
+        """The ElevenLabs voice for this player, else the default voice, else None.
+
+        An Odyssey character never takes the default voice (it may be the user's own): no voice, no speech."""
+        own = self.all_voices().get(player or "")
+        if own or persona_for(player):
+            return own or None
+        return self.elevenlabs_voice_id or None
 
     def can_speak(self) -> bool:
-        return self.voice and bool(self.elevenlabs_api_key and (self.elevenlabs_voice_id or self.voices))
+        return self.voice and bool(self.elevenlabs_api_key and (self.elevenlabs_voice_id or self.all_voices()))
 
 
 Say = Callable[[list[str]], Awaitable[None]]
@@ -306,7 +313,8 @@ def speaker_for(puzzle: dict, match: dict | None, voices: dict[str, str]) -> dic
                      for c in match["clones"]])
     hero = _hero(puzzle) or {}
     cands = [(p.get("name"), "teammate" if p.get("side") == hero.get("side") else "opponent")
-             for p in puzzle.get("players", []) if p is not hero and player_of(p.get("name")) in voices]
+             for p in puzzle.get("players", []) if p is not hero
+             and (player_of(p.get("name")) in voices or persona_for(p.get("name")))]
     return pick(cands)
 
 
@@ -332,7 +340,7 @@ class Coach:
         self.seen = {p.name for p in self._files()}  # deaths from before the service started are old
         log.info("coach on: watching %s (exists: %s); gemini %s (%s); voices %s; default voice %s; chat %s",
                  self.death_dir, self.death_dir.is_dir(), "on" if self.s.gemini_api_key else "OFF, no key",
-                 self.s.gemini_model, sorted(self.s.voices) or "none",
+                 self.s.gemini_model, sorted(self.s.all_voices()) or "none",
                  "set" if self.s.elevenlabs_voice_id else "none",
                  "on" if self.s.chat and self.say else "off")
         if self.s.voice and not self.s.elevenlabs_api_key:
@@ -388,19 +396,20 @@ class Coach:
             summary = death_summary(puzzle, findings)
             match = self.match()
             trash_talk = bool(match and match.get("coach_style") == "trash_talk")
-            speaker = speaker_for(puzzle, match, self.s.voices)
+            speaker = speaker_for(puzzle, match, self.s.all_voices())
             if speaker:
                 summary["speaking_as"] = speaker
             source, text = "rules", fallback_advice(findings)
-            poseidon = bool(speaker and speaker["player"] == "poseidon")
-            if poseidon:
-                text = "The sea claims another fool. " + text
+            # An Odyssey character always speaks in character, whatever the trash-talk setting (personas.py).
+            persona = persona_for(speaker["player"]) if speaker else None
+            if persona:
+                text = persona.opener(speaker["relation"]) + text
             elif trash_talk:
                 text = "Nice try. " + text
             if self.s.gemini_api_key:
                 try:
                     t0 = time.monotonic()
-                    if written := await self.ask_gemini(summary, trash_talk=trash_talk, poseidon=poseidon):
+                    if written := await self.ask_gemini(summary, trash_talk=trash_talk, persona=persona):
                         source, text = "gemini", written
                     log.info("coach: Gemini answered in %.1f s", time.monotonic() - t0)
                 except (httpx.HTTPError, asyncio.TimeoutError, ValueError, KeyError) as exc:
@@ -409,10 +418,11 @@ class Coach:
             player = speaker["player"] if speaker else None
             voice_id = self.s.voice_for(player)
             result = {"death_id": puzzle.get("id"), "source": source, "text": text, "speaker": speaker,
+                      "character": persona.name if persona else None,
                       "voice_id": voice_id, "chat": False, "voice": False, "errors": []}
             jobs = []
             if self.s.chat and self.say:
-                jobs.append(self._chat(text, player, result))
+                jobs.append(self._chat(text, persona.name if persona else player, result))
             if self.s.voice and self.s.elevenlabs_api_key and voice_id:
                 jobs.append(self._speak(text, voice_id, result))
             started = time.monotonic()
@@ -424,9 +434,10 @@ class Coach:
                      time.monotonic() - started, text, f" | errors: {result['errors']}" if result["errors"] else "")
             return result
 
-    async def ask_gemini(self, summary: dict, trash_talk: bool = False, poseidon: bool = False) -> str:
+    async def ask_gemini(self, summary: dict, trash_talk: bool = False, persona: Persona | None = None) -> str:
+        prompt = persona.prompt if persona else TRASH_TALK_PROMPT if trash_talk else SYSTEM_PROMPT
         body: dict = {
-            "systemInstruction": {"parts": [{"text": POSEIDON_PROMPT if poseidon else TRASH_TALK_PROMPT if trash_talk else SYSTEM_PROMPT}]},
+            "systemInstruction": {"parts": [{"text": prompt}]},
             "contents": [{"role": "user", "parts": [{"text": json.dumps(summary, separators=(",", ":"))}]}],
             "generationConfig": {"maxOutputTokens": 200},
         }
@@ -466,6 +477,9 @@ class Coach:
 
     def status(self) -> dict:
         return {"enabled": self.s.enabled, "gemini": bool(self.s.gemini_api_key), "model": self.s.gemini_model,
-                "voice": self.s.can_speak(), "voices": sorted(self.s.voices),
+                "voice": self.s.can_speak(), "voices": sorted(self.s.all_voices()),
+                # Each Odyssey character and whether it has a voice yet (personas.py, ELEVENLABS_VOICE_<ID>).
+                "characters": {p.clone_id: {"name": p.name, "voice": bool(self.s.voice_for(p.clone_id))}
+                               for p in PERSONAS.values()},
                 "default_voice": bool(self.s.elevenlabs_voice_id), "match": self.match(), "chat": self.s.chat and self.say is not None,
                 "death_dir": str(self.death_dir), "last": self.last}

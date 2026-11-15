@@ -35,7 +35,12 @@ export default function PuzzlePractice({ id }: { id: string }) {
     let stopped = false;
     const poll = async () => {
       try {
-        const state = await call<{ state: 'pending' | 'finished'; result?: AttemptResult }>(`/puzzle-attempts/${encodeURIComponent(watch)}`);
+        const state = await call<{ state: 'pending' | 'finished' | 'cancelled'; result?: AttemptResult; reason?: string }>(`/puzzle-attempts/${encodeURIComponent(watch)}`);
+        // Starting a match, puzzle or scene in CS2 ends this attempt (the service replaces what is running).
+        if (!stopped && state.state === 'cancelled') {
+          setWatch(null);
+          setStatus({ ok: false, text: `This attempt was stopped: ${state.reason ?? 'something new started in CS2'}.` });
+        }
         if (!stopped && state.state === 'finished' && state.result) {
           setAutomatic(state.result);
           setWatch(null);

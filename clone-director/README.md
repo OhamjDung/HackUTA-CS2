@@ -18,6 +18,12 @@ immune, Odysseus 1.08x enemy-player damage). Both updated DLLs and the native en
 bare `bot_add` does not attach the rules. See `handoffs/tom-odyssey-bots.md` for installation and live
 acceptance. No CS2 immunity or difficulty-balance result is claimed by the offline tests.
 
+No-self-kill guardrail (2026-11-15): `SafetyMode.cs` and `Core/SelfHarm.cs` refuse, before it lands, any hit
+on a clone bot from itself (own grenade or fire) or from no player (falls, map hazards), and refuse `kill` and
+`explode` for clone bots. The bomb, enemies and teammates can still kill. Blocks are logged as `SELF-HARM`
+lines and counted in `clone_list`. Written without a compiler: build and run `Tests/SafetyTests.cs` before
+installing (`SPEC.md` section 6.2).
+
 Needs .NET SDK 10 and `BotControllerApi.dll` from the **same installed controller release** as the
 native plugin and provider on the gaming machine. Do not download/run the bot-base installer as
 part of this build. A person installs that separately.
