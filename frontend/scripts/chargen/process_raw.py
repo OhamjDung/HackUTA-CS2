@@ -198,6 +198,73 @@ PARENT = {
 }
 
 
+def prune_far_weights(arm, slack=0.10):
+    """Auto-weights can bind detached parts (buttons, straps) to a distant limb.
+    Drop any weight whose bone is more than `slack` metres farther away than the
+    vertex's nearest bone, then renormalise. Prevents parts flying off when the
+    arms are posed far from the bind pose."""
+    segs = {b.name: (Vector(b.head_local), Vector(b.tail_local)) for b in arm.data.bones if b.use_deform}
+
+    def dist(p, h, t):
+        d = t - h
+        u = max(0.0, min(1.0, (p - h).dot(d) / max(d.length_squared, 1e-9)))
+        return (h + d * u - p).length
+
+    pruned = 0
+    for m in meshes():
+        names = {g.index: g.name for g in m.vertex_groups}
+        for v in m.data.vertices:
+            p = m.matrix_world @ v.co
+            ds = {n: dist(p, *seg) for n, seg in segs.items()}
+            dmin = min(ds.values())
+            drop = [g.group for g in v.groups if names.get(g.group) in ds and ds[names[g.group]] > dmin + slack]
+            for gi in drop:
+                m.vertex_groups[gi].remove([v.index])
+                pruned += 1
+    print('prune_far_weights: removed', pruned, 'far weights')
+
+
+def torso_guard(arm, j):
+    """Vertices inside the torso silhouette (|x| < torso_x, below the shoulders) or the
+    head column (|x| < shoulder x, above the neck) may not follow arm bones; re-home
+    them to the nearest torso/head bone. Stops buttons, ears and hair stretching when
+    the arms are posed far from the bind pose."""
+    arm_bones = {f'{b}.{s}' for b in ('upperarm', 'forearm', 'hand') for s in 'LR'}
+    torso = [b for b in arm.data.bones if b.use_deform and b.name in ('hips', 'spine', 'chest', 'neck', 'head', 'shoulder.L', 'shoulder.R')]
+    lim_x, lim_z = j.get('torso_x', 0.7 * j['sh'][0]), j['sh'][2] + 0.05
+
+    def nearest_torso(p):
+        best, bd = None, 1e9
+        for b in torso:
+            h, t = Vector(b.head_local), Vector(b.tail_local)
+            d = t - h
+            u = max(0.0, min(1.0, (p - h).dot(d) / max(d.length_squared, 1e-9)))
+            dist = (h + d * u - p).length
+            if dist < bd:
+                best, bd = b.name, dist
+        return best
+
+    moved = 0
+    for m in meshes():
+        names = {g.index: g.name for g in m.vertex_groups}
+        for v in m.data.vertices:
+            p = m.matrix_world @ v.co
+            in_torso = abs(p.x) < lim_x and p.z < lim_z
+            in_head = abs(p.x) < j.get('head_x', 0.35) and p.z > j['neck_z'] + 0.05
+            if not (in_torso or in_head):
+                continue
+            bad = [g.group for g in v.groups if names.get(g.group) in arm_bones and g.weight > 0]
+            if not bad:
+                continue
+            for gi in bad:
+                m.vertex_groups[gi].remove([v.index])
+            if not any(g.weight > 0 for g in v.groups):
+                n = nearest_torso(p)
+                (m.vertex_groups.get(n) or m.vertex_groups.new(name=n)).add([v.index], 1.0, 'REPLACE')
+            moved += 1
+    print('torso_guard: re-homed', moved, 'vertices')
+
+
 def fill_unweighted(arm):
     """Bone-heat can fail on non-manifold parts: give every unweighted vertex to its nearest bone."""
     segs = [(b.name, Vector(b.head_local), Vector(b.tail_local)) for b in arm.data.bones if b.use_deform]
@@ -276,7 +343,13 @@ def build_rig(j):
     except RuntimeError as e:
         print('auto weights failed, using envelopes:', e)
         bpy.ops.object.parent_set(type='ARMATURE_ENVELOPE')
+    prune_far_weights(arm)
+    torso_guard(arm, j)
     fill_unweighted(arm)
+    select_only(meshes())
+    for m in meshes():
+        bpy.context.view_layer.objects.active = m
+        bpy.ops.object.vertex_group_normalize_all(lock_active=False)
     names = {'spine': ['spine', 'chest'], 'neck': 'neck', 'head': 'head', 'clav': ('shoulder.L', 'shoulder.R'),
              'upper': ('upperarm.L', 'upperarm.R'), 'fore': ('forearm.L', 'forearm.R')}
     return arm, names

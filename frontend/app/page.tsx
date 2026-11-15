@@ -68,26 +68,55 @@ export default function HomePage() {
     return () => window.clearTimeout(t);
   }, [autoPlay, thermalActive, cycleKey, goToNext]);
 
-  // ---- thermal scope --------------------------------------------------------
+  // ---- thermal scope: press-and-hold ----------------------------------------
+  // Holding the left mouse button opens the lens at the cursor and tracks it;
+  // releasing ANYWHERE (window pointerup / pointercancel / blur) or Esc closes it
+  // on the very next frame. There is no click-to-toggle state. While held, the
+  // auto-cycle timer stays paused (it keys off thermalActive) and resumes on release.
   useEffect(() => {
     stageInput.scopeActive = thermalActive;
   }, [thermalActive]);
 
   useEffect(() => {
+    const release = () => setThermalActive(false);
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setThermalActive(false);
     };
+    window.addEventListener('pointerup', release);
+    window.addEventListener('pointercancel', release);
+    window.addEventListener('blur', release);
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('pointerup', release);
+      window.removeEventListener('pointercancel', release);
+      window.removeEventListener('blur', release);
+      window.removeEventListener('keydown', onKey);
+    };
   }, []);
 
-  const toggleThermalFromNav = useCallback(() => {
+  const pressThermal = useCallback((on: boolean) => {
+    if (!on) {
+      stageInput.scopeAnchored = false;
+      setThermalActive(false);
+      return;
+    }
     stageInput.scopeAnchored = false;
-    setThermalActive((v) => !v);
+    setThermalActive(true);
   }, []);
 
-  const onStageClick = useCallback(
-    (e: React.MouseEvent<HTMLElement>) => {
+  const pressThermalAt = useCallback((x: number, y: number) => {
+    stageInput.scopeX = x;
+    stageInput.scopeY = y;
+    stageInput.scopeAnchored = true;
+    setThermalActive(true);
+  }, []);
+
+  // Top-nav button works by press-and-hold too (or as a state indicator).
+  const holdThermalFromNav = pressThermal;
+
+  const onStagePointerDown = useCallback(
+    (e: React.PointerEvent<HTMLElement>) => {
+      if (e.button !== 0) return;
       if ((e.target as HTMLElement).closest('a,button,[role="menu"]')) return;
       const el = canvasWrapRef.current;
       if (!el) return;
@@ -95,16 +124,9 @@ export default function HomePage() {
       const x = (e.clientX - r.left) / r.width;
       const y = (e.clientY - r.top) / r.height;
       if (x < 0 || x > 1 || y < 0 || y > 1) return;
-      if (thermalActive) {
-        setThermalActive(false);
-        return;
-      }
-      stageInput.scopeX = x;
-      stageInput.scopeY = y;
-      stageInput.scopeAnchored = true;
-      setThermalActive(true);
+      pressThermalAt(x, y);
     },
-    [thermalActive],
+    [pressThermalAt],
   );
 
   // ---- stage anchor: centre the character in the gap between headline and HUD
@@ -151,7 +173,7 @@ export default function HomePage() {
       <section
         ref={sectionRef}
         className="relative w-full pt-[64px] min-[900px]:pt-0 stage-h-full"
-        onClick={onStageClick}
+        onPointerDown={onStagePointerDown}
         aria-label="Character stage"
       >
         <div
@@ -166,7 +188,7 @@ export default function HomePage() {
 
         <TopNav
           thermalActive={thermalActive}
-          onToggleThermal={toggleThermalFromNav}
+          onThermalHold={holdThermalFromNav}
           characters={CHARACTERS}
           activeId={pendingId ?? activeId}
           onSelect={triggerSwap}

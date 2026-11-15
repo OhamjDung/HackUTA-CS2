@@ -85,11 +85,11 @@ export default function ThermalScopeReticle({ containerRef, active, restPosition
         className="transition-[opacity,transform] duration-200 ease-out"
         style={{ opacity: active ? 1 : 0, transform: `scale(${active ? 1 : 0.7})` }}
       >
-        <circle cx={c} cy={c} r={R} fill="none" stroke="#111111" strokeWidth="2.25" />
+        <circle cx={c} cy={c} r={R} fill="none" stroke="#F4F3EF" strokeWidth="2.25" />
         {/* outer ticks N/E/S/W */}
         <path
           d={`M${c} ${c - R - 16}V${c - R + 2} M${c} ${c + R - 2}V${c + R + 16} M${c - R - 16} ${c}H${c - R + 2} M${c + R - 2} ${c}H${c + R + 16}`}
-          stroke="#111111"
+          stroke="#F4F3EF"
           strokeWidth="2.25"
           strokeLinecap="round"
         />

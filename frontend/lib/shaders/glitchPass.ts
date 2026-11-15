@@ -19,7 +19,6 @@ import {
 import type Node from 'three/src/nodes/core/Node.js';
 import type PassNode from 'three/src/nodes/display/PassNode.js';
 import type UniformNode from 'three/src/nodes/core/UniformNode.js';
-import { STUDIO } from '@/lib/constants';
 
 /**
  * Studio output pass (TSL, three r187).
@@ -28,8 +27,8 @@ import { STUDIO } from '@/lib/constants';
  * alpha is a character mask (meshes = 1, contact shadow = soft). This node:
  *
  *  1. Character-only glitch: band tearing + RGB split are applied to the
- *     sampled character layer, then composited per channel over the flat
- *     studio background. The background itself never tears.
+ *     sampled character layer only. The canvas is transparent (premultiplied
+ *     colour + coverage), so the page backdrop shows through and never tears.
  *  2. Thermal scope: inside a circular lens at `scopePos` the composite is
  *     replaced by a heat-map LUT (character = warm, background = cold).
  *
@@ -48,11 +47,6 @@ export interface StageOutput {
   scopeRadius: UniformNode<'float', number>;
 }
 
-/** sRGB hex → linear working-space vec3 constant. */
-const lin = (hex: string) => {
-  const c = new Color(hex);
-  return vec3(c.r, c.g, c.b);
-};
 const linRGB = (r: number, g: number, b: number) => {
   const c = new Color().setRGB(r, g, b, SRGBColorSpace);
   return vec3(c.r, c.g, c.b);
@@ -80,7 +74,6 @@ export const createStageOutput = (scenePass: PassNode): StageOutput => {
   const intensity = uniform(0) as GlitchIntensity;
   const scopePos = uniform(new Vector2(0.62, 0.3));
   const scopeRadius = uniform(0);
-  const bg = lin(STUDIO.bg);
 
   const node = Fn(() => {
     const uv = screenUV.toVar();
@@ -99,11 +92,10 @@ export const createStageOutput = (scenePass: PassNode): StageOutput => {
     const sB = tex.sample(duv.sub(split));
 
     // Pass colour is effectively premultiplied (blended over a 0-alpha clear).
-    const comp = vec3(
-      bg.x.mul(float(1).sub(sR.a)).add(sR.r),
-      bg.y.mul(float(1).sub(sG.a)).add(sG.g),
-      bg.z.mul(float(1).sub(sB.a)).add(sB.b),
-    ).toVar();
+    // The canvas is transparent: output premultiplied colour + coverage so the
+    // page's CSS backdrop (flat black, charcoal radial glow, ...) shows through.
+    const comp = vec3(sR.r, sG.g, sB.b).toVar();
+    const coverage = sR.a.max(sG.a).max(sB.a);
 
     // Scanlines only where the character is.
     const scan = float(1).sub(
@@ -130,7 +122,7 @@ export const createStageOutput = (scenePass: PassNode): StageOutput => {
     // Faint scan rows inside the lens.
     thermal.mulAssign(float(1).sub(uv.y.mul(screenSize.y).mul(0.35).sin().abs().mul(0.06)));
 
-    return vec4(mix(comp, thermal, lens), float(1));
+    return vec4(mix(comp, thermal, lens), mix(coverage, float(1), lens));
   })();
 
   return { node, intensity, scopePos, scopeRadius };

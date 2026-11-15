@@ -7,7 +7,7 @@ its left is +X; only the left side is listed, the right is mirrored).
 RIGS = {
     # Mario (1.65 m, T-pose, oversized head)
     '02_smash': dict(
-        hip_y=0.05, hip_z=0.47, spine_z=0.62, chest_y=0.04, chest_z=0.78, neck_y=0.07, neck_z=0.93,
+        torso_x=0.20, hip_y=0.05, hip_z=0.47, spine_z=0.62, chest_y=0.04, chest_z=0.78, neck_y=0.07, neck_z=0.93,
         head_y=0.06, head_z=1.0, top_z=1.6,
         sh=(0.22, 0.06, 0.92), el=(0.41, 0.06, 0.92), wr=(0.57, 0.06, 0.92), hd=(0.80, 0.06, 0.92),
         hp=(0.10, 0.08, 0.43), kn=(0.11, 0.06, 0.25), an=(0.12, 0.10, 0.10), to=(0.12, -0.13, 0.04),

@@ -28,12 +28,12 @@ export const PREFETCH_CONCURRENCY = 2;
 // ---------------------------------------------------------------------------
 
 export const STUDIO = {
-  bg: '#FAF9F6',
-  ink: '#111111',
-  inkMuted: '#555552',
-  inkSubtle: '#8E8E8A',
-  hairline: '#E5E4DF',
-  pillInactive: '#DCDCD6',
+  bg: '#000000',
+  ink: '#F4F3EF',
+  inkMuted: '#A3A39D',
+  inkSubtle: '#6F6F6A',
+  hairline: '#1F1F1E',
+  pillInactive: '#333331',
   accent: '#FF3B1D',
 } as const;
 

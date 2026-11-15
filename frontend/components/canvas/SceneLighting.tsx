@@ -7,10 +7,11 @@ import * as THREE from 'three';
  * Bright studio 3-point rig + ground shadow catcher, positioned in the
  * character's local space (the parent group follows the character).
  *
- * - Soft key (front-left, high) casts the floor shadow.
- * - Warm fill (front-right) lifts dark fabrics off the off-white stage.
+ * - Soft key (front-right, high) casts the floor shadow with deep tonal contrast.
+ * - Warm fill (front-left, low) lifts dark fabrics without flattening the key side.
  * - Subtle rim (back) in the character's tint for edge separation.
- * - Hemisphere base so no surface goes muddy against #FAF9F6.
+ * - Hemisphere base (dim, cool-dark ground) so whites keep shading instead of clipping.
+ * - Floor: directional shadow catcher + compact #050507 contact AO under the soles.
  */
 export default function SceneLighting({ rimColor }: { rimColor: string }) {
   const keyRef = useRef<THREE.DirectionalLight>(null);
@@ -41,8 +42,10 @@ export default function SceneLighting({ rimColor }: { rimColor: string }) {
     c.width = c.height = 128;
     const ctx = c.getContext('2d')!;
     const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    // Compact AO falloff: dense core under the soles, fast fade at the rim.
     g.addColorStop(0, 'rgba(0,0,0,1)');
-    g.addColorStop(0.45, 'rgba(0,0,0,0.55)');
+    g.addColorStop(0.35, 'rgba(0,0,0,0.8)');
+    g.addColorStop(0.7, 'rgba(0,0,0,0.25)');
     g.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, 128, 128);
@@ -55,33 +58,33 @@ export default function SceneLighting({ rimColor }: { rimColor: string }) {
 
   return (
     <>
-      <hemisphereLight args={['#ffffff', '#d9d6cf', 1.35]} />
+      <hemisphereLight args={['#ffffff', '#3a3836', 0.7]} />
       <object3D ref={targetRef} position={[0, 0.9, 0]} />
       <directionalLight
         ref={keyRef}
-        position={[-2.6, 5.2, 3.6]}
-        intensity={2.2}
+        position={[2.8, 4.5, 3.2]}
+        intensity={2.0}
         color="#fff6ea"
         castShadow
       />
-      <directionalLight position={[3.2, 2.2, 3.0]} intensity={0.75} color="#ffe9d6" />
+      <directionalLight position={[-3.2, 2.0, 2.8]} intensity={0.55} color="#ffe9d6" />
       <directionalLight position={[1.5, 3.0, -4.5]} intensity={1.1} color={rimColor} />
 
       {/* Directional shadow catcher */}
       <mesh rotation-x={-Math.PI / 2} position={[0, 0.001, 0]} receiveShadow>
         <planeGeometry args={[6, 6]} />
-        <shadowMaterial transparent opacity={0.14} />
+        <shadowMaterial transparent opacity={0.32} color="#050507" />
       </mesh>
       {/* Contact blob */}
       {contactTexture && (
         <mesh rotation-x={-Math.PI / 2} position={[0, 0.002, 0.02]} renderOrder={-1}>
-          <planeGeometry args={[1.25, 0.55]} />
+          <planeGeometry args={[0.95, 0.42]} />
           <meshBasicMaterial
             map={contactTexture}
             transparent
-            opacity={0.2}
+            opacity={0.78}
             depthWrite={false}
-            color="#000000"
+            color="#050507"
           />
         </mesh>
       )}

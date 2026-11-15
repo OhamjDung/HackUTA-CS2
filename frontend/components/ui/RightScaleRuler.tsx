@@ -20,14 +20,14 @@ export default function RightScaleRuler({ activeIndex, count }: RightScaleRulerP
         className="absolute inset-y-0 right-0 w-[5px]"
         style={{
           backgroundImage:
-            'repeating-linear-gradient(to bottom, #C9C8C2 0 1px, transparent 1px 7px)',
+            'repeating-linear-gradient(to bottom, #3A3A38 0 1px, transparent 1px 7px)',
         }}
       />
       <div
         className="absolute inset-y-0 right-0 w-[9px]"
         style={{
           backgroundImage:
-            'repeating-linear-gradient(to bottom, #B5B4AE 0 1px, transparent 1px 35px)',
+            'repeating-linear-gradient(to bottom, #5A5A56 0 1px, transparent 1px 35px)',
         }}
       />
       <span

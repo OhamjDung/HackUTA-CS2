@@ -17,7 +17,7 @@ interface HeroStageOverlayProps {
 
 /**
  * Left headline + right stage HUD. The wrapper is pointer-transparent so
- * clicks fall through to the stage ("Click the stage to scan"); only the
+ * clicks fall through to the stage ("Hold left click to scan."); only the
  * controls themselves take pointer events.
  */
 export default function HeroStageOverlay({
@@ -78,7 +78,7 @@ export default function HeroStageOverlay({
           </div>
 
           <p className="mt-[15px] text-[15px] leading-none tracking-[-0.005em] text-ink-subtle">
-            {thermalActive ? 'Scanning — click again or press Esc to close' : 'Click the stage to scan'}
+            {thermalActive ? 'Scanning — release to close' : 'Hold left click to scan.'}
           </p>
         </div>
 
@@ -90,7 +90,7 @@ export default function HeroStageOverlay({
           <div className="pointer-events-auto mt-[42px] flex flex-wrap gap-[14px] min-[900px]:flex-nowrap">
             <a
               href={STUDIO_URL}
-              className="group flex h-[48px] shrink-0 items-center gap-[12px] whitespace-nowrap rounded-full bg-ink pl-[21px] pr-[6px] text-[16px] font-medium tracking-[-0.01em] text-white transition-colors hover:bg-black"
+              className="group flex h-[48px] shrink-0 items-center gap-[12px] whitespace-nowrap rounded-full bg-ink pl-[21px] pr-[6px] text-[16px] font-medium tracking-[-0.01em] text-studio transition-colors hover:bg-black"
             >
               Enter studio
               <span className="flex h-[36px] w-[36px] items-center justify-center rounded-full bg-brand text-white transition-transform group-hover:rotate-45">
@@ -99,7 +99,7 @@ export default function HeroStageOverlay({
             </a>
             <a
               href={DEMO_URL}
-              className="flex h-[48px] shrink-0 items-center gap-[16px] whitespace-nowrap rounded-full border border-[#CFCEC8] bg-transparent pl-[20px] pr-[19px] text-[16px] font-medium tracking-[-0.01em] text-ink transition-colors hover:border-ink"
+              className="flex h-[48px] shrink-0 items-center gap-[16px] whitespace-nowrap rounded-full border border-outline bg-transparent pl-[20px] pr-[19px] text-[16px] font-medium tracking-[-0.01em] text-ink transition-colors hover:border-ink"
             >
               Watch demo
               <ArrowUpRight size={18} strokeWidth={1.8} />
