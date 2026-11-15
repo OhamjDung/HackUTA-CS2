@@ -47,8 +47,8 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | broky clone (`broky_v1`): data-built profile and routes | Arjun (Codex) | Done. Built from 4 matches, 79 rounds/routes; held back 22 rounds. Files load in C#; not run in game. | `clones/broky_v1.json`, `clones/README.md` | 2026-11-14 |
 | Route converter: recording data to the bot playback format | Arjun | In progress. Files are written. **Not tested in the game.** Several field values are guesses (`HANDOFF.md` section 5.1). | `clone-pipeline/clone_pipeline/recording.py` | 2026-11-14 |
 | CloneDirector plugin: applies a clone to a bot inside CS2 | Arjun (Codex) | In progress. Compiles; 26 C# tests pass, including all 159 donk/broky files. Not run in CS2. | `clone-director/` | 2026-11-14 |
-| Generating model: CS-NET v4 plus player identity | Arjun (Codex) | In progress. A100-SXM4-80GB training ran over 550 optimizer updates on 1,656 windows; held-out validation pending. | `clone-model/` | 2026-11-14 |
-| Offline weapon-role and habit audit handoff | Arjun's friend (handoff prepared) | Not started. CPU-only audit and narrow pipeline correction assigned in handoff; no GPU/CS2 required. | `handoffs/friend/01-HABIT-AUDIT-AND-FIX.md` | 2026-11-14 |
+| Generating model: CS-NET v4 plus player identity | Arjun (Codex) | In progress. First A100 experiment trained 600 updates, selected step 400; both held-out identity tests failed. Experimental checkpoints/results preserved; review/export work next. | `clone-model/` | 2026-11-14 |
+| Offline weapon-role and habit audit handoff | Arjun's friend (handoff prepared) | Not started. CPU-only audit/fix handoff ready; recipient must remove consumed handoff docs on task branch after reading. | `handoffs/friend/01-HABIT-AUDIT-AND-FIX.md` | 2026-11-14 |
 | Independent mock replay QA handoff | Arjun's friend (optional second task) | Not started. Existing Ashirwad replay implementation remains with its owner; QA/report only. | `handoffs/friend/02-MOCK-REPLAY-QA.md` | 2026-11-14 |
 | Replay page: real player next to clone | Unassigned | In progress (demo version by Ashirwad: 2D map from positions, no video, no generated path) | `match-service/demo/replay.html` | 2026-11-14 |
 | Clone profile page | Unassigned | Not started | Not decided | 2026-11-14 |
@@ -606,7 +606,7 @@ Colab notebook setup and raw downloads ran on an L4. At Arjun's request, G4 was 
 optimization, but Colab reported it unavailable and allocated an **A100-SXM4-80GB** instead.
 All ten matches parsed (198 rounds) and transferred to A100. Public preparation archive: GitHub prerelease `clone-training-data-v1`, SHA256 `0e46914cbca514efbb5727b64f9e753116da4afaa98f764be66d15d97cb8ad25`. The training selection in `clone-model/games.json` excludes 2393226 because its donk-named slot has an unverified alternate Steam ID (`76561198018303780`). Canonical donk is `76561198386265483`, consistent across the other four recordings; broky is `76561198201620490`. The learned run uses nine matches / 180 rounds, three donk training matches and four broky training matches plus both unchanged whole-match holdouts. Existing route clones are separate and unchanged.
 Match 2393037 contains an eleventh, unassigned person at the first live tick. The upstream parser rejected it. `parse_compat.py` filters roster and metadata together to exactly five unique players on each playing team and rejects ambiguous cases; regression tests cover both first-tick identities and later per-round tick passes. Empty parsed matches are rejected.
-Actual CUDA optimization has now exceeded 550 updates on the A100, batch size 16, learning rate 0.0003, 100,032 trainable parameters, 1,656 training windows and 756 development windows. Per-player dev loss improved slightly from the base; best checkpoint selection uses only development rounds. Configured maximum is 1,000 steps with early stopping after four non-improving checks. Final free-running held-out identity validation is pending; no player-likeness success is claimed yet.
+Actual CUDA optimization completed 600 updates on the A100 (PyTorch 2.14.1+cu130), batch size 16, learning rate 0.0003, 100,032 trainable parameters, 1,656 training windows and 756 development windows. Training/development took 229.1 seconds. Configured maximum was 1,000; early stopping selected step 400 after four subsequent non-improving checks. Selected dev loss: donk 0.659418 vs base 0.661075; broky 0.652162 vs base 0.654092 (24 dev windows each). This small improvement did not pass the final identity test. Adapter-only checkpoints and full reports are preserved in prerelease `learned-clones-a100-v1`; aggregate provenance is in `clone-model/results/first-a100.json`. `colab_train.ipynb` is a clean reproduction notebook, syntax-checked locally; the original experiment executed in the saved Colab notebook.
 
 **Stage B, only if Stage A works and time remains.** Add small trainable layers
 (`LoRA`, also in `sim/identity.py`) to the generating part. Train on about 30 Mirage games, with an
@@ -660,6 +660,8 @@ alongside average path error. Teacher-forced development loss is not an identity
 | broky | donk | Higher error |
 
 **Pass:** each player's own vector gives the lowest error on that player's rounds.
+
+**First run, measured 2026-11-14:** 71 held-out windows (29 donk, 42 broky), 213 deterministic free-running predictions. Mean path error in Source units (own / other / base): donk **134.15 / 120.33 / 133.74**; broky **99.83 / 105.76 / 92.70**. Both fail. One held-out match per player, correlated windows; not a skill estimate. No model was promoted into the playable clone; both profile model fields remain null. See `clone-model/results/first-a100.md` and the experimental release for all metrics and checkpoint hashes.
 
 **If it fails:** report the numbers as they are. Show the model as "the base model, identity not yet
 learned". The in-game demo is unaffected, because it uses recorded segments.
@@ -1077,6 +1079,8 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-14, Arjun (Codex): preserved and reported the first completed A100 learned-clone experiment (600 updates, selected 400); both held-out identity tests failed, so no promotion. Published experimental adapter/metrics artifacts and a syntax-checked reproduction notebook. Added Arjun's explicit recipient cleanup instructions to the temporary friend handoffs.
 
 - 2026-11-14, Arjun (Codex): prepared complete CPU-only friend handoffs and copy/paste prompts for weapon-role/habit audit and independent mock replay QA, with ownership boundaries, verified data access and acceptance tests. A100 training exceeded 550 real optimizer updates; final identity test pending.
 

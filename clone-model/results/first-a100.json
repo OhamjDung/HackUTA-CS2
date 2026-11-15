@@ -1,0 +1,102 @@
+{
+  "experiment": "first-a100-stage-a",
+  "state": "validation_failed",
+  "deployed": false,
+  "training": {
+    "gpu": "NVIDIA A100-SXM4-80GB",
+    "torch": "2.14.1+cu130",
+    "steps": 1000,
+    "batch_size": 16,
+    "lr": 0.0003,
+    "source_revision": "99f850b",
+    "data_sha256": "0e46914cbca514efbb5727b64f9e753116da4afaa98f764be66d15d97cb8ad25",
+    "completed_steps": 600,
+    "selected_step": 400,
+    "elapsed_seconds": 229.1,
+    "train_windows": 1656,
+    "dev_windows": 756,
+    "trainable_parameters": 100032,
+    "selected_dev": {
+      "donk": {
+        "own_teacher_forced_loss": 0.6594184637069702,
+        "base_teacher_forced_loss": 0.6610752691825231,
+        "windows": 24
+      },
+      "broky": {
+        "own_teacher_forced_loss": 0.652161697546641,
+        "base_teacher_forced_loss": 0.6540917754173279,
+        "windows": 24
+      }
+    }
+  },
+  "source": {
+    "csnet_revision": "268dd2193c8a3d6e330c07dde5a851196c94eeaa",
+    "base_checkpoint_sha256": "d961a2d065464da19809d9b6d13e7467fde06a5a93e93c19b12ecd001cce5c20",
+    "manifest_sha256": "ebe8bf37c5cbb879e3c845fbf2b9cf9e8ede9f498393bb9d0706ac04cd927c00",
+    "adapter_sha256": "9b2b09f64f60a8aee917119ccc1e38d87e1c52b1f0c2cb2cb736024684e61292"
+  },
+  "round_counts": {
+    "donk/train": 47,
+    "donk/dev": 15,
+    "donk/test": 17,
+    "broky/train": 52,
+    "broky/dev": 27,
+    "broky/test": 22
+  },
+  "heldout_summary": {
+    "donk": {
+      "own": {
+        "ade": 134.1469878736274,
+        "fde": 295.7799487344825,
+        "stationary_share_error": 0.20043103448275862,
+        "mean_speed_error": 42.679120262696316,
+        "windows": 29
+      },
+      "other": {
+        "ade": 120.33390273145035,
+        "fde": 267.03964826965034,
+        "stationary_share_error": 0.20689655172413793,
+        "mean_speed_error": 42.52833145353497,
+        "windows": 29
+      },
+      "base": {
+        "ade": 133.74005575791827,
+        "fde": 295.44668425603476,
+        "stationary_share_error": 0.2025862068965517,
+        "mean_speed_error": 44.29777887604191,
+        "windows": 29
+      },
+      "identity_test_pass": false
+    },
+    "broky": {
+      "own": {
+        "ade": 99.8292511848181,
+        "fde": 223.09073089517074,
+        "stationary_share_error": 0.22023809523809523,
+        "mean_speed_error": 44.67627223820392,
+        "windows": 42
+      },
+      "other": {
+        "ade": 105.75980896482679,
+        "fde": 234.4021969667173,
+        "stationary_share_error": 0.21577380952380953,
+        "mean_speed_error": 44.605985297685564,
+        "windows": 42
+      },
+      "base": {
+        "ade": 92.7021530220247,
+        "fde": 205.16610083746667,
+        "stationary_share_error": 0.19791666666666666,
+        "mean_speed_error": 39.78983621618185,
+        "windows": 42
+      },
+      "identity_test_pass": false
+    }
+  },
+  "limits": [
+    "One held-out match per player; correlated windows, not 71 independent matches.",
+    "Movement-path tests only; no aim/combat/buy/utility fidelity established.",
+    "Original backbone training-data overlap unknown.",
+    "No identity promotion or in-game learned-model deployment."
+  ]
+}

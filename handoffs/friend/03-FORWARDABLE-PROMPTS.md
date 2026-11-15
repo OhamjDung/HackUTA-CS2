@@ -11,3 +11,5 @@ Optional second message:
 While the raw demos download, or after Task 1, take 02-MOCK-REPLAY-QA.md. The mock service runs without CS2. Ashirwad already implemented the replay pages, so test the existing implementation and return reproducible bugs instead of building a duplicate. Use a separate branch and the full prompt at the bottom of the document.
 
 No account credentials, Steam downloads, Colab access, model weights or private game-server access need to be shared.
+
+Arjun also requests cleanup: after pulling and reading the handoffs, save any needed context outside the checkout, remove only handoffs/friend with git rm on your task branch, update the temporary SPEC rows, and commit the removal with your task PR. The full cleanup instructions are in 00-START-HERE.md.

@@ -50,3 +50,13 @@ Data attribution: Julien Blanchon / OpenCS2, https://huggingface.co/datasets/bla
 - Evidence report with denominators, train versus holdout labels and reproducible inputs.
 - Link or attach ignored report outputs separately; do not commit recordings/datasets.
 - Specific questions/blockers for Arjun. Never call a clone human-identical or pro-level based on offline files.
+
+## Remove this handoff after reading (Arjun's instruction)
+
+These handoff documents are temporary. After pulling, read all four files and save any notes/prompts you need **outside the repository checkout**. Then remove only the consumed handoff directory on your task branch:
+
+```bash
+git rm -r -- handoffs/friend
+```
+
+In the same cleanup commit, replace SPEC's two handoff-only rows with your actual work rows/locations (`tools/habit-audit/` and, if taking Task 2, `tools/replay-qa/`) and add a changelog line. Do not delete other handoffs, source, clone files or teammate work. Use a short commit such as `Remove consumed handoff`. Push the cleanup with your task branch/PR so it is removed from main when that work merges. You can recover the original instructions from Git history or Arjun's ZIP. Do not keep another copy of these handoffs inside the checkout or put generated reports in tracked folders. Keep any still-needed task context in your assistant chat or outside the repo.
