@@ -15,6 +15,29 @@ def active_roster(frame):
     return playing
 
 
+class RosterParser:
+    """Keep the checked first-tick roster through metadata and all later per-round tick passes."""
+    def __init__(self, parser):
+        self.parser = parser
+        self.roster = None
+
+    def __getattr__(self, name):
+        return getattr(self.parser, name)
+
+    def parse_ticks(self, *args, **kwargs):
+        if self.roster is not None:
+            kwargs.setdefault("players", [int(sid) for sid in self.roster])
+        frame = self.parser.parse_ticks(*args, **kwargs)
+        if "steamid" not in frame:
+            return frame
+        if self.roster is None and "team_num" in frame:
+            first = frame[frame["tick"] == frame["tick"].min()]
+            self.roster = tuple(active_roster(first)["steamid"].astype(str))
+        if self.roster is not None:
+            frame = frame[frame["steamid"].astype(str).isin(self.roster)]
+        return frame
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--csnet", type=Path, required=True)
@@ -23,11 +46,16 @@ def main():
     args = parser.parse_args()
     configure(args.csnet)
     import demo_parser.extract as extract
-    from demo_parser.cli import main as upstream_main
+    original_parser = extract.DemoParser
+    extract.DemoParser = lambda path: RosterParser(original_parser(path))
     original_map, original_metas = extract._player_index_map, extract._player_metas
     extract._player_index_map = lambda frame: original_map(active_roster(frame))
     extract._player_metas = lambda frame: original_metas(active_roster(frame))
-    upstream_main(["--demo", str(args.demo), "--out", str(args.out), "--compress", "--compact", "--verbose"])
+    data = extract.parse_demo(str(args.demo), interval=.25, verbose=True)
+    if not data["rounds"]:
+        raise ValueError("Parser produced no rounds; refusing to save an empty training match")
+    output = extract.save_demo_json(data, str(args.out), compact=True, compress=True)
+    print(f"Saved {len(data['rounds'])} rounds to {output}", flush=True)
 
 
 if __name__ == "__main__":

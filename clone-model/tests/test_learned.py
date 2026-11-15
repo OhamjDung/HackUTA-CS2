@@ -130,3 +130,20 @@ def test_spectator_roster_filter_requires_five_real_players_per_side():
     frame.loc[10,"team_num"] = 2
     with pytest.raises(ValueError):
         active_roster(frame)
+
+
+def test_checked_roster_is_kept_through_later_tick_passes():
+    import pandas as pd
+    from parse_compat import RosterParser
+    class FakeParser:
+        def __init__(self):
+            self.calls = []
+        def parse_ticks(self, *args, **kwargs):
+            self.calls.append(kwargs)
+            return pd.DataFrame({"steamid": list(range(100,111))*2, "tick": [1]*11+[2]*11,
+                "team_num": ([2]*5+[3]*5+[float("nan")])*2})
+    original = FakeParser()
+    parser = RosterParser(original)
+    assert len(parser.parse_ticks(wanted_props=["team_num"])) == 20
+    assert len(parser.parse_ticks(wanted_props=["team_num"], ticks=[1,2])) == 20
+    assert original.calls[1]["players"] == list(range(100,110))
