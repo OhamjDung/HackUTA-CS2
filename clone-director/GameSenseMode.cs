@@ -103,7 +103,7 @@ public sealed partial class CloneDirectorPlugin
     // Assumed, not yet seen in CS2: the mask is indexed by player slot.
     private bool SeesEnemy(Binding b)
     {
-        foreach (var other in Utilities.GetPlayers())
+        foreach (var other in AllPlayers())
         {
             if (!other.IsValid || !other.PawnIsAlive || other.TeamNum is not (2 or 3) || other.TeamNum == b.Player.TeamNum) continue;
             var enemy = other.PlayerPawn.Value;

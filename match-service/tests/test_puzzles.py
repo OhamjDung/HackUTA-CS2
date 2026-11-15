@@ -227,8 +227,10 @@ def cs2_client(tmp_path, **extra):
 
 
 def test_start_copies_the_puzzle_and_sends_puzzle_load_through_the_plugin(tmp_path):
+    from tests.test_cs2 import gsi
     app, main, bridge, game = cs2_client(tmp_path)
     with TestClient(app) as client:
+        gsi(client)   # CS2 is already on de_mirage
         r = client.post("/puzzles/seed1/start", json={"player": "tom"})
         assert r.status_code == 200 and r.json()["started"]
         assert "puzzle_load seed1" in bridge.sent and "puzzle_load seed1" not in main.sent
@@ -238,12 +240,62 @@ def test_start_copies_the_puzzle_and_sends_puzzle_load_through_the_plugin(tmp_pa
         assert client.get("/players/tom").json()["solved"] == 1
 
 
+def test_start_loads_the_puzzle_map_and_joins_a_team_when_cs2_is_elsewhere(tmp_path):
+    import threading, time
+    from tests.test_cs2 import gsi
+    app, main, bridge, game = cs2_client(tmp_path, map_load_seconds=5.0)
+    with TestClient(app) as client:
+        def report_map():   # CS2 reports the map once the service has asked for it
+            deadline = time.monotonic() + 5
+            while "map de_mirage" not in main.sent and time.monotonic() < deadline:
+                time.sleep(0.02)
+            gsi(client)
+        threading.Thread(target=report_map).start()
+        r = client.post("/puzzles/seed1/start", json={"player": "tom"})
+        assert r.status_code == 200, r.text
+        assert main.sent.index("map de_mirage") < main.sent.index("jointeam 3")
+        assert bridge.sent[-1] == "puzzle_load seed1"
+
+
+def test_start_says_so_when_the_map_never_loads(tmp_path):
+    app, main, bridge, game = cs2_client(tmp_path, map_load_seconds=0.2)
+    with TestClient(app) as client:
+        r = client.post("/puzzles/seed1/start", json={"player": "tom"})
+        assert r.status_code == 409 and "de_mirage" in r.json()["detail"], r.text
+        assert "puzzle_load seed1" not in bridge.sent
+
+
+def test_plugin_command_sends_the_command_not_only_a_ping():
+    import asyncio
+    from match_service.console import PluginChannel
+
+    async def run():
+        got = []
+
+        async def handle(reader, writer):
+            while line := (await reader.readline()).decode().strip():
+                got.append(line)
+                writer.write(b"pong\n" if line == "matchbridge_ping" else b"ok\n")
+                await writer.drain()
+            writer.close()
+
+        server = await asyncio.start_server(handle, "127.0.0.1", 0)
+        port = server.sockets[0].getsockname()[1]
+        await PluginChannel("127.0.0.1", port, "tok").send(["puzzle_load seed1"])
+        server.close()
+        return got
+
+    assert asyncio.run(run()) == ["auth tok", "puzzle_load seed1"]
+
+
 def test_a_death_can_be_retried_without_saving_it(tmp_path):
     app, main, bridge, game = cs2_client(tmp_path)
     deaths = tmp_path / "deaths"
     deaths.mkdir()
     (deaths / "death_1.json").write_text(json.dumps(make_puzzle("death_1")), encoding="utf-8")
     with TestClient(app) as client:
+        from tests.test_cs2 import gsi
+        gsi(client)
         assert client.post("/deaths/death_1/start", json={"player": "tom"}).status_code == 200
         assert "puzzle_load death_1" in bridge.sent
         assert [r["id"] for r in client.get("/puzzles").json()] == ["seed1"]   # not added to the library

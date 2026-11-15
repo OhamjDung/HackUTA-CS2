@@ -165,7 +165,7 @@ public sealed partial class CloneDirectorPlugin : BasePlugin
         if (_pending is { } pending)
         {
             // Add requests are serialized. Never attach a pre-existing bot or a different named bot.
-            var player = Utilities.GetPlayers().FirstOrDefault(p => p.IsValid && p.IsBot &&
+            var player = AllPlayers().FirstOrDefault(p => p.IsValid && p.IsBot &&
                 p.TeamNum == pending.Prepared.Team && !pending.Existing.Contains(p.Handle) &&
                 !_bots.ContainsKey(p.Slot) && p.PlayerName == pending.Prepared.Profile.Personality);
             if (player is not null)
@@ -185,7 +185,7 @@ public sealed partial class CloneDirectorPlugin : BasePlugin
         }
         if (_pending is null && _waiting.TryDequeue(out var next))
         {
-            _pending = new(next, Utilities.GetPlayers().Select(p => p.Handle).ToHashSet(), Server.CurrentTime + 5);
+            _pending = new(next, AllPlayers().Select(p => p.Handle).ToHashSet(), Server.CurrentTime + 5);
             Server.ExecuteCommand($"bot_add_{(next.Team == 2 ? "t" : "ct")} \"{next.Profile.Personality}\"");
         }
         _tickCount++;
@@ -211,7 +211,7 @@ public sealed partial class CloneDirectorPlugin : BasePlugin
     {
         var me = pawn.AbsOrigin;
         if (me is null) return false;
-        foreach (var other in Utilities.GetPlayers())
+        foreach (var other in AllPlayers())
         {
             if (!other.IsValid || !other.PawnIsAlive || other.TeamNum is not (2 or 3) || other.TeamNum == b.Player.TeamNum) continue;
             var pos = other.PlayerPawn.Value?.AbsOrigin;
@@ -406,6 +406,15 @@ public sealed partial class CloneDirectorPlugin : BasePlugin
         _completed.Clear();
     }
     private static string Side(int team) => team == 2 ? "T" : team == 3 ? "CT" : "spectator";
+    // Every connected player controller, bots included. On Tom's PC (2026-11-15) Utilities.GetPlayers()
+    // returned only the person at the PC while `status` listed 9 bots; looking the controllers up by
+    // entity found all 10, with IsBot true for the bots. So puzzles found 0 bots and gave up.
+    internal static List<CCSPlayerController> AllPlayers() =>
+        Utilities.FindAllEntitiesByDesignerName<CCSPlayerController>("cs_player_controller")
+            .Where(p => p.IsValid && p.Connected == PlayerConnectedState.Connected)
+            .OrderBy(p => p.Slot)
+            .ToList();
+
     private static void Log(string message) => Server.PrintToConsole($"[CloneDirector] {message}");
 
     private sealed class Driver(IBotControllerApi api) : IBotDriver

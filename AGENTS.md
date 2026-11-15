@@ -108,6 +108,17 @@ record the change in `SPEC.md`.
   if none appear, the spotted-by mask is not slot-indexed and `enemy_close_handoff` must go back on.
 - **Do not lower v2's strength.** v2 bot entries are exact copies of the originals (Aggression 60/55,
   Teamwork 100, no human-aim limits). Only override a field after showing it does not weaken the bot.
+- **Bots are invisible to `Utilities.GetPlayers()` (added 2026-11-15).** In this Bot Mode it returns only
+  the person at the PC. Use `CloneDirectorPlugin.AllPlayers()` (entity lookup by `cs_player_controller`),
+  which finds bots with `IsBot` true. MatchBridge's `bots()` still uses `GetPlayers()` and returns `[]`.
+- **Read CloneDirector's replies over netcon (added 2026-11-15).** MatchBridge cannot return output, but
+  CloneDirector's `ReplyToCommand` and `Log` lines appear on the netcon stream (port 2121). Send the command
+  through MatchBridge and read netcon at the same time. Trust `puzzle_status` (`phase=Running`), not the
+  player count or game state, before saying a puzzle loaded.
+- **Plugin DLLs hot-reload.** Copying a new `CloneDirector.dll` into the plugin folder reloads it within
+  seconds (`log-all<date>.txt` shows "Loading plugin"). Back up the old DLL first.
+- **CS2 can drop to an empty map** (`status` shows spawngroup `<empty>`, game state `map: null`), for
+  example after the person leaves. `puzzle_load` then refuses ("this is <empty>"). Load `map de_mirage` first.
 
 ## 8. Voices
 

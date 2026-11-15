@@ -3,6 +3,7 @@
 `add_puzzle_routes` is called from create_app; it mounts the routes on the app and returns the store.
 """
 
+import asyncio
 import json
 from pathlib import Path
 
@@ -180,9 +181,14 @@ def add_puzzle_routes(app: FastAPI, settings: Settings, backend) -> PuzzleStore:
                                      "CloneDirector reads puzzles from")
         settings.game_puzzle_dir.mkdir(parents=True, exist_ok=True)
         (settings.game_puzzle_dir / f"{puzzle.id}.json").write_text(puzzle.model_dump_json(), encoding="utf-8")
+        if hasattr(backend, "prepare_puzzle"):
+            try:
+                await backend.prepare_puzzle(puzzle.map, puzzle.hero().side)
+            except (RuntimeError, OSError, asyncio.TimeoutError) as exc:
+                raise HTTPException(409, f"Could not get CS2 ready for the puzzle: {exc}")
         try:
             reply = await backend.plugin_command(f"puzzle_load {puzzle.id}")
-        except (RuntimeError, OSError) as exc:
+        except (RuntimeError, OSError, asyncio.TimeoutError) as exc:
             raise HTTPException(409, f"Could not reach CloneDirector: {exc}")
         active_attempt.clear()
         active_attempt.update({"id": puzzle.id, "player": player})
