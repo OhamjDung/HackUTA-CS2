@@ -41,12 +41,24 @@ export const STUDIO = {
 // Stage framing
 // ---------------------------------------------------------------------------
 
-/** Camera framing so a 1.85 m character fills ~89% of the hero stage height. */
+/**
+ * Hero camera: low and slightly looking up (a classic select-screen "power"
+ * angle), framed tight so the character fills the stage from the boots up.
+ */
 export const STAGE_CAMERA = {
-  position: [0, 0.95, 4.18] as [number, number, number],
-  target: [0, 0.9, 0] as [number, number, number],
-  fov: 28,
+  position: [0, 0.5, 3.95] as [number, number, number],
+  target: [0, 0.96, 0] as [number, number, number],
+  fov: 30,
 };
+
+/** Every character is normalized to this on-stage height (metres), so framing is identical. */
+export const HERO_HEIGHT = 1.82;
+
+/** …and never wider than this (metres, arms included), so broad rigs don't swamp the layout. */
+export const HERO_WIDTH = 1.05;
+
+/** Three-quarter hero angle (radians): the character turns slightly toward the headline. */
+export const HERO_YAW = -0.32;
 
 /**
  * Horizontal placement of the character as a fraction of the stage width

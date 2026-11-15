@@ -16,6 +16,7 @@ import {
   vec3,
   vec4,
 } from 'three/tsl';
+import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 import type Node from 'three/src/nodes/core/Node.js';
 import type PassNode from 'three/src/nodes/display/PassNode.js';
 import type UniformNode from 'three/src/nodes/core/UniformNode.js';
@@ -75,6 +76,8 @@ export const createStageOutput = (scenePass: PassNode): StageOutput => {
   const scopePos = uniform(new Vector2(0.62, 0.3));
   const scopeRadius = uniform(0);
 
+  const bloomNode = bloom(scenePass.getTextureNode(), 0.4, 0.4, 0.92);
+
   const node = Fn(() => {
     const uv = screenUV.toVar();
     const tex = scenePass.getTextureNode();
@@ -94,8 +97,10 @@ export const createStageOutput = (scenePass: PassNode): StageOutput => {
     // Pass colour is effectively premultiplied (blended over a 0-alpha clear).
     // The canvas is transparent: output premultiplied colour + coverage so the
     // page's CSS backdrop (flat black, charcoal radial glow, ...) shows through.
-    const comp = vec3(sR.r, sG.g, sB.b).toVar();
-    const coverage = sR.a.max(sG.a).max(sB.a);
+    // Bloom on the brightest edges only (rims, visor, highlights): high threshold.
+    const glow = bloomNode.rgb;
+    const comp = vec3(sR.r, sG.g, sB.b).add(glow).toVar();
+    const coverage = sR.a.max(sG.a).max(sB.a).max(clamp(dot(glow, vec3(0.2126, 0.7152, 0.0722)), 0, 1));
 
     // Scanlines only where the character is.
     const scan = float(1).sub(

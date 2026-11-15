@@ -118,3 +118,173 @@ body {
     animation: none;
   }
 }
+
+/* ===========================================================================
+   Hero stage: colour-reactive backdrop (components/ui/StageBackdrop.tsx)
+   --rim / --accent are registered so a character swap cross-fades the room.
+   =========================================================================== */
+@property --rim {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #f59e0b;
+}
+@property --accent {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #38bdf8;
+}
+
+.stage-theme {
+  transition:
+    --rim 900ms cubic-bezier(0.22, 1, 0.36, 1),
+    --accent 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.stage-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  --ax: calc(var(--anchor-x, 0.6) * 100%);
+}
+.stage-backdrop > * {
+  position: absolute;
+  pointer-events: none;
+}
+
+.sb-base {
+  inset: 0;
+  background:
+    radial-gradient(120% 90% at var(--ax) 110%, color-mix(in oklab, var(--rim) 22%, transparent) 0%, transparent 60%),
+    radial-gradient(90% 70% at 0% 0%, color-mix(in oklab, var(--accent) 14%, transparent) 0%, transparent 60%),
+    linear-gradient(180deg, #07060d 0%, #0b0a14 55%, #06050a 100%);
+}
+
+/* Big halo behind the character. */
+.sb-glow {
+  left: var(--ax);
+  top: 46%;
+  width: min(78vh, 900px);
+  height: min(78vh, 900px);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--rim) 60%, transparent) 0%,
+    color-mix(in oklab, var(--rim) 26%, transparent) 32%,
+    color-mix(in oklab, var(--accent) 10%, transparent) 55%,
+    transparent 70%
+  );
+  filter: blur(18px);
+  animation: sb-breathe 6s ease-in-out infinite;
+}
+
+.sb-aurora {
+  width: 70vw;
+  height: 70vh;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.55;
+  mix-blend-mode: screen;
+}
+.sb-aurora-a {
+  left: -18vw;
+  top: -22vh;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--accent) 70%, transparent), transparent);
+  animation: sb-drift-a 22s ease-in-out infinite alternate;
+}
+.sb-aurora-b {
+  right: -20vw;
+  bottom: -30vh;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--rim) 55%, transparent), transparent);
+  animation: sb-drift-b 26s ease-in-out infinite alternate;
+}
+
+/* Overhead light beam falling on the character. */
+.sb-beam {
+  left: var(--ax);
+  top: -6%;
+  width: min(62vh, 640px);
+  height: 104%;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    color-mix(in oklab, var(--rim) 9%, transparent) 50%,
+    transparent 88%
+  );
+  clip-path: polygon(40% 0, 60% 0, 100% 100%, 0 100%);
+  filter: blur(34px);
+  mix-blend-mode: screen;
+  animation: sb-flicker 7s steps(1, end) infinite;
+}
+
+.sb-embers {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.sb-vignette {
+  inset: 0;
+  background:
+    radial-gradient(120% 100% at var(--ax) 45%, transparent 45%, rgba(3, 2, 8, 0.75) 100%),
+    linear-gradient(180deg, rgba(3, 2, 8, 0.55) 0%, transparent 18%);
+}
+
+.sb-grain {
+  inset: -50%;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  animation: sb-grain 0.9s steps(4) infinite;
+  mix-blend-mode: overlay;
+}
+
+/* Headline second line picks up the live character colours. */
+.headline-accent {
+  background: linear-gradient(100deg, #fff 0%, color-mix(in oklab, var(--rim) 70%, #fff) 45%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 22px color-mix(in oklab, var(--rim) 35%, transparent));
+}
+
+/* HUD glow tint + active segment in the character colour. */
+.hud-tint {
+  color: var(--rim);
+  text-shadow: 0 0 14px color-mix(in oklab, var(--rim) 55%, transparent);
+}
+.seg-active {
+  background: var(--rim) !important;
+  box-shadow: 0 0 12px color-mix(in oklab, var(--rim) 80%, transparent);
+}
+
+@keyframes sb-breathe {
+  0%, 100% { opacity: 0.85; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
+}
+@keyframes sb-drift-a {
+  to { transform: translate(14vw, 10vh) scale(1.15); }
+}
+@keyframes sb-drift-b {
+  to { transform: translate(-12vw, -8vh) scale(1.1); }
+}
+@keyframes sb-flicker {
+  0%, 100% { opacity: 1; }
+  61% { opacity: 0.82; }
+  62% { opacity: 1; }
+  64% { opacity: 0.88; }
+  65% { opacity: 1; }
+}
+@keyframes sb-grain {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-5%, 3%); }
+  50% { transform: translate(4%, -4%); }
+  75% { transform: translate(-3%, -2%); }
+  100% { transform: translate(0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-glow, .sb-aurora, .sb-beam, .sb-grain { animation: none; }
+}

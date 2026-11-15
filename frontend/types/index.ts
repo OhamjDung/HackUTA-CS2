@@ -14,6 +14,8 @@ export interface CharacterConfig {
   rimColor: string;
   /** Per-character accent (kept for compatibility with earlier HUDs). */
   accentColor: string;
+  /** Optional on-stage size multiplier (applied to the presence root, not the cached scene). */
+  stageScale?: number;
 }
 
 export interface AssetCacheEntry {

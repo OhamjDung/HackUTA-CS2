@@ -6,6 +6,7 @@ import HeroStageOverlay from '@/components/ui/HeroStageOverlay';
 import RightScaleRuler from '@/components/ui/RightScaleRuler';
 import ThermalScopeReticle from '@/components/ui/ThermalScopeReticle';
 import CreditsLink from '@/components/ui/CreditsLink';
+import StageBackdrop from '@/components/ui/StageBackdrop';
 import SiteNav from '@/components/ui/SiteNav';
 import { preload } from 'react-dom';
 import {
@@ -87,6 +88,24 @@ export default function HomePage() {
     stageInput.scopeActive = thermalActive;
   }, [thermalActive]);
 
+  // Cursor feed for the character's head look and body turn (no React state per move).
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => {
+      stageInput.pointerX = (e.clientX / window.innerWidth) * 2 - 1;
+      stageInput.pointerY = 1 - (e.clientY / window.innerHeight) * 2;
+      stageInput.pointerSeen = true;
+    };
+    const onLeave = () => {
+      stageInput.pointerSeen = false;
+    };
+    window.addEventListener('pointermove', onMove, { passive: true });
+    document.documentElement.addEventListener('pointerleave', onLeave);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      document.documentElement.removeEventListener('pointerleave', onLeave);
+    };
+  }, []);
+
   useEffect(() => {
     const release = () => setThermalActive(false);
     const onKey = (e: KeyboardEvent) => {
@@ -133,6 +152,10 @@ export default function HomePage() {
     const wrap = canvasWrapRef.current;
     if (!section || !wrap) return;
     const measure = () => {
+      measureAnchor();
+      wrap.style.setProperty('--anchor-x', String(stageInput.anchorX));
+    };
+    const measureAnchor = () => {
       const w = wrap.clientWidth;
       if (w < 900) {
         stageInput.anchorX = 0.5;
@@ -164,9 +187,14 @@ export default function HomePage() {
   const scopeRest = useCallback(() => ({ x: stageInput.anchorX, y: 0.2 }), []);
 
   const activeIndex = CHARACTERS.findIndex((c) => c.id === (pendingId ?? activeId));
+  // The room recolours as soon as a swap is requested, so the light leads the model.
+  const theme = CHARACTER_MAP[pendingId ?? activeId];
 
   return (
-    <main className="relative min-h-screen w-full overflow-x-hidden">
+    <main
+      className="stage-theme relative min-h-screen w-full overflow-x-hidden"
+      style={{ '--rim': theme.rimColor, '--accent': theme.accentColor } as React.CSSProperties}
+    >
       <section
         ref={sectionRef}
         className="relative w-full pt-[64px] min-[900px]:pt-0 stage-h-full"
@@ -179,6 +207,7 @@ export default function HomePage() {
             thermalActive ? 'cursor-none' : 'cursor-crosshair'
           }`}
         >
+          <StageBackdrop />
           <CharacterCanvas activeId={activeId} />
           <ThermalScopeReticle containerRef={canvasWrapRef} active={thermalActive} restPosition={scopeRest} />
         </div>

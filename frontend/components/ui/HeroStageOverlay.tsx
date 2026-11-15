@@ -39,9 +39,11 @@ export default function HeroStageOverlay({
         data-headline
         className="headline text-ink min-[900px]:absolute min-[900px]:bottom-[clamp(32px,4.1vw,64px)] min-[900px]:left-[var(--gutter)]"
       >
-        Your stream.
+        Clone anyone
         <br />
-        Another dimension.
+        on any game.
+        <br />
+        <span className="headline-accent">Another dimension.</span>
       </h1>
 
       {/* Right HUD column */}
@@ -49,7 +51,7 @@ export default function HeroStageOverlay({
         <div className="min-[900px]:pl-[7px]">
           <p
             key={shownId}
-            className={`font-mono text-[18px] font-semibold leading-none tracking-[0.02em] text-ink ${glitching ? 'hud-flicker' : ''}`}
+            className={`hud-tint font-mono text-[18px] font-semibold leading-none tracking-[0.02em] ${glitching ? 'hud-flicker' : ''}`}
             aria-live="polite"
           >
             0{shownIndex + 1} / {shown.displayName.toUpperCase()}
@@ -70,7 +72,7 @@ export default function HeroStageOverlay({
                 >
                   <span
                     className={`block h-[5px] w-[22px] rounded-full transition-colors duration-300 ${
-                      active ? 'bg-brand' : 'bg-pill group-hover:bg-ink-subtle'
+                      active ? 'seg-active' : 'bg-pill group-hover:bg-ink-subtle'
                     }`}
                   />
                 </button>
