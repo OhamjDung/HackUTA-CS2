@@ -40,13 +40,13 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Lobby page | Tom (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | Match page | Nikesh (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | CS2 with the bot base installed on the demo laptop | Tom | Done. CS2-Bot-Improver v1.4.9 runs in Bot Mode on Tom's PC. A donk-vs-broky stand-in match on Mirage plays when no `record` command is sent. CloneDirector is not installed there yet. | Tom's PC (the demo machine) | 2026-11-14 |
-| CS2 base game download on Arjun's current PC | Arjun (Codex) | In progress. Started in Steam; active transfer confirmed. Bot base not installed by this agent. | Steam default library on C: | 2026-11-14 |
+| CS2 base game download on Arjun's current PC | Arjun (Codex) | Done. Steam manifest confirms complete download/staging, update result 0, 74.3 GB installed. Bot base not installed by this agent. | Steam default library on C: | 2026-11-14 |
 | Clone pipeline: recording in, clone profile out | Arjun (Codex) | Done. 10 tests pass; purchase order corrected in both clones. | `clone-pipeline/`, `HANDOFF.md` | 2026-11-14 |
 | donk clone (`donk_v1`): profile, purchases, grenades, 80 route files | Arjun | Done. Built from 4 matches, 80 rounds. | `clones/` | 2026-11-14 |
 | broky clone (`broky_v1`): data-built profile and routes | Arjun (Codex) | Done. Built from 4 matches, 79 rounds/routes; held back 22 rounds. Files load in C#; not run in game. | `clones/broky_v1.json`, `clones/README.md` | 2026-11-14 |
 | Route converter: recording data to the bot playback format | Arjun | In progress. Files are written. **Not tested in the game.** Several field values are guesses (`HANDOFF.md` section 5.1). | `clone-pipeline/clone_pipeline/recording.py` | 2026-11-14 |
 | CloneDirector plugin: applies a clone to a bot inside CS2 | Arjun (Codex) | In progress. Compiles; 26 C# tests pass, including all 159 donk/broky files. Not run in CS2. | `clone-director/` | 2026-11-14 |
-| Generating model: CS-NET v4 plus player identity | Arjun (Codex) | In progress. Preparing player-aware training and held-out identity tests. | `clone-model/` | 2026-11-14 |
+| Generating model: CS-NET v4 plus player identity | Arjun (Codex) | In progress. A100-SXM4-80GB ready; verified nine-match data selection and feature preparation before optimization. | `clone-model/` | 2026-11-14 |
 | Replay page: real player next to clone | Unassigned | Not started | `replay/` (proposed) | 2026-11-14 |
 | Clone profile page | Unassigned | Not started | Not decided | 2026-11-14 |
 | Caster voice (Gemini script, ElevenLabs audio) | Unassigned | Not started | Not decided | 2026-11-14 |
@@ -571,7 +571,7 @@ registry, source revision, and base-weight/data-manifest hashes.
 
 Colab notebook setup and raw downloads ran on an L4. At Arjun's request, G4 was selected for
 optimization, but Colab reported it unavailable and allocated an **A100-SXM4-80GB** instead.
-The original L4 parsing session is being retained until prepared matches are transferred.
+All ten matches parsed (198 rounds) and transferred to A100. Public preparation archive: GitHub prerelease `clone-training-data-v1`, SHA256 `0e46914cbca514efbb5727b64f9e753116da4afaa98f764be66d15d97cb8ad25`. The training selection in `clone-model/games.json` excludes 2393226 because its donk-named slot has an unverified alternate Steam ID (`76561198018303780`). Canonical donk is `76561198386265483`, consistent across the other four recordings; broky is `76561198201620490`. The learned run uses nine matches / 180 rounds, three donk training matches and four broky training matches plus both unchanged whole-match holdouts. Existing route clones are separate and unchanged.
 Match 2393037 contains an eleventh, unassigned person at the first live tick. The upstream parser rejected it. `parse_compat.py` filters roster and metadata together to exactly five unique players on each playing team and rejects ambiguous cases; regression tests cover both first-tick identities and later per-round tick passes. Empty parsed matches are rejected.
 Optimizer progress and final validation have not yet been established at this point; do not
 describe downloaded weights or parsed matches as learned player identities.
@@ -1016,6 +1016,8 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-14, Arjun (Codex): corrected canonical donk identity and excluded one ambiguous-account match before optimization; added empty-match cache rejection. Ten parsed public matches transferred to A100, nine selected for learning. CS2 base download completed successfully on Arjun's PC.
 
 Newest first. One line per change: date, who, what changed.
 

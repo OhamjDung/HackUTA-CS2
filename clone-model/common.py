@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 CSNET_REVISION = "268dd2193c8a3d6e330c07dde5a851196c94eeaa"
-PLAYERS = {"donk": "76561198018303780", "broky": "76561198201620490"}
+PLAYERS = {"donk": "76561198386265483", "broky": "76561198201620490"}
 REGISTRY = {sid: i + 1 for i, sid in enumerate(sorted(PLAYERS.values(), key=int))}
 HOLDOUTS = {"2393242", "2393024"}
 

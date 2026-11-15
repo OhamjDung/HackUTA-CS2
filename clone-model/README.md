@@ -64,3 +64,5 @@ recorded openings remain in the existing clone profiles. The movement model does
 buying, personality values, grenade lineups, teamwork calls, or precise human aim. It has not
 been wired into live CS2. A training-loss decrease alone does not establish player likeness.
 No route or identity is promoted to the playable clone just because training completed.
+
+The current learned run excludes match 2393226: its donk-named slot has Steam ID 76561198018303780, which differs from canonical donk 76561198386265483 in the other four recordings. Ownership of that event account is unverified. The run uses three donk training matches plus one holdout, and four broky training matches plus one holdout (180 parsed rounds total). The public preparation archive retains all ten source recordings; use this directory's games.json to select the verified nine.

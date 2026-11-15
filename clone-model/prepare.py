@@ -33,6 +33,8 @@ def build_cache(csnet: Path, json_dir: Path, out: Path, games: list) -> dict:
             data = json.load(file)
         if data.get("map") != "de_mirage":
             raise ValueError(f"Wrong map in {source}")
+        if not data.get("rounds"):
+            raise ValueError(f"No parsed rounds in {source}")
         players = data.get("players", [])
         if len(players) != 10:
             raise ValueError(f"Expected 10 identities in {mid}")
