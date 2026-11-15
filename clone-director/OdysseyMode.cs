@@ -7,14 +7,23 @@ namespace CloneDirector;
 
 public sealed partial class CloneDirectorPlugin
 {
-    private void OdysseyLoad() => RegisterListener<Listeners.OnEntityTakeDamagePre>(OdysseyDamage);
+    private void OdysseyLoad() => RegisterListener<Listeners.OnEntityTakeDamagePre>(DamagePre);
 
-    private HookResult OdysseyDamage(CBaseEntity entity, CTakeDamageInfo info)
+    // The one pre-damage listener: the no-self-kill guardrail for every clone bot first (SafetyMode.cs),
+    // then the opt-in Odyssey fantasy rules. One listener, so the order of the two is fixed.
+    private HookResult DamagePre(CBaseEntity entity, CTakeDamageInfo info)
     {
-        if (!entity.IsValid || !_bots.Values.Any(b => b.Session.Profile.Odyssey is not null)) return HookResult.Continue;
+        if (!entity.IsValid || _bots.Count == 0) return HookResult.Continue;
         // Match live pawn handles, never a stale slot or a display-name substring.
         var victim = _bots.Values.FirstOrDefault(b => b.Player.IsValid && b.Player.IsBot && b.Player.PawnIsAlive &&
             b.Player.PlayerPawn.Value is { IsValid: true } p && p.Handle == entity.Handle);
+        if (victim is not null && BlockSelfHarm(victim, entity, info)) return HookResult.Handled;
+        return OdysseyDamage(entity, info, victim);
+    }
+
+    private HookResult OdysseyDamage(CBaseEntity entity, CTakeDamageInfo info, Binding? victim)
+    {
+        if (!_bots.Values.Any(b => b.Session.Profile.Odyssey is not null)) return HookResult.Continue;
         // Poseidon can also shoot humans; they have no clone binding but are valid damage recipients.
         var target = victim?.Player ?? AllPlayers().FirstOrDefault(p => p.IsValid && p.PawnIsAlive &&
             p.PlayerPawn.Value is { IsValid: true } pawn && pawn.Handle == entity.Handle);

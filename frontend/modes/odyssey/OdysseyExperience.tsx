@@ -7,6 +7,7 @@ import ModeLink from '@/components/mode/ModeLink';
 import ModeSwitch from '@/components/mode/ModeSwitch';
 import HeroSign from '@/components/ui/HeroSign';
 import { call } from '@/lib/puzzles';
+import { getSavedSteamId, saveSteamId, STEAM_ID_RE } from '@/lib/steam';
 import styles from './OdysseyExperience.module.css';
 import { useOdysseyMusic } from './useOdysseyMusic';
 
@@ -554,17 +555,42 @@ function Play({ selectedId }: { selectedId: OdysseyBotId }) {
   const [side, setSide] = useState<'CT' | 'T'>('CT');
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
+  const [matchId, setMatchId] = useState('');   // the match being followed until CS2 has it ready
+  useEffect(() => setSteam(getSavedSteamId()), []);   // the Steam ID saved in this browser last time
+  useEffect(() => { setNotice(''); setMatchId(''); }, [id]);   // a newly chosen legend starts clean
+  // Follow the new match until its bot is in the game, or it fails. A legend whose bot entry is not
+  // installed in CS2 fails after about 20 s ("did not join"); without this the page would say "started".
+  useEffect(() => {
+    if (!matchId) return;
+    let active = true;
+    let tries = 0;
+    const timer = window.setInterval(async () => {
+      tries += 1;
+      try {
+        const m = await call<{ status: string; error?: string | null }>(`/matches/${encodeURIComponent(matchId)}`);
+        if (!active) return;
+        if (m.status === 'failed') { setNotice(`The match could not start: ${m.error ?? 'unknown error'}`); setMatchId(''); }
+        else if (m.status === 'ready' || m.status === 'live') { setNotice(`${bot.name} is in the game. Switch to CS2 to play.`); setMatchId(''); }
+        else if (m.status === 'ended') setMatchId('');
+        else if (tries >= 60) { setNotice('CS2 is still starting the match. Check the game.'); setMatchId(''); }
+      } catch {
+        if (active && tries >= 60) setMatchId('');   // the service may be busy: keep asking for a minute
+      }
+    }, 1000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [matchId, bot.name]);
   const scene = search.get('scene') === 'legendary' ? 'Legendary trial' : search.get('scene') === 'upload' ? 'Your uploaded game' : 'Quick challenge';
-  async function startPoseidon(event: React.FormEvent<HTMLFormElement>) {
+  async function startMatch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!/^7656119\d{10}$/.test(steam.trim())) { setNotice('Enter your 17-digit Steam ID.'); return; }
-    setBusy(true); setNotice('Starting your private match…');
+    if (!STEAM_ID_RE.test(steam.trim())) { setNotice('Enter your 17-digit Steam ID.'); return; }
+    setBusy(true); setMatchId(''); setNotice('Starting your private match…');
     try {
       const result = await call<{ match_id: string }>('/matches', { method: 'POST', json: {
         map: 'de_mirage', mode: 'wingman', players: [{ steam_id: steam.trim(), team: side }],
-        clones: [{ clone_id: 'poseidon', team: side === 'CT' ? 'T' : 'CT' }],
+        clones: [{ clone_id: bot.id, team: side === 'CT' ? 'T' : 'CT' }],
       } });
-      setNotice(`Match ${result.match_id} started. Switch to CS2 to play.`);
+      setNotice(`Match ${result.match_id} sent to CS2. Waiting for ${bot.name} to join…`);
+      setMatchId(result.match_id);
     } catch (error) { setNotice(error instanceof Error ? error.message : String(error)); }
     finally { setBusy(false); }
   }
@@ -576,15 +602,16 @@ function Play({ selectedId }: { selectedId: OdysseyBotId }) {
         <div><small>Challenger</small><h2>{bot.name}</h2><p>{bot.role}</p><ModeLink href="/bots" className={styles.inkLink}>Change legend</ModeLink></div>
       </article>
       <article data-reveal style={cssVars({ '--i': 1 })} {...tilt}>
-        <div><small>Scene</small><h2>{scene}</h2><p>{id === 'poseidon' ? 'Poseidon plays a private Wingman match on Mirage. Scene selection is a preview.' : 'The match service is not connected to this frontend yet.'}</p><ModeLink href="/scenes" className={styles.inkLink}>Change scene</ModeLink></div>
+        <div><small>Scene</small><h2>{scene}</h2><p>{bot.name} plays a private Wingman match on Mirage. Starting it ends anything already running in CS2. Scene selection is a preview.</p><ModeLink href="/scenes" className={styles.inkLink}>Change scene</ModeLink></div>
       </article>
       <div className={styles.setupAction} data-reveal style={cssVars({ '--i': 2 })}>
-        {id === 'poseidon' ? <form onSubmit={startPoseidon} className={styles.poseidonForm}>
-          <label>Your Steam ID<input value={steam} onChange={e => setSteam(e.target.value)} inputMode="numeric" placeholder="7656119…" /></label>
+        <form onSubmit={startMatch} className={styles.matchForm}>
+          <label>Your Steam ID<input value={steam} onChange={e => { setSteam(e.target.value); saveSteamId(e.target.value); }} inputMode="numeric" placeholder="7656119…" /></label>
           <label>Your side<select value={side} onChange={e => setSide(e.target.value as 'CT' | 'T')}><option value="CT">Counter-Terrorist</option><option value="T">Terrorist</option></select></label>
-          <button type="submit" className={styles.blueButton} disabled={busy}>{busy ? 'Starting…' : 'Play against Poseidon'} <span>→</span></button>
+          <button type="submit" className={styles.blueButton} disabled={busy}>{busy ? 'Starting…' : `Play against ${bot.name}`} <span>→</span></button>
           {notice && <p role="status">{notice}</p>}
-        </form> : <ModeLink href={`/studio?bot=${bot.id}${search.get('scene') ? `&scene=${search.get('scene')}` : ''}`} className={styles.blueButton}>Enter studio <span>→</span></ModeLink>}
+          <ModeLink href={`/studio?bot=${bot.id}${search.get('scene') ? `&scene=${search.get('scene')}` : ''}`} className={styles.inkLink}>Enter studio</ModeLink>
+        </form>
       </div>
     </div>
   </section>;

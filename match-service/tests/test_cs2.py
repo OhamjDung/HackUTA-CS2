@@ -192,10 +192,27 @@ def test_bot_vs_bot_spectates(game):
     assert "jointeam 1" in channel.sent
 
 
-def test_one_match_at_a_time(game):
+def test_a_new_match_replaces_the_running_one(game):
+    client, channel = game
+    first = client.post("/matches", json=wingman()).json()["match_id"]
+    r = client.post("/matches", json=wingman())
+    assert r.status_code == 201, r.text
+    second = r.json()["match_id"]
+    assert client.get(f"/matches/{first}").json()["status"] == "ended"
+    ended = client.get(f"/matches/{first}/events").json()[-1]
+    # The same event as POST /matches/{id}/stop: no new reason or field.
+    assert ended["event"] == "match.ended" and ended["data"]["reason"] == "stopped"
+    assert "bot_kick" in channel.sent  # the first match's bots are removed
+    assert client.get(f"/matches/{second}").json()["status"] in ("starting", "ready", "live")
+    assert client.get("/health").json()["current_match"] == second
+
+
+def test_a_bad_request_does_not_end_the_running_match(game):
     client, _ = game
-    client.post("/matches", json=wingman())
-    assert client.post("/matches", json=wingman()).status_code == 409
+    first = client.post("/matches", json=wingman()).json()["match_id"]
+    two_humans = wingman(players=[{"steam_id": ASH, "team": "CT"}, {"steam_id": "76561198000000002", "team": "T"}])
+    assert client.post("/matches", json=two_humans).status_code == 422
+    assert client.get(f"/matches/{first}").json()["status"] == "starting"
 
 
 def test_rejects_what_cs2_cannot_do(game):

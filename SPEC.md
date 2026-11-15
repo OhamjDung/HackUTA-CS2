@@ -26,6 +26,11 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 
 | Part | Owner | State | Where | Updated |
 |---|---|---|---|---|
+| No-self-kill guardrail for clone bots | Arjun (Claude) | Written, **not compiled and not run**: Arjun's PC has no .NET SDK and no `BotControllerApi.dll`. Every hit on a clone bot (pro clones and Odyssey) is checked before it lands; its own grenade or fire, falls and other no-player damage are refused, and `kill`/`explode` are refused for clone bots. The bomb, enemies and teammates can still kill. 6 new C# test methods written, not run. **Tom: build, run the C# tests, install the DLLs** (section 6.2). | `clone-director/Core/SelfHarm.cs`, `clone-director/SafetyMode.cs`, `clone-director/OdysseyMode.cs`, `clone-director/Tests/SafetyTests.cs` | 2026-11-15 |
+| Voices for all four Odyssey characters | Arjun (Claude) | Done against fakes. Tom's Poseidon death commentary now covers Odysseus, Menelaus and Telemachus too: each has its own persona prompt, canned fallback line and voice. Odysseus and Menelaus have built-in voice IDs; Telemachus has none yet (chat only). 32 coach tests pass (9 new); no real Gemini or ElevenLabs call, no CS2 run. | `match-service/match_service/personas.py`, `match-service/match_service/coach.py` | 2026-11-15 |
+| One thing at a time in CS2: a new start replaces the running one | Arjun (Claude) | Done against fakes. Starting a match, puzzle, death retry or scene ends whatever CS2 is running instead of answering 409. 167 service tests pass, 1 known Windows symlink failure; not run in CS2 or a browser. | `match-service/match_service/main.py`, `match-service/match_service/puzzle_routes.py`, `frontend/components/puzzles/PuzzlePractice.tsx` | 2026-11-15 |
+| Saved Steam ID | Arjun (Claude) | Done in code. The FaZe Play page, the Odyssey Play screen and the demo Play page keep a valid Steam ID in the browser and fill it in next time. `tsc` clean and 4 mode tests pass. Checked in a browser on the Odyssey Play screen (typed, reloaded, refilled); the FaZe and demo pages not clicked through. |
+| Odyssey Play screen for all four characters | Arjun (Claude) | Done; checked in a browser against the mock service (Odysseus and Telemachus: form shown, match started, page followed it to "in the game"). Each character's Play screen starts a private Mirage Wingman match against it and follows the match until ready or failed. **On Tom's PC only Poseidon's bot entry is installed**: the other three fail after about 20 s ("did not join") until Tom installs their profiles and entries (`handoffs/tom-odyssey-bots.md`). Not run in CS2. | `frontend/modes/odyssey/OdysseyExperience.tsx` | 2026-11-15 | `frontend/lib/steam.ts`, `frontend/components/play/MatchControls.tsx`, `frontend/modes/odyssey/OdysseyExperience.tsx`, `match-service/demo/play.html` | 2026-11-15 |
 | Poseidon death commentary | Tom (Codex) | Implemented. Supplied god voice configured in local ignored `.env`; service restarted and ElevenLabs voice lookup returned 200. 23 coach tests pass against fakes; live Gemini, synthesis and in-game playback for Poseidon not checked. | `match-service/match_service/coach.py` | 2026-11-15 |
 | Poseidon match setup | Tom (Codex) | Implemented and installed on Tom's PC: profile and aggressive native bot entry installed with archive backup; Odyssey play screen submits a private Mirage match. Typecheck and 8 Odyssey tests pass; actual match and damage hook not run. | `clones/poseidon.json`, `frontend/modes/odyssey/OdysseyExperience.tsx` | 2026-11-15 |
 | Spectator scenes from recorded matches | Tom (Codex) | In progress. FaZe Scenes lists four recorded Mirage windows; code adds scene launch and all-player spectator track playback. Plugin builds, 77 existing core tests, 35 puzzle tests and 36 backend/coach tests pass; spectator mode has not been installed or run in CS2, and does not reconstruct shots or grenades. | `clone-director/PuzzleMode.cs`, `match-service/match_service/puzzle_routes.py`, `frontend/components/scenes/ScenesView.tsx` | 2026-11-15 |
@@ -162,6 +167,19 @@ only when no usable base exists, and say so here.
 Checked on 2026-11-14.
 
 **Checked by running a query or request:**
+- Odyssey Play screen in a browser (Arjun/Claude, 2026-11-15, Arjun's PC): `next dev` against the mock match
+  service loading `clones/` (all four characters listed). Odysseus: Steam ID typed, page reloaded, ID filled
+  back in; "Play against Odysseus" started a match and the status went from "Waiting for Odysseus to join" to
+  "Odysseus is in the game". Telemachus: form, button and Studio link shown. No console errors. Mock only:
+  no CS2, and the failure message path was not triggered.
+- Odyssey voices, auto-replace and saved Steam ID (Arjun/Claude, 2026-11-15, Arjun's PC): full match
+  service suite 167 pass, 1 known Windows symlink failure (`test_path_traversal_is_refused`). Coach: every
+  Odyssey character speaks with its own prompt, chat label and voice; the `.env` overrides a built-in voice; a
+  character without a voice stays in chat and never takes the default voice. Replacement: a new match ends the
+  running one with the usual `stopped` event; a bad request ends nothing; a puzzle ends a running match; a new
+  match or puzzle stops a running puzzle or scene (`puzzle_stop`, attempt reads `cancelled`); a puzzle that
+  cannot start ends nothing. Frontend `tsc` clean, 4 mode tests pass. All against fakes: no CS2, no real
+  Gemini or ElevenLabs call, no browser. pytest needs `--basetemp` in a writable folder in Claude's sandbox.
 - Death coach live (Tom's PC, 2026-11-15, read from the service log he sent): two deaths in a private clone match were saved by CloneDirector and coached; Gemini 200 OK in 1.2 s each; `say` sent; ElevenLabs 401 invalid API key (a key problem on that PC, not the voice ids). Not confirmed: how the chat line looks in CS2, any audio.
 
 - Odyssey authored profiles (Arjun/Codex, 2026-11-15): Release builds with zero warnings/errors against API1.0.378 and the pinned controller contract.77 C# tests pass (including four actual profiles, lethal damage decision, scope and invalid persona settings),10 native-entry/profile tools tests pass,21 targeted catalogue/driver tests pass. Full service suite148 pass/1 existing Windows symlink privilege failure. No CS2 launch, VPK replacement, actual hook behavior, purchase-alias verification, balance, voice call or UI flow test was performed. The14 quirks/player are authored controls, not measured or neural-trained behavior.
@@ -415,6 +433,13 @@ Checked on 2026-11-14.
   the CounterStrike2GSI and cs2-gsi library docs.
 
 **Not fully checked:**
+- The no-self-kill guardrail (section 6.2): not compiled, its 6 C# test methods not run, not run in CS2.
+  Unconfirmed: which entity the game names as attacker and inflictor for a fall, a grenade, fire and the
+  bomb; whether a command listener catches a `kill` run for a bot.
+- The Odyssey voices in a live match: real Gemini answers in character, ElevenLabs speaking with the
+  Odysseus and Menelaus voice IDs.
+- Replacing a running match, puzzle or scene in CS2: whether `puzzle_stop` then `puzzle_load`, or
+  `bot_kick` then a new match, leave CS2 in a clean state.
 - Correct-side full-path fidelity and CloneDirector-driven playback inside CS2. A converted T-side file loaded and moved a CT bot in Tom's manual check, but hit a wall from the wrong spawn.
 - Adding a custom entry to the bot personality file.
 - Every time estimate in section 11.
@@ -506,6 +531,10 @@ One install of CS2-Bot-Improver gives the first four rows.
 | Odyssey layered art and motion | Layer cut-out: Pillow and NumPy (open source, HPND and BSD licences), run through `uv`. Motion: plain CSS plus small React hooks, the same approach as the FaZe home page; no animation library was added because CSS covers every effect used and FaZe already works this way. Written from zero on that base. |
 | Death coach (Gemini advice, chat, voice) | Written from zero: no existing open-source CS2 coach reads CloneDirector's death files. Calls the documented REST APIs (Gemini `generateContent`, ElevenLabs `text-to-speech/{voice_id}/stream`) with `httpx`, no SDK; playback with `sounddevice` (MIT). Reuses `feedback.py` and CloneDirector's death recorder (section 9.6). |
 | Spectator scenes | Reuses the existing replay-puzzle pipeline and its CS2PracticeMod (MIT) restore pattern (section 9.6); all-player spectator playback extends CloneDirector's existing implementation. |
+| No-self-kill guardrail | Built on the same base as Poseidon's immunity: CounterStrikeSharp's documented `OnEntityTakeDamagePre` listener (MIT), plus its `AddCommandListener`. The decision rule is written from zero. |
+| Odyssey character voices | Extends Tom's Poseidon death commentary in the death coach (above) to all four characters; no new library. |
+| One thing at a time in CS2 | Reuses the service's existing stop path (`POST /matches/{id}/stop`) and CloneDirector's `puzzle_stop`; written from zero in the service. |
+| Saved Steam ID | Same browser-storage pattern as the saved puzzle player name (`frontend/lib/puzzles.ts`). |
 
 Odyssey gameplay starting point (6.5): existing CloneDirector profiles, purchase/quirk/game-sense rules
 and `add_clone_bot_entries.py`, built on the already selected CS2-Bot-Controller/CS2-Smarter-Bot bases.
@@ -700,6 +729,25 @@ still playing, the last hand-off reason and the position. Completion, death, paw
 change, and unload are handled. The last route and first hand-off reason stay visible until the
 next round. A failed stop is reported and prevents starting another route or purchase plan.
 
+**No-self-kill guardrail (added 2026-11-15, Arjun with Claude; written, not compiled, not run).** A
+clone bot must never kill itself. The cause of the reported self-kills is still unconfirmed
+(`handoffs/tom-self-kill-diagnosis.md`), so instead of fixing one suspect, CloneDirector checks every hit on
+a living clone bot before the game applies it (`OnEntityTakeDamagePre`, the listener Poseidon's immunity
+already uses; one listener now runs the guardrail first and the Odyssey rules second). It works out the
+player behind the hit from the attacker, then the inflictor (the grenade or fire), then the inflictor's
+owner, so an enemy's grenade never counts as "no player". Refused: the bot's own HE grenade or molotov /
+incendiary fire, and damage no player caused (falls, map hazards). Allowed: enemies, teammates (friendly
+fire), and the bomb explosion, which stays a round objective (Arjun's choice). A refused hit leaves health
+unchanged. It also refuses the `kill` and `explode` console commands for clone bots. Each block writes
+`SELF-HARM blocked <clone> source=<Self|NoPlayer> attacker=<entity> inflictor=<entity> damage=<n>`
+(at most once a second per bot), and `clone_list` shows `self_harm_blocked=<count>`: these lines name what
+was killing the bots. Not covered: a plugin calling `CommitSuicide` directly (no damage, no command), and
+admin slays. Applies to clone bots only: puzzle and scene bots are not clones (puzzle mode detaches every
+clone) and scenes still remove bots at their recorded deaths. Code: `Core/SelfHarm.cs` (the rule),
+`SafetyMode.cs` (the game side), `Tests/SafetyTests.cs`. **To install (Tom's PC):** build Release with
+`-p:BotControllerApiPath=...` (AGENTS.md section 7), run the C# tests, copy `CloneDirector.dll` and
+`CloneDirector.Core.dll` into the plugin folder (it hot-reloads), then watch for `SELF-HARM` lines.
+
 `clone_add` preloads files off the game thread, serializes named-bot requests, and attaches only
 a new bot with the requested name and side, with a five-second timeout. Personality comes from
 `stand_in_bot`, or `display_name` when absent (the pipeline's donk entry is named `donk`). The
@@ -732,8 +780,12 @@ who plays ten rounds has a route library at the end.
 
 Poseidon's native entry and CloneDirector profile were installed on Tom's PC with the old VPK backed up
 under ignored `data/`. His Odyssey Play screen can start a private Mirage Wingman match against him using
-the existing `/matches` API. Other Odyssey play screens and scene selection remain previews. CS2 was
-closed for installation; in-game aggression and damage immunity remain unverified.
+the existing `/matches` API. CS2 was closed for installation; in-game aggression and damage immunity
+remain unverified. Since 2026-11-15 (Arjun with Claude) every character's Play screen does the same, and
+the page follows the match until its bot is in the game or the match fails, showing the service's error.
+Only Poseidon is installed on Tom's PC: Odysseus, Menelaus and Telemachus need their profiles copied and
+`add_clone_bot_entries.py` run (with CS2 closed) before their matches can start. Scene selection remains a
+preview.
 
 The current UI's exact four IDs are `poseidon`, `odysseus`, `menelaus`, `telemachus`. Each has14
 authored character quirks and existing profile/driver compatibility; `source: user`, `model: null`,
@@ -770,8 +822,8 @@ mode refuses it because no neural routes exist. Existing `-Bots clone` with `CS2
 route-free native personas alongside recorded-route pro clones. The frontend already has matching
 IDs; Challenge/Play-to-match wiring remains with the frontend/Tom integration, not changed here.
 
-Voices/trash talk belong to Tom's existing ElevenLabs work; no audio, voice IDs, credentials or new
-voice system were created. Handoff and private acceptance checklist: `handoffs/tom-odyssey-bots.md`.
+Voices: when the person dies in a match with an Odyssey character, the death coach speaks as that
+character, in its own voice (section 9.7, `match-service/match_service/personas.py`). Handoff and private acceptance checklist: `handoffs/tom-odyssey-bots.md`.
 No CS2 deployment/live validation was performed. Pure policy/profile/native-config tests and a clean
 plugin build establish code wiring only; live damage immunity, native configuration acceptance,
 purchase aliases, quiet-walk behavior and difficulty balance still require private-game checks.
@@ -1252,7 +1304,15 @@ setup steps.
   reading of the two scores where neither team's score drops, takes the one that adds the fewest
   rounds, and uses the names only to break a tie.
 - One match at a time. At most one human: the person at the CS2 PC. Bot against bot puts that
-  person in spectator.
+  person in spectator. A new start replaces whatever runs, instead of a 409 "stop it first" (added
+  2026-11-15, Arjun with Claude; tested against fakes only). A valid `POST /matches` first ends the running
+  match exactly as `POST /matches/{id}/stop` does (`match.ended`, reason `stopped`, `bot_kick`) and stops a
+  running puzzle or scene with `puzzle_stop`. Starting a puzzle, death retry or scene ends a running match and
+  any running attempt the same way. A request that fails validation, or a puzzle start that cannot reach
+  CloneDirector, ends nothing. A replaced attempt reads `{"state": "cancelled", "reason": ...}` at
+  `GET /puzzle-attempts/{id}`; the practice page says so. No request or response shape changed; the mock still
+  runs many matches at once and closes nothing. Ashirwad owns this API (AGENTS.md section 6): he should review
+  the dropped 409.
 - Recording is set by `CS2_RECORD`. `off` (default): nothing is recorded and `demo_url` is `null`
   (the API already allowed `null`). `tv`: GOTV (`tv_enable 1` before the map, `tv_record
   match_<id>`, `tv_stoprecord`), served at `demo_url` from `CS2_DEMO_DIR`; not tried in CS2. The
@@ -1303,7 +1363,7 @@ of the replay.
 
 ### 9.3 Web pages
 
-The FaZe `/play` page offers bot-vs-bot and play-vs-bot setup using the match service at `NEXT_PUBLIC_API_URL` (default `http://localhost:8000`), including its clone catalogue, existing matches, stop, scores, events, inline position paths and a link to the demo replay/position viewer. It shows all clones returned by the service, disabling and explaining those marked unavailable; an offline Play vs bot page asks the user to connect instead of showing placeholder choices. Play vs bot includes a frontend-only self-clone preview: the `.dem` picker holds the selected file in the browser only, with no upload or clone creation. Browser mock checked both v2 clones and match reload before these changes; the revised catalogue, preview and a real CS2 match remain unchecked.
+The FaZe `/play` page offers bot-vs-bot and play-vs-bot setup using the match service at `NEXT_PUBLIC_API_URL` (default `http://localhost:8000`), including its clone catalogue, existing matches, stop, scores, events, inline position paths and a link to the demo replay/position viewer. It shows all clones returned by the service, disabling and explaining those marked unavailable; an offline Play vs bot page asks the user to connect instead of showing placeholder choices. The Steam ID is kept in the browser once it is a valid 17-digit ID and filled in on the next visit (`frontend/lib/steam.ts`, key `doppelgamer.steamId`; also the Odyssey Play screen and the demo Play page). Play vs bot includes a frontend-only self-clone preview: the `.dem` picker holds the selected file in the browser only, with no upload or clone creation. Browser mock checked both v2 clones and match reload before these changes; the revised catalogue, preview and a real CS2 match remain unchecked.
 
 - **Lobby page and match page.** Owned by teammates, built against the match service.
 - **Demo pages (`match-service/demo/`, Ashirwad).** Bare-minimum versions of each feature for the
@@ -1534,7 +1594,8 @@ voice delivery has been verified.
 
 **Spectator scenes (in progress).** FaZe Scenes lists the four committed Mirage puzzle windows from the
 Spirit–Falcons and FaZe–Inner Circle recordings. `GET /scenes` lists those available; `POST
-/scenes/{id}/start` reserves the existing puzzle runner and sends `scene_load` with a copied track file.
+/scenes/{id}/start` reserves the existing puzzle runner (ending a running match, puzzle or scene first,
+section 9.2) and sends `scene_load` with a copied track file.
 CloneDirector moves the human to spectator and assigns a bot to each recorded player, disables ordinary
 bot movement, teleports bots along tracks, and removes them at recorded death samples. It restores changed
 cvars afterward and returns completion through the existing attempt callback without changing ratings.
@@ -1583,8 +1644,8 @@ CS2PracticeMod (MIT, CounterStrikeSharp), the library follows Lichess's puzzle m
   MatchBridge channel; the plugin reports the result to `POST /puzzles/{id}/result`. If CS2 is not on the
   puzzle's map (or is at the menu), the service first sends `game_type 0`, `game_mode 1`, `map <map>`, waits for
   game state to report it, waits `CS2_PUZZLE_SETTLE_SECONDS` (default 5, a guess) and sends `jointeam` for the
-  hero's side, so one click on "Practice in CS2" is enough. It refuses with 409 while a match on another map is
-  running. Before 2026-11-15 the service sent `puzzle_load` with the plugin channel's `query()`, which only
+  hero's side, so one click on "Practice in CS2" is enough. A running match, puzzle or scene is ended first
+  (section 9.2; until 2026-11-15 it refused with 409). Before 2026-11-15 the service sent `puzzle_load` with the plugin channel's `query()`, which only
   pings MatchBridge and drops the command: no puzzle ever reached CloneDirector, yet the page said "Loaded".
   It now uses `send()`. MatchBridge cannot return CloneDirector's reply, so a refusal in the game (for example
   "No human player is in the game") is still not shown on the page. `start-cs2.ps1` sets `PUZZLE_DEATH_DIR` and
@@ -1726,6 +1787,19 @@ setting. On Gemini failure, a canned godlike jab precedes the existing rule-base
 voice ID is configured locally as `ELEVENLABS_VOICE_POSEIDON`; no voice ID or API key is needed in code.
 The voice-selection and prompt behavior were tested against fakes; an ElevenLabs voice lookup returned
 200, but synthesis and playback were not tested in a live match.
+
+**All four Odyssey characters (added 2026-11-15, Arjun with Claude).** Poseidon's treatment now covers
+Odysseus, Menelaus and Telemachus. `match-service/match_service/personas.py` holds one entry per character:
+who it is and how it talks (the first part of its Gemini prompt), a canned line for when Gemini is off or
+fails, and a built-in voice ID. Every character gets the same rules after its description: a fictional
+character, never a real person; roast the player when it is their opponent, tease them as an ally when it is
+their teammate (`speaking_as.relation`); then one concrete tip. Poseidon keeps Tom's description and line
+("The sea claims another fool."). Chat shows the character's name: `[Odysseus AI] ...`. Voices:
+`ELEVENLABS_VOICE_<CLONE_ID>` in `.env` wins; else the built-in ID (Odysseus `FangqgztrnBTEZOcQGlS`,
+Menelaus `8EtUzdCdbEciYteHJVug`, both supplied by Arjun; their source is not recorded here); else no voice.
+A character without a voice speaks in chat only and never takes `ELEVENLABS_VOICE_ID`, which may be the
+user's own voice. Poseidon's voice stays in Tom's local `.env`; Telemachus has none yet. `GET /coach` lists
+each character and whether it has a voice (`characters`). Tested against fakes only.
 
 **Voice permission.** Pro player voices follow section 9.5 and AGENTS.md section 8: use a player's voice
 only with that player's authorization. Section 9.5's rule of
@@ -2013,6 +2087,8 @@ demo. A released product would need each player's or team's permission.
 
 ## 19. Change log
 
+- 2026-11-15, Arjun (Claude): the Odyssey Play screen starts a match against any of the four characters, not only Poseidon, and follows it until ready or failed; the Studio link stays under the form. `tsc` and 4 mode tests pass; checked in a browser against the mock service. Odysseus, Menelaus and Telemachus still need installing on Tom's PC.
+- 2026-11-15, Arjun (Claude): no-self-kill guardrail for clone bots (own grenade/fire, falls and `kill` refused; bomb, enemies and teammates still kill; written, not compiled or run, Tom must build it); death-coach voices for all four Odyssey characters (Odysseus and Menelaus voice IDs built in); a new match, puzzle or scene replaces whatever CS2 runs instead of a 409; Steam ID saved in the browser. 167 service tests pass (1 known symlink failure), `tsc` and 4 mode tests pass; no CS2, real API or browser run.
 - 2026-11-15, Tom (Codex): installed Poseidon's profile and aggressive native bot entry with a backup, connected his Odyssey match setup and configured god-voice roast/advice commentary; 8 Odyssey and 23 fake-coach tests pass; no live match run.
 - 2026-11-15, Tom (Codex): implemented FaZe recorded-scene selection and a spectator track playback path; built the plugin and ran 77 core, 35 puzzle and 36 backend/coach tests, but did not deploy or run it in CS2.
 - 2026-11-15, Nikesh (with Claude): removed the Smash Bros curated scenes ("Last-stock comeback", "Edgeguard drill") from the FaZe Scenes page: dropped from `CURATED_SCENES` in `frontend/lib/bots.ts` and from the valid scene ids in `frontend/lib/mode/contract.ts`. `components/scenes/ScenesView.tsx` now shows the CS2 moments as the main set when the selected bot's game has no curated scenes (Sparg0), instead of an empty "Smash Bros moments" section. The Sparg0 bot itself is unchanged. Checked: `tsc`, `test:mode` 4/4; browser Scenes > Famous games with donk and with Sparg0.

@@ -138,10 +138,30 @@ def create_app(settings: Settings | None = None, channel: ConsoleChannel | None 
         # The profile plus how it would be played now (drivers.py). Existing fields are unchanged.
         return [describe(c, settings) for c in clones().values()]
 
+    async def end_match(record: MatchRecord) -> None:
+        """Stop one match early and tell its callback (POST /matches/{id}/stop, and replace_running)."""
+        m = record.match
+        await backend.stop(record)
+        m.status = "ended"
+        await emit(record, "match.ended", {"reason": "stopped", "score": m.score.model_dump(), "demo_url": None})
+
+    async def close_running_match(why: str) -> None:
+        """End the match CS2 is running, so the next start never meets a 'stop it first' refusal.
+
+        CS2 runs one thing at a time. The mock runs any number of matches, so it closes nothing."""
+        if not backend.busy():
+            return
+        for record in [r for r in matches.values() if r.active]:
+            log.info("ending match %s: %s", record.match.match_id, why)
+            await end_match(record)
+
+    async def replace_running(why: str) -> None:
+        """Close whatever CS2 is running (a match, a puzzle, a scene) before something new starts there."""
+        await close_running_match(why)
+        await app.state.cancel_attempt(why)   # puzzle_routes.py
+
     @app.post("/matches", status_code=201)
     async def create_match(body: MatchCreate):
-        if backend.busy():
-            raise HTTPException(409, "CS2 is already running a match. Stop it first.")
         available = clones()
         errors: list[str] = []
 
@@ -165,6 +185,8 @@ def create_app(settings: Settings | None = None, channel: ConsoleChannel | None 
         errors += backend.validate(body, available, list(matches.values()))
         if errors:
             raise HTTPException(422, errors)
+        # Only a valid request replaces what is running, so a bad one never ends the current match.
+        await replace_running("a new match started")
 
         players = [MatchPlayer(team=p.team, is_clone=False, steam_id=p.steam_id, display_name=p.steam_id)
                    for p in body.players]
@@ -189,9 +211,7 @@ def create_app(settings: Settings | None = None, channel: ConsoleChannel | None 
         m = record.match
         if m.status in ("ended", "failed"):
             raise HTTPException(409, f"Match is already {m.status}")
-        await backend.stop(record)
-        m.status = "ended"
-        await emit(record, "match.ended", {"reason": "stopped", "score": m.score.model_dump(), "demo_url": None})
+        await end_match(record)
         return {"status": m.status}
 
     # Not in the spec: lets callers see what was sent to their callback_url without running a receiver.
@@ -340,7 +360,8 @@ def create_app(settings: Settings | None = None, channel: ConsoleChannel | None 
         except ReviewInvalid as exc:
             raise HTTPException(422, str(exc))
 
-    app.state.puzzles = add_puzzle_routes(app, settings, backend)  # replay puzzles (puzzle_routes.py)
+    # Replay puzzles and scenes (puzzle_routes.py). Starting one first ends a running match.
+    app.state.puzzles = add_puzzle_routes(app, settings, backend, close_match=close_running_match)
 
     # Death coach (coach.py, SPEC.md section 9.7). Chat goes through MatchBridge when the service has it,
     # so `say` runs on the server console; with netcon only, it is said from the player's console.

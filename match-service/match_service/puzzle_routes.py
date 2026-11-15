@@ -5,8 +5,10 @@
 
 import asyncio
 import json
+import logging
 import time
 import uuid
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
@@ -15,6 +17,8 @@ from pydantic import BaseModel, Field
 from .core import Settings
 from .feedback import feedback_for
 from .puzzles import ID_RE, MAX_VIDEO_BYTES, NotFound, PuzzleStore, is_solved, needed_kills, new_id, validate_puzzle
+
+log = logging.getLogger("match_service.puzzles")
 
 
 class ResultBody(BaseModel):
@@ -43,7 +47,11 @@ class DraftBody(BaseModel):
     slots: list[dict]
 
 
-def add_puzzle_routes(app: FastAPI, settings: Settings, backend) -> PuzzleStore:
+def add_puzzle_routes(app: FastAPI, settings: Settings, backend,
+                      close_match: Callable[[str], Awaitable[None]] | None = None) -> PuzzleStore:
+    """Mount the routes. `close_match(why)` ends a running match before a puzzle or scene starts.
+
+    Sets `app.state.cancel_attempt(why)`, which stops a running puzzle or scene before a new match starts."""
     store = PuzzleStore(settings.puzzle_dir, settings.puzzle_seed_dir)
     active_attempt: dict = {}  # one CS2 instance can play one attempt at a time
     attempt_timeout = 120.0
@@ -64,6 +72,29 @@ def add_puzzle_routes(app: FastAPI, settings: Settings, backend) -> PuzzleStore:
             clear_attempt()
         for run_id in [key for key, value in completed_attempts.items() if value["expires"] <= now]:
             del completed_attempts[run_id]
+
+    async def cancel_attempt(why: str) -> str | None:
+        """Stop the puzzle or scene CS2 is playing, so something new can start at once instead of a 409.
+
+        `puzzle_stop` makes CloneDirector leave puzzle or scene mode and put the changed cvars back. The
+        attempt then reads as cancelled; a late result for it gets 404, like an expired attempt."""
+        expire_attempt()
+        if not active_attempt:
+            return None
+        run_id = active_attempt["run_id"]
+        kind = "scene" if active_attempt.get("scene") else "puzzle"
+        try:
+            await backend.plugin_command("puzzle_stop")
+        except (RuntimeError, OSError, asyncio.TimeoutError) as exc:
+            # The next start replaces the puzzle anyway: puzzle_load restarts puzzle mode, and a new
+            # match's map change ends it (CloneDirector resets puzzle mode on every map start).
+            log.warning("could not send puzzle_stop for %s %s: %s", kind, run_id, exc)
+        log.info("stopped %s %s: %s", kind, run_id, why)
+        completed_attempts[run_id] = {"cancelled": why, "expires": time.monotonic() + 300}
+        clear_attempt()
+        return run_id
+
+    app.state.cancel_attempt = cancel_attempt
 
     def puzzle_or_404(puzzle_id: str):
         try:
@@ -204,7 +235,10 @@ def add_puzzle_routes(app: FastAPI, settings: Settings, backend) -> PuzzleStore:
         if active_attempt and active_attempt["run_id"] == attempt_id:
             return {"state": "pending"}
         if attempt_id in completed_attempts:
-            return {"state": "finished", "result": completed_attempts[attempt_id]["result"]}
+            done = completed_attempts[attempt_id]
+            if "cancelled" in done:   # something newer was started in CS2 (cancel_attempt)
+                return {"state": "cancelled", "reason": done["cancelled"]}
+            return {"state": "finished", "result": done["result"]}
         raise HTTPException(404, "Puzzle attempt expired or was not found")
 
     @app.post("/puzzles/{puzzle_id}/vote")
@@ -223,11 +257,16 @@ def add_puzzle_routes(app: FastAPI, settings: Settings, backend) -> PuzzleStore:
         if not settings.game_puzzle_dir:
             raise HTTPException(409, "PUZZLE_GAME_DIR is not set: the service does not know where "
                                      "CloneDirector reads puzzles from")
-        if scene and backend.busy():
-            raise HTTPException(409, "A match is running. Stop it before watching a scene.")
-        expire_attempt()
-        if active_attempt:
-            raise HTTPException(409, "Another puzzle attempt is still running. Wait for it to finish or time out.")
+        try:
+            backend.check_plugin()   # can CloneDirector get commands at all? Ask before closing anything.
+        except RuntimeError as exc:
+            raise HTTPException(409, f"Could not start the puzzle in CS2: {exc}")
+        # CS2 plays one thing at a time: a new puzzle or scene ends the running match, puzzle or scene
+        # instead of refusing (Arjun, 2026-11-15).
+        why = f"a new {'scene' if scene else 'puzzle'} started"
+        if close_match:
+            await close_match(why)
+        await cancel_attempt(why)
         run_id = "run_" + uuid.uuid4().hex
         path = settings.game_puzzle_dir / f"{run_id}.json"
         active_attempt.update({"run_id": run_id, "puzzle": puzzle, "player": player,

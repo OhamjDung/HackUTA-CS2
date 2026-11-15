@@ -7,7 +7,9 @@ These are fictional, authored personas on the existing CloneDirector/native-bot 
 `source: user`, `model: null`, no source games and no recorded/generated opening routes. There was no
 neural training or imitation of a real person's data. Native AI remains free to navigate, fight and
 deploy utility. The existing burst, crouch, travel-jump and sound-conditioned quiet-walk controls apply.
-No voice, ElevenLabs key or trash-talk implementation is included; Tom owns those and can map by ID.
+Voices and trash talk: when the person dies in a match with one of them, the death coach speaks as that
+character in its own voice (`match-service/match_service/personas.py`, `SPEC.md` section 9.7). Every clone
+bot, these four included, is protected from killing itself (`SPEC.md` section 6.2).
 
 | Character | Difficulty | Skill / reaction setting | Special rule |
 |---|---|---|---|

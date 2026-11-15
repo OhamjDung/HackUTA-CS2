@@ -82,6 +82,10 @@ class Cs2Backend:
             raise RuntimeError("CloneDirector only accepts commands through the MatchBridge plugin. "
                                "Start the service with  start-cs2.ps1 -Bots clone")
 
+    def check_plugin(self) -> None:
+        """Raise RuntimeError when CloneDirector commands cannot be sent (no MatchBridge channel)."""
+        self._need_clone_channel()
+
     async def plugin_command(self, command: str) -> str:
         """One CloneDirector command through the plugin channel (used to start a replay puzzle)."""
         self._need_clone_channel()
