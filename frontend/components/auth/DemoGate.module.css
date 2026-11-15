@@ -1,0 +1,27 @@
+.checking { min-height: 100svh; background: #030000; }
+.login { position: relative; min-height: 100svh; display: grid; place-items: center; padding: 0 20px; color: #fff; background: #030000 url('/images/login-background-nosign.webp') center/cover no-repeat; overflow: hidden; }
+/* FaZe home sign in FaZe red, where the old baked-in wordmark sat (top centre of the art). */
+.login .sign { position: absolute; top: max(18px, 3.2vh); left: 50%; width: min(600px, 42vw); translate: -50% 0; --rim: #e4002b; --accent: #ff3b4f; }
+/* A small, see-through card that fits in the gap between the two soldiers, below their pointing hands. */
+.panel { width: min(244px, 92vw); margin-top: 16vh; padding: 16px 18px 14px; border: 1px solid rgba(228,0,43,.5); border-radius: 12px; background: rgba(4,3,4,.5); box-shadow: 0 0 0 1px rgba(255,60,78,.08), 0 14px 40px rgba(0,0,0,.5), inset 0 1px rgba(255,255,255,.05); backdrop-filter: blur(3px); }
+.eyebrow { margin: 0 0 4px; color: #ff394d; font: 700 10px/1 var(--font-mono), monospace; letter-spacing: .22em; text-transform: uppercase; }
+.panel label { display: grid; gap: 5px; margin-top: 10px; color: #ddd9db; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.panel input { width: 100%; height: 34px; border: 1px solid rgba(255,255,255,.2); border-radius: 6px; padding: 0 10px; outline: 0; background: rgba(0,0,0,.6); color: white; font: 500 13px/1 var(--font-inter), sans-serif; text-transform: none; letter-spacing: 0; }
+.panel input:focus { border-color: #f0293f; box-shadow: 0 0 0 3px rgba(228,0,43,.16); }
+.passwordField { position: relative; display: block; }
+.passwordField input { padding-right: 52px; }
+.passwordField button { position: absolute; right: 4px; top: 3px; height: 28px; border: 0; padding: 0 8px; background: transparent; color: #ff6b78; cursor: pointer; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+.enter { width: 100%; min-height: 36px; margin-top: 14px; border: 1px solid #ff4759; border-radius: 6px; background: #d90029; color: white; cursor: pointer; font-size: 11px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; box-shadow: 0 0 20px rgba(228,0,43,.28); }
+.enter:hover { background: #ee1238; }
+.note { margin-top: 9px; color: #aaa3a6; font-size: 10px; line-height: 1.4; text-align: center; }
+.error { margin-top: 12px; color: #ff8791; font-size: 12px; line-height: 1.35; }
+.logout { position: fixed; z-index: 100; right: 15px; bottom: 15px; min-height: 34px; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 0 14px; background: rgba(5,5,7,.72); color: #fff; cursor: pointer; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; backdrop-filter: blur(8px); }
+@media (max-width: 700px) {
+  .login { place-items: start center; padding: calc(56.3vw + 16px) 16px 22px; background-position: center top; background-size: 100% auto; background-repeat: no-repeat; }
+  .login .sign { top: 2.4vw; width: 46vw; }
+  .panel { width: min(300px, 100%); margin-top: 0; padding: 18px; background: rgba(4,3,4,.88); }
+}
+@media (max-height: 650px) {
+  .panel { margin-top: 10vh; padding-block: 12px; }
+}
+
