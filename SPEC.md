@@ -1768,6 +1768,14 @@ demo. A released product would need each player's or team's permission.
 
 - 2026-11-15, Ashirwad: landing page visual pass in `frontend/`. Removed `lib/posing.ts` (its arm-aim stance pushed Mario's hand through his chest and splayed other rigs); Idle clips now play as authored, with a restrained presence layer on spine, neck and head only (`lib/presence.ts`). Hero framing: lower camera, three-quarter yaw, common height with a width cap. New light rig (key, two coloured rims, top spot, contact shadow), `NeutralToneMapping` and a BloomNode pass in `glitchPass.ts`; colour-reactive backdrop (`StageBackdrop.tsx`) and headline. Landing headline line 1 changed from "Your stream." to "Clone anyone / on any game." ("Another dimension." kept; browser tab title and studio page unchanged). Font, tabs and navigation unchanged. Checked in a browser against `next dev` (desktop and mobile, 0 new console errors); `tsc` clean; `next build` not run.
 
+- 2026-11-15, Nikesh (Codex): Odyssey now attempts theme autoplay on entry while respecting the
+  saved mute preference; browser autoplay rejection falls back to the existing accessible toggle.
+
+- 2026-11-15, Nikesh (Codex): added isolated Odyssey background music using the supplied
+  `odyssey-theme.mp3`: one persistent audio element, 15% loop volume, interaction-gated start,
+  accessible header toggle, remembered mute preference, visibility/FaZe pausing, route grace and
+  graceful playback errors. FaZe imports no Odyssey audio code.
+
 - 2026-11-15, Nikesh (Codex): moved the Odyssey footer brand/navigation into the illustration's
   clear upper band so neither overlaps the blue decorative plaques; added a separate mobile
   position. Typecheck and browser visual verification pass.

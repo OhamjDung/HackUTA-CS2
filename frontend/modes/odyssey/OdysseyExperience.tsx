@@ -7,6 +7,7 @@ import { useSessionUploads } from '@/app/providers';
 import ModeLink from '@/components/mode/ModeLink';
 import ModeSwitch from '@/components/mode/ModeSwitch';
 import styles from './OdysseyExperience.module.css';
+import { useOdysseyMusic } from './useOdysseyMusic';
 
 type OdysseyBotId = 'telemachus' | 'menelaus' | 'odysseus' | 'poseidon';
 const BOTS: Array<{ id: OdysseyBotId; name: string; role: string; dialogue: string }> = [
@@ -26,6 +27,7 @@ export default function OdysseyExperience() {
   const selectionNavigation = useRef<number | null>(null);
   const urlBot = search.get('bot');
   const [selectedId, setSelectedId] = useState<OdysseyBotId>(BOT_IDS.has(urlBot as OdysseyBotId) ? urlBot as OdysseyBotId : 'odysseus');
+  const music = useOdysseyMusic();
 
   useEffect(() => {
     const explicit = search.get('bot');
@@ -57,8 +59,8 @@ export default function OdysseyExperience() {
   };
 
   return <main className={styles.shell} data-odyssey-route={pathname}>
-    <Header pathname={pathname} selectedId={selectedId} />
-    {pathname === '/' && <Home selectedId={selectedId} onSelect={selectBot} />}
+    <Header pathname={pathname} selectedId={selectedId} music={music} />
+    {pathname === '/' && <Home selectedId={selectedId} onSelect={selectBot} onBegin={music.start} />}
     {pathname === '/bots' && <><PageIntro n="01" eyebrow="The challengers" title="Choose your legend" body="Four rivals. Four styles. One epic challenge." /><Bots selectedId={selectedId} onSelect={selectBot} /></>}
     {pathname === '/scenes' && <><PageIntro n="02" eyebrow="Your next chapter" title="Play a scene" body="Bring your own moment, or enter a legendary trial." /><Scenes detailed /></>}
     {pathname === '/leaderboard' && <><PageIntro n="03" eyebrow="The hall of heroes" title="Claim your crown" body="Illustrative rankings until live scoring is connected." /><Leaderboard /></>}
@@ -68,12 +70,14 @@ export default function OdysseyExperience() {
   </main>;
 }
 
-function Header({ pathname, selectedId }: { pathname: string; selectedId: OdysseyBotId }) {
-  return <header className={styles.header}><ModeLink href="/" className={styles.brand} aria-label="DoppelGamer Odyssey home">DOPPELGAMER<span>THE ODYSSEY EVENT</span></ModeLink><nav aria-label="Odyssey primary">{NAV.map(([href, label]) => <ModeLink key={href} href={href} aria-current={pathname === href ? 'page' : undefined}>{label}</ModeLink>)}</nav><div className={styles.headerActions}><ModeSwitch compact /><ModeLink href={`/play?bot=${selectedId}`} className={styles.outlineButton}>Enter the event</ModeLink></div></header>;
+function Header({ pathname, selectedId, music }: { pathname: string; selectedId: OdysseyBotId; music: ReturnType<typeof useOdysseyMusic> }) {
+  const soundOn = music.playing && !music.muted;
+  const label = music.unavailable ? 'Odyssey music unavailable — retry' : soundOn ? 'Turn Odyssey music off' : 'Turn Odyssey music on';
+  return <header className={styles.header}><ModeLink href="/" className={styles.brand} aria-label="DoppelGamer Odyssey home">DOPPELGAMER<span>THE ODYSSEY EVENT</span></ModeLink><nav aria-label="Odyssey primary">{NAV.map(([href, navLabel]) => <ModeLink key={href} href={href} aria-current={pathname === href ? 'page' : undefined}>{navLabel}</ModeLink>)}</nav><div className={styles.headerActions}><button type="button" className={styles.soundToggle} aria-label={label} aria-pressed={soundOn} title={label} onClick={music.toggle}><span aria-hidden>{soundOn ? '♪' : '♪̸'}</span></button><ModeSwitch compact /><ModeLink href={`/play?bot=${selectedId}`} className={styles.outlineButton}>Enter the event</ModeLink></div></header>;
 }
 
-function Home({ selectedId, onSelect }: { selectedId: OdysseyBotId; onSelect: (id: OdysseyBotId) => void }) {
-  return <><section className={styles.hero}><div className={styles.heroCopy}><p>A new legend begins</p><h1>Doppel<br />Gamer</h1><h2>The Odyssey Event</h2><ModeLink href={`/play?bot=${selectedId}`} className={styles.blueButton}>Begin your Odyssey <span>→</span></ModeLink></div><a href="#odyssey-intro" className={styles.scrollCue}>Scroll to discover <span>⌄</span></a></section><section id="odyssey-intro" className={styles.intro}><div><h2>This is<br />the Odyssey event</h2><p>Step into the arena and play with Odyssey bots.</p><h3>Are you ready<br />for the challenge?</h3></div></section><PageIntro n="01" eyebrow="The challengers" title="Choose your legend" body="Four rivals. Four styles. One epic challenge." /><Bots selectedId={selectedId} onSelect={onSelect} /><PageIntro n="02" eyebrow="Your next chapter" title="Play a scene" /><Scenes /><PageIntro n="03" eyebrow="The hall of heroes" title="Claim your crown" /><Leaderboard compact /></>;
+function Home({ selectedId, onSelect, onBegin }: { selectedId: OdysseyBotId; onSelect: (id: OdysseyBotId) => void; onBegin: () => void }) {
+  return <><section className={styles.hero}><div className={styles.heroCopy}><p>A new legend begins</p><h1>Doppel<br />Gamer</h1><h2>The Odyssey Event</h2><ModeLink href={`/play?bot=${selectedId}`} className={styles.blueButton} onClick={onBegin}>Begin your Odyssey <span>→</span></ModeLink></div><a href="#odyssey-intro" className={styles.scrollCue}>Scroll to discover <span>⌄</span></a></section><section id="odyssey-intro" className={styles.intro}><div><h2>This is<br />the Odyssey event</h2><p>Step into the arena and play with Odyssey bots.</p><h3>Are you ready<br />for the challenge?</h3></div></section><PageIntro n="01" eyebrow="The challengers" title="Choose your legend" body="Four rivals. Four styles. One epic challenge." /><Bots selectedId={selectedId} onSelect={onSelect} /><PageIntro n="02" eyebrow="Your next chapter" title="Play a scene" /><Scenes /><PageIntro n="03" eyebrow="The hall of heroes" title="Claim your crown" /><Leaderboard compact /></>;
 }
 
 function PageIntro({ n, eyebrow, title, body }: { n: string; eyebrow: string; title: string; body?: string }) {
