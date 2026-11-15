@@ -16,7 +16,7 @@ export default function SceneLighting({
       {/* Key light */}
       <directionalLight position={[5, 8, 5]} intensity={2.5} />
       {/* Rim light for silhouette separation on pure-black background */}
-      <directionalLight position={[-6, 4, -6]} intensity={1.4} color={rimColor} />
+      <directionalLight position={[-7, 3, -4]} intensity={2.6} color={rimColor} />
       {/* Low front fill in the character's accent tone */}
       <directionalLight position={[0, 1.5, 6]} intensity={0.6} color={fillColor} />
     </>

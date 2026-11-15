@@ -33,6 +33,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Character showcase viewer (WebGPU hot-swap stage, 5 blockouts, B1-B3) | Nikesh | Done. B1-B3 verified in headless-Chromium GPU QA: real WebGPU backend, initial model ~20ms, 5/5 GLBs cached, clean swaps, zero console errors | `frontend/` | 2026-11-14 |
 | Character showcase: auto-cycle loop + AnimationMixer fallback (B4) | Nikesh | Done. Full 5-model auto-loop verified live (CS2→Smash→Fortnite→FIFA→Halo→CS2), pause freeze + manual override verified, mixer path unit-verified, 0 errors, 0 refetches | `frontend/` | 2026-11-14 |
 | Character showcase: chromatic lighting/HUD sync + GLB gatekeeper | Nikesh | Done. Per-character rim/accent verified live (artist FIFA rig renders through mixer path, 0 errors); `verify-models.mjs`: 5/5 PASS (Idle clip, skins, meshopt, 0.31MB/10MB) | `frontend/` | 2026-11-14 |
+| 3D Character Glitch-Swap Showcase (Nodes A1-A5, B1-B4, C1-C2) | Nikesh | COMPLETE & VERIFIED. Artist KTX2+Meshopt rigs integrated (5/5 gatekeeper PASS, 0.31MB); 5-character live sweep: mixer path, 1.85m framing, chromatic rim/HUD, KTX transcode clean, 0 errors, 0 refetches | `frontend/`, `frontend/scripts/chargen/` | 2026-11-14 |
 | Stand-in bots: built-in CS2-Bot-Improver pro bots used in place of clones until CloneDirector works | Ashirwad | In progress. `donk_v1` and `broky_v1` profiles use the `donk` and `broky` bots; not run in CS2 | `match-service/sample_clones/` | 2026-11-14 |
 | Side-by-side page, stand-in version (two synced panels; replay page content replaces it) | Ashirwad | Not started | Not decided | 2026-11-14 |
 | Lobby page | Tom (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
@@ -693,8 +694,9 @@ of the replay.
   from OpenCS2, and the caster audio.
 - **Profile page.** Heat map of positions per side. Weapons, purchases, route frequencies, reaction
   numbers. An AI-written scouting report. Similarity scores. "Most similar professionals".
-- **Character showcase viewer (`frontend/`).** Five blockout models on a WebGPU canvas with a TSL
-  glitch hot-swap transition. Drop-in point for the 3D artist's rigged AAA models.
+- **Character showcase viewer (`frontend/`).** Five artist-rigged, KTX2-compressed models
+  (built by `scripts/chargen/`) on a WebGPU canvas with a TSL glitch hot-swap transition.
+  Rigs integrated and verified (C2).
   Per-character rim-light/HUD accent sync (`rimColor`/`accentColor`); `scripts/verify-models.mjs`
   gates artist GLB drops (size, Idle clip, skins, meshopt).
 
@@ -965,6 +967,11 @@ demo. A released product would need each player's or team's permission.
 ## 19. Change log
 
 Newest first. One line per change: date, who, what changed.
+
+- 2026-11-14, Nikesh: showcase COMPLETE & VERIFIED (Nodes A1-A5, B1-B4, C1-C2) — integrated the
+  artist's final KTX2+Meshopt rigs (`frontend/public/models/`, built by `scripts/chargen/`) and
+  swept all 5 live: mixer Idle path, head-to-toe framing, chromatic rim/HUD, clean KTX transcode,
+  0 console errors, 0 GLB refetches. Removed proxy backups and macOS duplicate files.
 
 - 2026-11-14, Nikesh: chromatic sync + gatekeeper in `frontend/` — per-character `rimColor`/
   `accentColor` drive the rim/fill lights, active pill, signal bar and locked dot; added

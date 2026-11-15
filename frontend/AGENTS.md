@@ -346,3 +346,15 @@ Drop-in readiness for the 3D artist's rigged AAA models with zero code changes:
 3. **Carousel residency (`AssetManager.ts`):** `releaseModel` never disposes; all 5 decoded
    scenes stay resident, eviction is explicit (`evictModel`/`evictAll` on unmount) or LRU past a
    high-water mark of 8 — no re-fetch/re-upload on the 20-second loop.
+
+## 6. Nodes C1–C2: COMPLETE & VERIFIED (2026-11-14)
+
+Per-character chromatic sync is live and the artist's final rigs are integrated:
+
+- `CharacterConfig.accentColor`/`rimColor` drive the rim + fill lights, active pill, nav border,
+  signal bar, and locked dot; accents snap at the 220ms swap midpoint.
+- `scripts/verify-models.mjs` (`npm run verify:models`) gates every artist drop read-only:
+  5/5 PASS (Idle clip, skins, JOINTS_0, EXT_meshopt_compression, 0.31MB of 10MB budget).
+- Final rigs built by `scripts/chargen/` (Blender: rig, Idle bake, palette materials, KTX
+  etc1s/uastc + meshopt). 5-character headless sweep: all models render through the mixer path
+  with full head-to-toe framing, KTX textures transcode cleanly, zero console errors.
