@@ -8,6 +8,9 @@
   checkout. NPZ caches preserve the upstream round arrays; packaging replaces WDS, not features.
   The trainer restricts decoder work to each target player's last input tick and trains only
   the added adapter. It never updates the pretrained backbone. See `third_party/CSNET_LICENSE`.
+  `map_review.py` copies, in reduced form, the Open3D mesh loading and ray casting of
+  `scripts/training_data/map_loader.py` and the coordinate scale, axis mapping and 64-unit eye
+  height of `scripts/training_data/config.py`; its path checks are new.
 - CS2 Clone Lab, Hudson Pagni, MIT. Pinned revision:
   `2d3f50eeab9d6883abdb58d83f8c9bd1538b194a`,
   <https://github.com/hpagni/cs2-clone-lab>.

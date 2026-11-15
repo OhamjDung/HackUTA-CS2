@@ -79,4 +79,12 @@ The new offline artifact format is `cs2.clone.review.v1`, not a match-service AP
 
 After a complete test-split validation, progress.json now records `validation_failed` or `validated_pass` and deployed=false; a dev-only review cannot overwrite the held-out result. The first experimental adapter failed both held-out identity tests; see results/first-a100.md and GitHub prerelease learned-clones-a100-v1. Passing an offline test would still require manual path and game checks before promotion.
 
+To check a review file against the de_mirage mesh (wall crossing, floor support, speed; long
+stops and native early stops are reported, not failed), install Open3D, NumPy and Matplotlib from
+PyPI and run `python map_review.py /content/review.json --csnet /content/csnet --out-dir data/map-review`.
+It writes `<stem>.check.json` (`cs2.clone.review-check.v1`), `<stem>.check-details.json` (notes,
+measurements and calibration on the real paths) and one top-down figure per case. Thresholds are
+set so all real development paths pass. An automated pass is not an approval: a person must still
+review each path. Results: `results/generated-path-map-review.md`.
+
 For a static XY review figure, install Matplotlib from PyPI if absent, then run `python plot_review.py /content/review.json --out /content/review.png`. This plot has no map/collision geometry. The first A100 export completed all eight development cases; the resulting figure and JSON are attached to the experimental release.
