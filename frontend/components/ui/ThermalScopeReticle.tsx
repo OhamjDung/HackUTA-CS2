@@ -96,11 +96,11 @@ export default function ThermalScopeReticle({ containerRef, active, restPosition
         {/* inner brand marks */}
         <path
           d={`M${c - R + 6} ${c}H${c - R + 20} M${c + R - 20} ${c}H${c + R - 6} M${c} ${c - R + 6}V${c - R + 14} M${c} ${c + R - 14}V${c + R - 6}`}
-          stroke="#FF3B1D"
+          stroke="#E4002B"
           strokeWidth="2"
           strokeLinecap="round"
         />
-        <circle cx={c} cy={c} r="2" fill="#FF3B1D" />
+        <circle cx={c} cy={c} r="2" fill="#E4002B" />
       </svg>
     </div>
   );

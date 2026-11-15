@@ -194,6 +194,7 @@ class RecordingChannel:
         self.personalities = personalities or {}
         self.bot_list: list[dict] = []
         self._seen = 0  # how many sent commands bots() has looked at
+        self.status_text = ""  # what query("status") returns, for tests of the extra-bot cleanup
 
     async def bots(self) -> list[dict]:
         if self.fail_with:
@@ -212,4 +213,4 @@ class RecordingChannel:
 
     async def query(self, command: str, wait_seconds: float = 1.0) -> str:
         await self.send([command])
-        return ""
+        return self.status_text if command == "status" else ""

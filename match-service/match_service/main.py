@@ -24,6 +24,7 @@ from .console import ConsoleChannel, NetconChannel, PluginChannel, RconChannel
 from .core import MatchRecord, Settings, load_clones, now
 from .drivers import describe
 from .generated import ReviewInvalid, ReviewLibrary, ReviewNotFound
+from .puzzle_routes import add_puzzle_routes
 from .models import TEAM_SIZE, Clone, CloneInfo, Event, Match, MatchCreate, MatchPlayer
 from .replay import RouteLibrary
 from .scoring import ScoringUnavailable, score_player
@@ -315,6 +316,8 @@ def create_app(settings: Settings | None = None, channel: ConsoleChannel | None 
             raise HTTPException(404, str(exc))
         except ReviewInvalid as exc:
             raise HTTPException(422, str(exc))
+
+    app.state.puzzles = add_puzzle_routes(app, settings, backend)  # replay puzzles (puzzle_routes.py)
 
     @app.get("/", include_in_schema=False)
     async def root():

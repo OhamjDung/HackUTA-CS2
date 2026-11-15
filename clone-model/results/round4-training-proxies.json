@@ -1,0 +1,38 @@
+{
+  "scope": "round4_training_pool_only_no_dev_no_test_C",
+  "summary": {
+    "donk": {
+      "rounds": 40,
+      "matches": 3,
+      "alive_seconds": 2655.25,
+      "fast_over_150_share": 0.35853497787402316,
+      "still_under_4_share": 0.08125411919781565,
+      "noise_speed_proximity_proxy": 0.07842952640994257,
+      "mean_speed": 124.9927143740093,
+      "mean_turn_deg_per_second": 40.70000313307289,
+      "active_awp_share": 0.0,
+      "sound_fields_complete": true,
+      "sound_proxy_trials": 174,
+      "response_share": 0.3850574712643678,
+      "response_median_seconds": 0.5
+    },
+    "broky": {
+      "rounds": 42,
+      "matches": 4,
+      "alive_seconds": 3148.5,
+      "fast_over_150_share": 0.32817214546609497,
+      "still_under_4_share": 0.18889947594092424,
+      "noise_speed_proximity_proxy": 0.08321422899793553,
+      "mean_speed": 108.93041228851382,
+      "mean_turn_deg_per_second": 30.80629650623018,
+      "active_awp_share": 0.2656026679371129,
+      "sound_fields_complete": true,
+      "sound_proxy_trials": 171,
+      "response_share": 0.36257309941520466,
+      "response_median_seconds": 0.5
+    }
+  },
+  "interpretation": "Observational proxies, not actual hearing or causal responses. Radii 1100/2000 and speed150 are historical hypotheses. No crouch/smoke/FOV verification; no sub-250ms claims. True enemy positions are offline labels only; no policy or runtime input change.",
+  "source_archive_sha256": "0e46914cbca514efbb5727b64f9e753116da4afaa98f764be66d15d97cb8ad25",
+  "measured_rounds": 82
+}

@@ -1,0 +1,24 @@
+# Round4 first development ablation (2026-11-15)
+
+Implementation: round4.py, reusing imagine.py/CS-NET, source 23292e9. GPU: existing Colab NVIDIA A100-SXM4-40GB. Two independent processes run sequentially (donk then broky), each from the frozen generic base, with identical 4x80 imagined moments, eight futures per moment, 100 optimizer steps per iteration and 32 fixed dev-A selection moments. Batch6, rank16, lr0.0003, KL0.1. Comparing a changed objective from the same base isolates that change; this is not a warm-start of the previously passing donk adapter.
+
+The human-limit gate stays unchanged. Rank futures by path ADE/68 + circular view error/45 + 2*(step-distance MAE/68 + expert fast-share gap + expert still-share gap) + expert speed/proximity noise-proxy gap. Keep up to two futures whose mean path separation is at least8 units. Expert targets are each player's own future, not average-pro speed. Fast is >150u/s, still is <4u/s. Proximity proxy is fast motion within1100 units of a live enemy's context position; it is an offline historical hypothesis, not true CS2 audibility. Enemy truth is evaluator-only; no future enemy trajectory is read by this judge. The original base's full-state policy observations are unchanged—there is no claim of causal fog-of-war or learned hearing.
+
+Select a checkpoint only when dev human-limit violation share does not exceed base and joint score improves: actual path ADE +68*(turn-distribution W1/45 +2*step-distance W1/68). Physical path ADE and selection score remain separate report fields. The score can trade components; report every component and do not claim each improved simply because the joint score did.
+
+Existing whole-match final tests, consumed dev-B and test-C are not scored. The original modulo6==3 training-round exclusion remains. Every result is DEVELOPMENT ONLY; any retained checkpoint is unvalidated. New untouched matches are required for a new final claim. Do not promote these into a live clone or compare their dev scores with the old test-C score as if they shared a split.
+
+Scope completed by this ablation: view direction, player-specific movement tempo, an offline noise-exposure proxy and multi-future diversity in expert iteration, including broky. NOT implemented by this run: causal observation masking, actual hearing inference, utility lineup generation, whole-round replanning, jump/weapon-specific guarantees, live controller handoff or self-kill fixes. Those are separate stages in ROUND4_GAME_SENSE.md and the continuation handoff. Existing actor sound features are retained, not a new validated sound model.
+
+CPU suite before launch:52 passed,5 optional tests skipped; original imagination wiring and new judge/player-selection cases exercised. Broky real-data GPU smoke:2 imagined moments,4 kept futures, optimizer updates completed. Initial donk full iteration improved path error133.2->128.8 but worsened turns/human-limit violations and was rejected. Full run outcomes must be recorded after both processes finish; no final success is claimed here.
+
+Training-only observational reference: gamesense_audit.py uses exactly eligible training rounds, excludes dev and modulo6==3, and rejects known holdouts/ambiguous account. It measured40 donk and42 broky rounds. The full per-round artifact stays outside Git. Summary/provenance: results/round4-training-proxies.json. Its labels use enemy truth offline; 4Hz resolution cannot establish sub-250ms reactions. Proximity, turning/quieter response and event coverage are explicit proxies with confounders, not causal or skill scores. Missing sound fields are marked unknown.
+
+Tom diagnosis prompt: handoffs/tom-self-kill-diagnosis.md. It requests recorded deaths and controller/grenade timelines before a fix; do not assume suicide is caused by training. Do not send record via netcon, restart his game without permission, or install the proprietary bot-base launcher as an agent.
+
+Completed outcome: both players finished four iterations/400 updates on A100-40GB. Donk selected4
+(18.2min), broky selected1 (18.0min total experiment). Both improve path/tempo/limits and regress
+turn-distribution fidelity. Development candidates only; neither promoted or final-tested. Full
+metrics, artifact hashes, reproduction and next-stage priorities: results/round4-development.md.
+Final local suite:60 passed,5 optional Open3D skips. Executed source and saved adapter metadata/tensors
+were verified after download; no gameplay fix is inferred from optimizer completion.

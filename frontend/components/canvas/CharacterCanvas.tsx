@@ -80,6 +80,27 @@ function RenderDriver() {
   return null;
 }
 
+/** Subtle camera drift toward the cursor: gives the stage depth without moving the layout. */
+function CameraParallax() {
+  const cur = useRef({ x: 0, y: 0 });
+  const reduced = useRef(false);
+  useEffect(() => {
+    reduced.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }, []);
+  useFrame((state, delta) => {
+    if (reduced.current) return;
+    const tx = stageInput.pointerSeen ? stageInput.pointerX : 0;
+    const ty = stageInput.pointerSeen ? stageInput.pointerY : 0;
+    const k = 1 - Math.exp(-Math.min(delta, 0.1) * 2.5);
+    cur.current.x += (tx - cur.current.x) * k;
+    cur.current.y += (ty - cur.current.y) * k;
+    const [px, py, pz] = STAGE_CAMERA.position;
+    state.camera.position.set(px - cur.current.x * 0.14, py - cur.current.y * 0.07, pz);
+    state.camera.lookAt(STAGE_CAMERA.target[0], STAGE_CAMERA.target[1], STAGE_CAMERA.target[2]);
+  });
+  return null;
+}
+
 const CAMERA_DISTANCE = new THREE.Vector3(...STAGE_CAMERA.position).distanceTo(
   new THREE.Vector3(...STAGE_CAMERA.target),
 );
@@ -98,6 +119,7 @@ function StageRig({ children }: { children: React.ReactNode }) {
     const halfH = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)) * CAMERA_DISTANCE;
     const halfW = halfH * (state.size.width / Math.max(1, state.size.height));
     g.position.x = (stageInput.anchorX * 2 - 1) * halfW;
+    g.position.y = stageInput.anchorLift;
     g.scale.setScalar(stageInput.anchorScale);
   });
 
@@ -140,7 +162,6 @@ export default function CharacterCanvas({ activeId, onBackendReady }: CharacterC
   return (
     <div className="absolute inset-0" aria-hidden>
       <Canvas
-        flat
         // Object form: R3F assigns it onto gl.shadowMap (PCFSoft is removed in r187's WebGPURenderer).
         shadows={{ enabled: true, type: THREE.PCFShadowMap }}
         gl={async (props) => {
@@ -166,6 +187,11 @@ export default function CharacterCanvas({ activeId, onBackendReady }: CharacterC
         onCreated={(state) => {
           // The async gl factory resolves after R3F's initial size pass; apply
           // the size explicitly (later resizes flow through the subscription).
+          // Khronos PBR Neutral tone mapping: keeps albedo colours faithful (AgX
+          // greyed the costumes) while rolling off the hot rims instead of clipping.
+          // The old `flat` path had no tone mapping at all.
+          state.gl.toneMapping = THREE.NeutralToneMapping;
+          state.gl.toneMappingExposure = 1.0;
           state.gl.setPixelRatio(state.viewport.dpr);
           state.gl.setSize(state.size.width, state.size.height, true);
           // Studio IBL: RoomEnvironment reflections give PBR surfaces specular
@@ -176,7 +202,8 @@ export default function CharacterCanvas({ activeId, onBackendReady }: CharacterC
             // ShaderMaterial, which WebGPURenderer cannot compile.
             const pmrem = new PMREMGenerator(state.gl as unknown as WebGPURenderer);
             state.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-            (state.scene as THREE.Scene & { environmentIntensity?: number }).environmentIntensity = 1.0;
+            // Low IBL: the coloured lights carry the look; the room only adds specular shape.
+            (state.scene as THREE.Scene & { environmentIntensity?: number }).environmentIntensity = 0.45;
             pmrem.dispose();
           } catch (err) {
             console.warn('[viewer] PMREM environment skipped:', err);
@@ -189,9 +216,10 @@ export default function CharacterCanvas({ activeId, onBackendReady }: CharacterC
         }}
       >
         <StageRig>
-          <SceneLighting rimColor={activeConfig.rimColor} />
+          <SceneLighting rimColor={activeConfig.rimColor} accentColor={activeConfig.accentColor} />
           <CharacterModel key={activeConfig.id} config={activeConfig} />
         </StageRig>
+        <CameraParallax />
         <RenderDriver />
       </Canvas>
     </div>

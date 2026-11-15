@@ -298,7 +298,7 @@ def run(args):
     base_summary = summary(base_dev, real_dev)
     print("SELECT", json.dumps(dict(iteration=0, model="base", **base_summary)), flush=True)
     iterations = [dict(iteration=0, **base_summary, kept=0, tried=0)]
-    best, best_score = 0, base_summary["mean_ade"]
+    best, best_score = 0, base_summary.get("selection_score", base_summary["mean_ade"])
     torch.save({"lora": [lora.state_dict() for lora in loras], "iteration": 0}, args.out / "best_lora.pt")
     kept_all = []
     for it in range(1, args.iterations + 1):
@@ -316,16 +316,17 @@ def run(args):
         run_dev, _ = free_run(recorder, args.cache, dev_a, args.samples, seed=11)
         s = summary(run_dev, real_dev)
         ok = s["violation_share"] <= base_summary["violation_share"]
-        print("SELECT", json.dumps(dict(iteration=it, model="donk", limits_ok=ok, **s)), flush=True)
+        print("SELECT", json.dumps(dict(iteration=it, model=donk.PLAYER, limits_ok=ok, **s)), flush=True)
         iterations.append(dict(iteration=it, **s, limits_ok=ok, kept=len(kept), tried=tried, train=log,
                                kept_mean_ade=float(np.mean([c["ade"] for c in kept])) if kept else None))
-        if ok and s["mean_ade"] < best_score:
-            best, best_score = it, s["mean_ade"]
+        score = s.get("selection_score", s["mean_ade"])
+        if ok and score < best_score:
+            best, best_score = it, score
             torch.save({"lora": [lora.state_dict() for lora in loras], "iteration": it}, args.out / "best_lora.pt")
         write_json(args.out / "imagination.json", dict(iterations=iterations, best_iteration=best,
                    settings={k: str(v) for k, v in vars(args).items()}))
 
-    record = dict(experiment="donk model, self-trained on imagined play (clone-model/imagine.py)",
+    record = dict(player=donk.PLAYER, experiment="player model, self-trained on imagined play (clone-model/imagine.py)",
                   csnet_revision=CSNET_REVISION, base_checkpoint_sha256=sha256(args.checkpoint),
                   manifest_sha256=sha256(args.cache / "manifest.json"), iterations=iterations, best_iteration=best,
                   settings={k: str(v) for k, v in vars(args).items()}, test_C_windows=len(test),
@@ -339,6 +340,12 @@ def run(args):
     saved = torch.load(args.out / "best_lora.pt", map_location="cpu")
     for lora, state in zip(loras, saved["lora"]):
         lora.load_state_dict(state)
+    if getattr(args, "dev_only", False):
+        torch.save({"lora": saved["lora"], "iteration": best, "rank": args.rank, "player": donk.PLAYER}, args.out / "imagined_lora.pt")
+        record.update(player=donk.PLAYER, test="not run: development experiment; consumed final sets remain untouched", deployed=False)
+        write_json(args.out / "imagination.json", record)
+        print("DEVELOPMENT_COMPLETE player=" + donk.PLAYER, flush=True)
+        return
     donk.set_lora(loras, False)
     base_test, real_test = free_run(recorder, args.cache, test_moments, args.samples, seed=7)
     donk.set_lora(loras, True)

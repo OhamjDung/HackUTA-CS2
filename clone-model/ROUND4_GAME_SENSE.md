@@ -2,8 +2,10 @@
 
 # Round 4 plan: game sense for the donk and broky clones
 
-Written 2026-11-15 for Arjun, after a tester's feedback on the clone bots. Nothing in this plan has been
-built or run yet. The research behind it, with sources, is `clone-model/research/cs2-game-sense.md`.
+Written 2026-11-15 for Arjun, after a tester's feedback on the clone bots. This was the interrupted
+design draft. Current implementation and execution scope are recorded in `ROUND4_RUN_PROTOCOL.md`;
+do not interpret remaining proposals below as completed features. The research, with inherited
+citations and review caveats, is `clone-model/research/cs2-game-sense.md`.
 
 ## 1. The feedback, and what causes each problem
 
@@ -19,7 +21,8 @@ The tester said, in short:
 
 The bots testers play today are the **rule-based clones** (`donk_v1`, `broky_v1`, `donkL`, `brokyL`). They
 replay a recorded pro route, then hand over to the game's own bot. The learned model is not in the game
-yet: nothing converts its generated paths into bot routes (SPEC 8.12). So the causes are in the clone
+yet. Correction: `generated.py` already converts candidate paths for review; this does not establish
+safe live deployment. The proposed causes below were read in the clone
 plugin, read from `clone-director/CloneDirectorPlugin.cs` and `clone-director/Core/Profiles.cs`:
 
 | Problem | Cause in the code (read, not run) |
@@ -38,11 +41,11 @@ demo data (positions, speed, view angles, buttons, shots, grenades, damage, deat
 G9. Each is computed the same way for real pro demos, for the bots' GOTV recordings, and for the learned
 model's generated play.
 
-Notation: "audible" uses the game's own bot hearing rules (ReGameDLL_CS `bot_util.cpp`, read by the
-research): running footsteps are heard within **1100 units** and only above **150 units/s** horizontal
-speed (crouching never makes a footstep event); normal gunfire within **2000 units**; AWP shots and HE
-explosions everywhere. Valve has not published CS2's own values; community guides quote about 1100. We use
-these as the starting definition and check them against CS2 in step 0.
+Notation: original "audible" labels below are provisional historical proxies from ReGameDLL_CS
+`bot_util.cpp` (CS1.6/Condition Zero): footsteps at **1100 units**, speed above **150 units/s**,
+and normal gunfire at **2000 units**. They are not verified CS2 audibility or listener perception.
+The first ablation measures only speed/proximity exposure, with enemy truth restricted to the offline
+judge. Actual CS2 hearing, crouch, occlusion and first-contact labels need separate calibration.
 
 | # | Behaviour | Measure from demo data | Starting threshold (a proposal; calibrate on pro demos in step 0) |
 |---|---|---|---|
@@ -68,7 +71,8 @@ The user's rule: **quirks hold priority over shared pro technique.** This rule m
 - A measure on which the player is **distinctive** (|z| at least 1 against the population, as in
   `quirks.py`) is held tightly to the player's value.
 - A measure on which he is ordinary only has to stay **inside the pro population's range**.
-- When a game-sense habit and a quirk disagree, the quirk wins.
+- Within human-limit and safety gates, player-specific quirks take priority over average-pro targets.
+  Do not preserve self-harm or impossible motion as a quirk.
 
 Why this matters: donk's measured quirks include running more and standing still less than other pros
 (`full_speed_share` z +1.1, `mean_speed` z +1.5, `still_share` z -1.9). So "quieter" must not mean "walk
@@ -101,18 +105,19 @@ by measured ranges.
 
 ### Step 1: rule-based clones react and vary (C#, `clone-director`)
 
-1. **Stop the replay on information** (problem 2). Besides damage and nearby fire, stop when an enemy
-   becomes **visible** to the bot, or **audible** by the hearing rules above (enemy running within 1100
-   units, firing within 2000, any AWP shot or HE). After the stop, the game's own bot has control, and it
-   already investigates noise (it remembers one noise for 3 s and goes to look with a chance of
-   1 - distance/2000; research section on bot hearing). Keep `QuietUntil` so quirks do not fire during it.
+1. **Hand over on information** (problem 2). Besides damage and nearby fire, use validated bot-visible
+   or listener-audible information, never global hidden enemy positions as a runtime trigger. Historical
+   hearing rules suggest a design; they do not establish installed CS2 behavior. Verify native-control
+   recovery in a private match. First diagnose grenade/button ownership with Tom: blindly stopping a
+   replay while holding a primed grenade can itself create a self-kill. Keep `QuietUntil` so quirks do
+   not fire during it.
 2. **Vary the plan** (problems 1 and 4). In `Choices.Pick`: draw among *all* routes of the chosen
    destination that start from the bot's spawn area, not only the nearest one; and lower the weight of a
    destination used in the last two rounds, so that the bot's route entropy (G7) matches the player's.
    Utility varies with it, because it comes with the route.
-3. **Walk when an enemy could hear** (problem 5). After hand-over, while no enemy has been seen and the
-   bot is within 1100 units of a likely enemy area, hold walk, at the rate the player himself walks there
-   (G1, from step 0). donk will walk less than broky, as the quirks say.
+3. **Condition quiet movement on available information** (problem 5). After hand-over, use last-seen,
+   validated sound or a training-derived area prior, not true hidden enemy distance. Match each player's
+   own context-specific pace. A global walking order cannot be inferred from the old quirk summary.
 4. **Look at the angles** (problem 3). After hand-over, when moving towards a common enemy spot (G3
    clusters) that is not visible, aim at it. This uses the bot controller's existing aim injection.
 5. **Fix the self-kills**, once Tom's diagnosis names the cause. The leading suspect from the code: a replay
@@ -148,7 +153,8 @@ All of donk's held-back data is used: the two final-test matches (round 2), dev-
 test needs **new matches**: download further Mirage demos of donk and of broky (OpenCS2 or HLTV), keep
 them out of everything, and fix the pass rule before the run. The chess research (Maia) warns that a model
 per player gained little until thousands of games per player; we have about 47 rounds each, so more data
-is the most likely single gain. broky was benched by FaZe in June 2026; his 2026 matches may show weak form.
+is a plausible gain to test. Choose additional matches by verified account, map, side and weapon-role
+coverage; do not infer quality from an unverified roster or form claim.
 
 ### Step 4: pass rules, fixed before the run
 
@@ -167,5 +173,5 @@ play, until the converter exists), on the new matches:
 - CS2's real footstep range and silent speed (step 0, point 3).
 - Pro values for G1, G2, G3, G5, G7, G8 (step 0).
 - Whether fog of war helps or hurts the learned model (step 2, point 2).
-- How the learned model gets into the game: the converter from generated paths to bot routes is still not
-  built.
+- Safe promotion of generated paths: reuse the existing converter and map review, then verify control
+  handoff and player-specific likeness in private CS2. Conversion alone is not live validation.

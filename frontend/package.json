@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test:mode": "node --experimental-strip-types --test tests/mode-contract.test.ts",
     "gen-models": "node scripts/gen-blockout-models.mjs",
     "verify:models": "node scripts/verify-models.mjs"
   },

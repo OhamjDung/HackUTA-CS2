@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
-import { INITIAL_CHARACTER_ID, CHARACTER_MAP, TRANSCODER_JS, TRANSCODER_WASM } from '@/lib/constants';
+import Providers from './providers';
+import { resolveBrandAssets } from '@/lib/brandAssets';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -12,9 +14,16 @@ const inter = Inter({
 
 const mono = JetBrains_Mono({
   subsets: ['latin'],
-  weight: ['500', '600'],
+  weight: ['500', '600', '700'],
   variable: '--font-mono',
   display: 'swap',
+});
+
+/** DSEG14 Classic (SIL OFL 1.1, see app/fonts/DSEG-LICENSE.txt): 14-segment LED glyphs. */
+const led = localFont({
+  src: './fonts/DSEG14Classic-Regular.woff2',
+  variable: '--font-led',
+  display: 'block',
 });
 
 export const metadata: Metadata = {
@@ -24,22 +33,20 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#000000',
+  themeColor: '#0c0c0e',
   colorScheme: 'dark',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const initialModelUrl = CHARACTER_MAP[INITIAL_CHARACTER_ID].url;
+  // Resolved per request on the server so optional assets (FaZe mark, portraits,
+  // profile photo) only render when the file actually exists — no 404s.
+  const brand = resolveBrandAssets();
 
   return (
-    <html lang="en" className={`${inter.variable} ${mono.variable}`}>
-      <head>
-        {/* Preload Basis transcoder + Model 1 binary for sub-second first frame. */}
-        <link rel="preload" href={TRANSCODER_WASM} as="fetch" crossOrigin="anonymous" />
-        <link rel="preload" href={TRANSCODER_JS} as="fetch" crossOrigin="anonymous" />
-        <link rel="preload" href={initialModelUrl} as="fetch" crossOrigin="anonymous" />
-      </head>
-      <body className="bg-studio font-sans text-ink antialiased">{children}</body>
+    <html lang="en" className={`${inter.variable} ${mono.variable} ${led.variable}`}>
+      <body className="min-h-screen font-sans antialiased">
+        <Providers brand={brand}>{children}</Providers>
+      </body>
     </html>
   );
 }

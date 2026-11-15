@@ -17,6 +17,7 @@ Who plays each clone (CS2_BOTS):
 
 import asyncio
 import logging
+import re
 import time
 from collections import Counter
 from collections.abc import Callable
@@ -36,6 +37,11 @@ log = logging.getLogger("match_service.cs2")
 START_NAME = {"CT": "Alpha", "T": "Bravo"}
 JOINTEAM = {"CT": 3, "T": 2}  # jointeam 1 = spectator
 GAME_MODE = {"competitive": 1, "wingman": 2}  # with game_type 0
+
+
+# Bots in `status` output have no network channel: `   1 [NoChan]    0    0     active      0 'donk'`.
+BOT_LINE = re.compile(r"^[ \t]*\d+[ \t]+\[NoChan\][^\n']*'([^']+)'", re.M)
+SAFE_BOT_NAME = re.compile(r"^[A-Za-z0-9_.-]{1,32}$")
 
 
 def map_name(gsi: dict) -> str | None:
@@ -70,6 +76,13 @@ class Cs2Backend:
 
     def busy(self) -> bool:
         return self.current is not None and self.current.active
+
+    async def plugin_command(self, command: str) -> str:
+        """One CloneDirector command through the plugin channel (used to start a replay puzzle)."""
+        if self.clone_ch is self.ch and self.s.cs2_console != "plugin":
+            raise RuntimeError("CloneDirector only accepts commands through the MatchBridge plugin. "
+                               "Start the service with  start-cs2.ps1 -Bots clone")
+        return await self.clone_ch.query(command, 1.0)
 
     def validate(self, body: MatchCreate, clones: dict[str, Clone], others: list[MatchRecord]) -> list[str]:
         errors = []
@@ -249,6 +262,8 @@ class Cs2Backend:
         if self.s.cs2_bots == "clone" and (error := await self._add_clones(m)):
             return await self._fail(record, error)
 
+        await self._settle_bots()
+
         m.server = Server(ip=self.s.server_ip, port=self.s.base_port)
         m.join_link = f"steam://connect/{self.s.server_ip}:{self.s.base_port}"
         m.status = "ready"
@@ -268,6 +283,38 @@ class Cs2Backend:
         await asyncio.sleep(self.s.restart_seconds)
         self.started = True
         # From here, game state updates (handle_gsi) move the match to live, count rounds, and end it.
+
+    async def _settle_bots(self) -> None:
+        """Remove the bots the bot base adds on its own, so a match has exactly its clones.
+
+        The bot base keeps a bot quota (2 after any bot is added). With one clone in the match, as when a
+        person plays against a clone, it fills the second place with a random bot. With two clones the
+        quota is already met, which is why bot-vs-bot never showed it. `bot_quota 0` would kick every bot,
+        and a smaller quota kicks a random one (seen on Tom's PC), so: wait until every clone bot shows in
+        `status`, kick the others by name, and set the quota to the number of clones in the same batch.
+        Does nothing, and kicks nothing, if a clone bot is missing or a name looks unsafe.
+        """
+        expected = [name for name in self.bot_names.values() if name]
+        if not expected:
+            return
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + self.s.cs2_settle_seconds
+        try:
+            while True:
+                names = BOT_LINE.findall(await self.ch.query("status", wait_seconds=1.5))
+                if all(name in names for name in expected):
+                    break
+                if loop.time() >= deadline:
+                    log.info("clone bots not all in `status`; leaving the bot quota alone")
+                    return
+                await asyncio.sleep(0.5)
+            extra = [name for name in names if name not in expected]
+            if not all(SAFE_BOT_NAME.match(name) for name in extra):
+                log.warning("a bot has an unusual name; leaving the bot quota alone: %r", extra)
+                return
+            await self.ch.send([f'bot_kick "{name}"' for name in extra] + [f"bot_quota {len(expected)}"])
+        except (OSError, asyncio.TimeoutError, UnsafeCommand) as exc:
+            log.warning("could not remove extra bots: %s", exc)
 
     async def _add_clones(self, m) -> str | None:
         """Send clone_add for each clone, then wait until each one's bot is on its team.
