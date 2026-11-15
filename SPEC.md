@@ -45,7 +45,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | broky clone (`broky_v1`): data-built profile and routes | Arjun (Codex) | Done. Built from 4 matches, 79 rounds/routes; held back 22 rounds. Files load in C#; not run in game. | `clones/broky_v1.json`, `clones/README.md` | 2026-11-14 |
 | Route converter: recording data to the bot playback format | Arjun | In progress. Files are written. **Not tested in the game.** Several field values are guesses (`HANDOFF.md` section 5.1). | `clone-pipeline/clone_pipeline/recording.py` | 2026-11-14 |
 | CloneDirector plugin: applies a clone to a bot inside CS2 | Arjun (Codex) | In progress. Compiles; 26 C# tests pass, including all 159 donk/broky files. Not run in CS2. | `clone-director/` | 2026-11-14 |
-| Generating model: CS-NET v4 plus player identity | Unassigned | Not started | `clone-model/` (proposed) | 2026-11-14 |
+| Generating model: CS-NET v4 plus player identity | Arjun (Codex) | In progress. Preparing player-aware training and held-out identity tests. | `clone-model/` | 2026-11-14 |
 | Replay page: real player next to clone | Unassigned | Not started | `replay/` (proposed) | 2026-11-14 |
 | Clone profile page | Unassigned | Not started | Not decided | 2026-11-14 |
 | Caster voice (Gemini script, ElevenLabs audio) | Unassigned | Not started | Not decided | 2026-11-14 |
@@ -549,8 +549,28 @@ order of the players on purpose, so the network cannot learn any one player's st
 ### 8.4 Training plan (Colab Pro)
 
 **Stage A, required.** Freeze the whole original network. Train only the identity vectors and the
-scale-and-shift layer, on the training games of donk and broky. Few numbers are trained, so the run
-is short and cannot badly overfit.
+scale-and-shift layer, on the training games of donk and broky. A small adapter reduces compute but
+can still overfit. Reserve whole development rounds from the training matches for checkpoint
+selection and early stopping; do not tune on the held-back matches.
+
+**Implementation in progress (Arjun/Codex, 2026-11-14):** `clone-model/` pins CS-NET revision
+`268dd2193c8a3d6e330c07dde5a851196c94eeaa` and adapts CS2 Clone Lab's MIT-licensed identity/FiLM
+code from `2d3f50eeab9d6883abdb58d83f8c9bd1538b194a`. Seven CPU tests pass, including a real small
+CS-NET backbone forward/backward check, exact zero-initial output change, frozen backbone,
+unknown identity remaining baseline after bias changes, and shuffled target/identity alignment.
+
+The implementation uses upstream parser/filter/inventory/round-feature/raycast/window modules;
+round arrays are cached as NPZ instead of WDS. Each batch trains only the named target player's
+last-history-tick decoder prediction, with all ten players as context. Identifiers come from the
+parser's Steam-ID metadata. Only the identity table and decoder-conditioning FiLM are optimized.
+The original model and output token format remain unchanged. Adapter checkpoints include the
+registry, source revision, and base-weight/data-manifest hashes.
+
+Colab notebook setup and raw downloads ran on an L4. At Arjun's request, G4 was selected for
+optimization, but Colab reported it unavailable and allocated an **A100-SXM4-80GB** instead.
+The original L4 parsing session is being retained until prepared matches are transferred.
+Optimizer progress and final validation have not yet been established at this point; do not
+describe downloaded weights or parsed matches as learned player identities.
 
 **Stage B, only if Stage A works and time remains.** Add small trainable layers
 (`LoRA`, also in `sim/identity.py`) to the generating part. Train on about 30 Mirage games, with an
@@ -588,8 +608,12 @@ The model does not yet run during a match.
 
 ### 8.6 The model's proof: the identity swap test
 
-Run on each player's held-back game, with CS-NET's `scripts/evaluate_pretrain.py`. It reports the
-average distance between the generated path and the real path.
+Run `clone-model/validate.py` on each player's held-back game. It uses CS-NET's free-running
+`PredictionEngine.predict_at_tick_player_sampled` (one deterministic greedy sample) and the path
+error measures used by `scripts/evaluate_pretrain.py`. It additionally extends early-stopped
+predictions with their final position so the full true horizon is scored. Future target positions
+and angles are not supplied during generation. Report endpoint, speed, and pause-rate errors
+alongside average path error. Teacher-forced development loss is not an identity-swap result.
 
 | Rounds from | Identity vector used | Expected |
 |---|---|---|
@@ -996,6 +1020,8 @@ Newest first. One line per change: date, who, what changed.
   it's frontend-local design notes, not the shared rules file. Root docs (`AGENTS.md`, `CLAUDE.md`,
   `HANDOFF.md`, `SPEC.md`) are untouched and stay tracked/pushed per section 1/2 above, per the
   user's explicit confirmation.
+- 2026-11-14, Arjun (Codex): added the Stage A learned-clone trainer and free-running identity-swap evaluator from pinned CS-NET/CS2 Clone Lab starting points; seven CPU tests pass. Colab pretrained-weight setup and ten match downloads ran; match parsing is underway. Requested G4 was unavailable; A100-SXM4-80GB was allocated for training. No learned-identity success is claimed yet.
+
 - 2026-11-14, Tom (with Claude): added `CLONE_AUDIT.md`, a file-level audit of both clones against
   the held-back matches and of the MVP state; recorded its result in section 3.
 - 2026-11-14, Ashirwad: match service clone mode (`CS2_BOTS=clone`): `clone_add` to CloneDirector

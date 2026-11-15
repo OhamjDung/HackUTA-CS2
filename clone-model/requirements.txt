@@ -1,0 +1,11 @@
+torch>=2.4
+numpy>=1.26
+PyYAML>=6
+webdataset>=0.2
+zstandard>=0.22
+open3d>=0.19
+demoparser2>=0.40
+pandas>=2.2
+tqdm>=4.66
+huggingface_hub>=0.30
+pytest>=8
