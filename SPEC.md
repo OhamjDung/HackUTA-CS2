@@ -48,8 +48,8 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Route converter: recording data to the bot playback format | Arjun | In progress. Files are written. **Not tested in the game.** Several field values are guesses (`HANDOFF.md` section 5.1). | `clone-pipeline/clone_pipeline/recording.py` | 2026-11-14 |
 | CloneDirector plugin: applies a clone to a bot inside CS2 | Arjun (Codex) | In progress. Compiles; 26 C# tests pass, including all 159 donk/broky files. Not run in CS2. | `clone-director/` | 2026-11-14 |
 | Generating model: CS-NET v4 plus player identity | Arjun (Codex) | In progress. First A100 experiment trained 600 updates, selected step 400; both held-out identity tests failed. Experimental checkpoints/results preserved; review/export work next. | `clone-model/` | 2026-11-14 |
-| Offline weapon-role and habit audit handoff | Arjun's friend (handoff prepared) | Not started. CPU-only audit/fix handoff ready; recipient must remove consumed handoff docs on task branch after reading. | `handoffs/friend/01-HABIT-AUDIT-AND-FIX.md` | 2026-11-14 |
-| Independent mock replay QA handoff | Arjun's friend (optional second task) | Not started. Existing Ashirwad replay implementation remains with its owner; QA/report only. | `handoffs/friend/02-MOCK-REPLAY-QA.md` | 2026-11-14 |
+| Offline weapon-role and habit audit | Ashirwad (Codex) | In progress. Independent build-data audit and narrow pipeline correction; candidate bundles only, no playable-clone promotion. | `tools/habit-audit/`, `clone-pipeline/` | 2026-11-14 |
+| Independent mock replay QA | Ashirwad (Codex) | In progress. Separate task branch for mock-only browser/API checks and reproducible defect report; implementation unchanged. | `tools/replay-qa/` | 2026-11-14 |
 | Replay page: real player next to clone | Unassigned | In progress (demo version by Ashirwad: 2D map from positions, no video, no generated path) | `match-service/demo/replay.html` | 2026-11-14 |
 | Clone profile page | Unassigned | Not started | Not decided | 2026-11-14 |
 | Caster voice (Gemini script, ElevenLabs audio) | Unassigned | Not started | Not decided | 2026-11-14 |
@@ -1079,6 +1079,8 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-14, Ashirwad (Codex): read and consumed Arjun's friend handoff package, removed only its temporary directory, and claimed the CPU habit audit/correction and independent mock replay QA. Instructions preserved outside the checkout.
 
 - 2026-11-14, Arjun (Codex): preserved and reported the first completed A100 learned-clone experiment (600 updates, selected 400); both held-out identity tests failed, so no promotion. Published experimental adapter/metrics artifacts and a syntax-checked reproduction notebook. Added Arjun's explicit recipient cleanup instructions to the temporary friend handoffs.
 
