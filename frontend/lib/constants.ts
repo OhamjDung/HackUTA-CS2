@@ -79,7 +79,7 @@ export const SCOPE_RADIUS_PX = 92;
 // ---------------------------------------------------------------------------
 
 export const STUDIO_URL = '/studio';
-export const DEMO_URL = '#';
+export const DEMO_URL = '/play';
 
 export const CHARACTERS: CharacterConfig[] = [
   {

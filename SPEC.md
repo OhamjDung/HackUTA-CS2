@@ -43,6 +43,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | In-game similarity score: a bot's rounds in CS2 against the real player's held-back match (section 10.2) | Ashirwad | In progress. Scorer, map-area lookup and both held-back references written and tested; served as `GET /matches/{id}/score` and shown on the proof page (run against the mock in a browser); no real CS2 trace scored yet | `clone-pipeline/clone_pipeline/ingame.py`, `clone-pipeline/references/`, `match-service/match_service/scoring.py` | 2026-11-14 |
 | Side-by-side page, stand-in version (two synced panels; replay page content replaces it) | Ashirwad (live check by Codex) | In progress. Both live map panels drew bot positions from CS2. Replay played the donk stand-in and a recorded pro donk opening on one clock. The event list showed the service's halftime scoring error. | `match-service/demo/`, `match-service/match_service/replay.py` | 2026-11-14 |
 | Demo pages wired to the real CS2 bots, with a seam for learned models | Tom (with Claude) | Done for stand-in bots. With `start-cs2.ps1 -Open`, every demo page was loaded in a browser against a real CS2 match (donk vs broky, 9-4 in 13 rounds, ended by itself) and the Play page started a match with the player on CT. `GET /clones` reports each clone's driver and whether it is playable; `CS2_CLONE_ROUTES=generated` is the hook for a trained model's routes. CloneDirector and generated routes not run in CS2 | `match-service/match_service/drivers.py`, `match-service/demo/`, `match-service/start-cs2.ps1` | 2026-11-14 |
+| Normal frontend match controls | Codex (for user) | Implemented; typecheck and four mode tests pass. Browser and real CS2 match not checked. | `frontend/components/play/MatchControls.tsx`, `frontend/app/play/` | 2026-11-15 |
 | Lobby page | Tom (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | Match page | Nikesh (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | CS2 with the bot base installed on the demo laptop | Tom | Done. CS2-Bot-Improver v1.4.9 runs in Bot Mode on Tom's PC. A donk-vs-broky stand-in match on Mirage plays and its score counts through `/gsi`. The bot base's `!record`/`!replay` replays a recorded walk, and a converted donk route file loads and moves a bot; whether it runs the right route is not confirmed. CloneDirector is not installed there yet. | Tom's PC (the demo machine) | 2026-11-14 |
@@ -455,6 +456,7 @@ One install of CS2-Bot-Improver gives the first four rows.
 | Independent mock replay QA | Existing match-service tests/FastAPI TestClient and pytest; Playwright (Apache-2.0) drives the existing pages. New task-specific synthetic fixtures and report, no second viewer |
 | Path to key presses (after the hackathon) | cs2-movesim |
 | Match control API | This repository's `match-service/` |
+| Normal frontend match controls | Existing `match-service/demo/watch.html` and `play.html` (project code; no separate license stated); React UI uses the same match-service API |
 | Match service: events from the game | CS2's Game State Integration (Valve). Field names from the [CounterStrike2GSI](https://github.com/antonpup/CounterStrike2GSI) README; read only, no code copied |
 | Match service: commands to the game | CS2's network console (`-netconport`). Idea from [csctl](https://github.com/403-Fruit/csctl) (CS:GO); read only. The client is written from zero: about 40 lines, no CS2 client found |
 | Generated-path map check | CS-NET v4's `scripts/training_data/map_loader.py` (Open3D ray casting) and `config.py` (scale, axes, 64-unit eye height), MIT, revision `268dd21`; the path checks are new |
@@ -1194,6 +1196,8 @@ of the replay.
 
 ### 9.3 Web pages
 
+The FaZe `/play` page offers bot-vs-bot and play-vs-bot setup using the match service at `NEXT_PUBLIC_API_URL` (default `http://localhost:8000`), including its playable clone catalogue, existing matches, stop, scores, events and a link to the demo replay/position viewer. Real match and browser checks remain outstanding.
+
 - **Lobby page and match page.** Owned by teammates, built against the match service.
 - **Demo pages (`match-service/demo/`, Ashirwad).** Bare-minimum versions of each feature for the
   judges, served by the match service at `/demo/`. Written from zero (plain HTML and canvas; no
@@ -1787,6 +1791,8 @@ demo. A released product would need each player's or team's permission.
 - 2026-11-15, Tom (Codex): MatchBridge enumerates connected player controllers when checking clone joins; Release build passed, live CS2 check pending.
 
 - 2026-11-15, user (Codex): practice page watches for the newly recorded CS2 attempt and displays its outcome; the launch message says the command was sent. Automated logic and type checks noted below; no live CS2 test.
+
+- 2026-11-15, Codex (for user): connected FaZe match setup to the match-service demo API; frontend typecheck and mode tests passed, browser and CS2 not checked.
 
 - 2026-11-15, Tom (with Claude): "Practice in CS2" fixed and made one click. `puzzle_load` really goes to MatchBridge now (`plugin_command` used `query()`, which only pinged), and the service loads the puzzle's map and joins the hero's team first when CS2 is elsewhere (`Cs2Backend.prepare_puzzle`, `CS2_PUZZLE_SETTLE_SECONDS`). 4 new tests; 105 of 106 match service tests pass on Tom's PC (the failure is the symlink test). In CS2 two more CloneDirector bugs were fixed: a Bool cvar crash in `puzzle_load`, and `Utilities.GetPlayers()` not returning bots (now an entity lookup, `AllPlayers()`). The broky seed puzzle then ran: 9 recorded players, finished after 10 s. Not yet watched from the player's view (section 9.6).
 - 2026-11-15, Tom (Claude): added clones `donk_v2`/`broky_v2` (v1 routes and buys, LF quirks, full-strength original bot entry) and rule-based game sense in CloneDirector (`Core/GameSense.cs`, `GameSenseMode.cs`): hand-off when an enemy is heard (footstep, gunfire, reload events) or seen (the game's spotted-by mask), grenade-safe hand-off, route variety, quiet walking at the player's own slow-movement rate. All rules are off for earlier clones. 68 C# tests pass (28 new, incl. loading the real v2/LF/v1 profiles); not run in CS2. Feasibility audit of the Round 4 neural model in `.plans/` (6.5 s per prediction on an RTX 3050, about 2.1 s on an A100; 0 of 18 generated paths passed the map check).
