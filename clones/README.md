@@ -94,6 +94,12 @@ model. The neural identity adapters failed their test and are not used
 |---|---|---:|---|---|
 | `donkL` | `donk_v1` | 10 | jumps 4.1 per minute; bursts of 4.2 shots on average, 26% single shots; crouches for 30% of bursts; sidesteps when still more than 11% of the time; Teamwork 100 | turning speed, flashbang share, first-kill share |
 | `brokyL` | `broky_v1` | 10 | jumps 6.2 per minute; bursts of 2.6 shots on average, 64% single shots; crouches for 25% of bursts; sidesteps when still more than 19% of the time; Teamwork 90 | flashbang share, sniper rifle share |
+| `donkL2` | `donkL` | 10 | as `donkL` without the crouch and sidestep rules; its bot entry has human aim settings | as `donkL` |
+| `brokyL2` | `brokyL` | 10 | as `brokyL` without the crouch and sidestep rules; its bot entry has human aim settings | as `brokyL` |
+
+`donkL2` and `brokyL2` (2026-11-15) are Round 3 step 1 as separate clones, so `donkL` and `brokyL`
+stay as teammates first watched them. Run `clone-director/tools/add_clone_bot_entries.py` again to
+install their bot entries. Not run in CS2.
 
 Checked by running: 23 pipeline tests and 30 CloneDirector tests pass; both L profiles load in the
 C# loader; the plugin compiles. **Not run in CS2.** The Teamwork number only takes effect if the

@@ -17,10 +17,15 @@ __pycache__/
 data/
 checkpoints/
 
-# Personal agent instruction files (the shared one at the repo root stays tracked)
+# Personal agent instruction files (the shared ones at the repo root stay tracked)
 CLAUDE.md
 CLAUDE.local.md
+CODEX.md
+CODEX.local.md
 
 # C# build output (the MatchBridge plugin)
 bin/
 obj/
+
+# Frontend design doc: local reference only, not pushed.
+FRONTEND_SYSTEM_DESIGN.md

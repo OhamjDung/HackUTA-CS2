@@ -3,7 +3,7 @@
 import { LEADERBOARD_SAMPLE, SCENES } from '@/lib/bots';
 import { ArrowUpRight } from '@/components/ui/icons';
 import Image from 'next/image';
-import Link from 'next/link';
+import ModeLink from '@/components/mode/ModeLink';
 
 /** Bottom deck: "Play a scene" cards | hairline | "Leaderboard" (sample rows). */
 export default function BottomHub() {
@@ -19,7 +19,7 @@ export default function BottomHub() {
           <h2 className="text-[34px] font-bold leading-none tracking-[-0.04em] text-white">Play a scene</h2>
           <div className="mt-[30px] grid grid-cols-1 gap-[24px] sm:grid-cols-2">
             {SCENES.map((s) => (
-              <Link
+              <ModeLink
                 key={s.id}
                 href={s.href}
                 className="group flex h-[102px] items-center overflow-hidden rounded-[12px] border border-white/[0.16] bg-[#131316]/80 pl-[8px] transition-[border-color,background-color] hover:border-white/30 hover:bg-[#18181c]/90"
@@ -42,7 +42,7 @@ export default function BottomHub() {
                     <path d="M1 7h16M12 1.5 17.5 7 12 12.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </span>
-              </Link>
+              </ModeLink>
             ))}
           </div>
         </div>
@@ -55,10 +55,10 @@ export default function BottomHub() {
         <div id="leaderboard">
           <div className="flex items-end justify-between">
             <h2 className="text-[34px] font-bold leading-none tracking-[-0.04em] text-white">Leaderboard</h2>
-            <Link href="/leaderboard" className="inline-flex items-center gap-[6px] border-b-[1.5px] border-ink pb-[2px] text-[16px] font-medium leading-none text-ink">
+            <ModeLink href="/leaderboard" className="inline-flex items-center gap-[6px] border-b-[1.5px] border-ink pb-[2px] text-[16px] font-medium leading-none text-ink">
               View all
               <ArrowUpRight size={15} strokeWidth={1.8} />
-            </Link>
+            </ModeLink>
           </div>
           <ol className="mt-[14px]">
             {LEADERBOARD_SAMPLE.map((r) => (

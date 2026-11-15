@@ -18,4 +18,11 @@ export const stageInput = {
   anchorX: 0.625,
   /** Character scale so it fits the measured headline/HUD gap (1 at the reference layout). */
   anchorScale: 1,
+  /** Raises the character (world units) to leave room under its feet; 0 except on the home page. */
+  anchorLift: 0,
+  /** Pointer over the window, normalized −1..1 (x right, y up). Drives head look + body turn. */
+  pointerX: 0,
+  pointerY: 0,
+  /** False until the pointer has moved, so the idle look plays first. */
+  pointerSeen: false,
 };

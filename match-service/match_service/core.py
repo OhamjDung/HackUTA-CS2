@@ -20,6 +20,10 @@ DEFAULT_CLONES_DIR = Path(__file__).resolve().parent.parent / "sample_clones"
 DEFAULT_CLONE_DATA_DIR = Path(__file__).resolve().parent.parent.parent / "clones"
 # The model's offline generated-path review files (clone-model/review.py). data/ is git-ignored.
 DEFAULT_REVIEW_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "reviews"
+# Replay puzzles: committed seed puzzles, the user's saved puzzles, and deaths saved by CloneDirector.
+DEFAULT_PUZZLE_SEED_DIR = Path(__file__).resolve().parent.parent / "seed_puzzles"
+DEFAULT_PUZZLE_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "puzzles"
+DEFAULT_DEATH_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "deaths"
 
 # emit(record, event_name, data) records an event and sends it to the match's callback_url.
 Emit = Callable[["MatchRecord", str, dict], Awaitable[None]]
@@ -39,6 +43,12 @@ class Settings:
     clone_data_dir: Path = DEFAULT_CLONE_DATA_DIR  # real recorded routes for the replay pages
     trace_dir: Path | None = None  # where finished match traces are saved; None keeps them in memory
     review_dir: Path = DEFAULT_REVIEW_DIR  # generated-path review files for the replay page
+    puzzle_seed_dir: Path = DEFAULT_PUZZLE_SEED_DIR
+    puzzle_dir: Path = DEFAULT_PUZZLE_DIR
+    # Where CloneDirector writes a death (the last 10 seconds) and reads a puzzle to play. Set both to the
+    # plugin folder's `deaths` and `puzzles` folders on the CS2 PC; by default they are under data/.
+    death_dir: Path = DEFAULT_DEATH_DIR
+    game_puzzle_dir: Path | None = None  # None: the service does not copy puzzles to the game
     # cs2 backend only
     cs2_console: str = "netcon"  # netcon, rcon or plugin (see console.py)
     cs2_console_host: str = "127.0.0.1"
@@ -59,6 +69,8 @@ class Settings:
     cs2_plugin_port: int = 27100
     cs2_plugin_token: str = ""  # empty: use cs2_console_password
     clone_join_seconds: float = 20.0  # how long to wait for every clone bot to join
+    # How long to wait for every clone bot to show in `status` before removing extra bots (see _settle_bots).
+    cs2_settle_seconds: float = 6.0
     # Which route files CloneDirector plays: `recorded` (cut from the player's matches) or `generated`
     # (written by a trained model; needs `model` in the profile). See drivers.py.
     cs2_routes: str = "recorded"
@@ -79,6 +91,10 @@ class Settings:
             clone_data_dir=Path(env.get("CLONE_DATA_DIR", DEFAULT_CLONE_DATA_DIR)),
             trace_dir=Path(env["TRACE_DIR"]) if env.get("TRACE_DIR") else None,
             review_dir=Path(env.get("REVIEW_DIR") or DEFAULT_REVIEW_DIR),
+            puzzle_seed_dir=Path(env.get("PUZZLE_SEED_DIR") or DEFAULT_PUZZLE_SEED_DIR),
+            puzzle_dir=Path(env.get("PUZZLE_DIR") or DEFAULT_PUZZLE_DIR),
+            death_dir=Path(env.get("PUZZLE_DEATH_DIR") or DEFAULT_DEATH_DIR),
+            game_puzzle_dir=Path(env["PUZZLE_GAME_DIR"]) if env.get("PUZZLE_GAME_DIR") else None,
             cs2_console=env.get("CS2_CONSOLE", cls.cs2_console),
             cs2_console_host=env.get("CS2_CONSOLE_HOST", cls.cs2_console_host),
             cs2_console_port=int(env["CS2_CONSOLE_PORT"]) if env.get("CS2_CONSOLE_PORT") else None,
@@ -93,6 +109,7 @@ class Settings:
             cs2_plugin_token=env.get("CS2_PLUGIN_TOKEN", cls.cs2_plugin_token),
             clone_join_seconds=float(env.get("CS2_CLONE_JOIN_SECONDS", cls.clone_join_seconds)),
             cs2_routes=env.get("CS2_CLONE_ROUTES", cls.cs2_routes),
+            cs2_settle_seconds=float(env.get("CS2_SETTLE_SECONDS", cls.cs2_settle_seconds)),
         )
 
 

@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import ModeLink from '@/components/mode/ModeLink';
 import { useEffect } from 'react';
 import { useBotSelection, useSelectedBot } from '@/app/providers';
 import { Avatar } from '@/components/bots/RosterArc';
@@ -29,9 +29,9 @@ export default function BotContextChip({ botParam }: { botParam?: string }) {
           {bot.name} <span className="font-medium text-[#B8B8C2]">· {bot.game}</span>
         </span>
       </span>
-      <Link href="/bots" className="ml-[10px] border-b border-white/60 pb-[1px] text-[14px] font-medium text-white hover:border-white">
+      <ModeLink href="/bots" className="ml-[10px] border-b border-white/60 pb-[1px] text-[14px] font-medium text-white hover:border-white">
         Change
-      </Link>
+      </ModeLink>
     </div>
   );
 }

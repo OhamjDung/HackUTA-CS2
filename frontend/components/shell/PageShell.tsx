@@ -1,3 +1,4 @@
+import DeathWatcher from '@/components/puzzles/DeathWatcher';
 import SiteNav from '@/components/ui/SiteNav';
 
 /** Shared chrome for the secondary routes: same charcoal theme, nav and gutters as Home/Bots. */
@@ -17,6 +18,7 @@ export default function PageShell({
   return (
     <main className="relative min-h-screen w-full overflow-x-hidden pb-24">
       <SiteNav />
+      <DeathWatcher />
       <div className="pt-[150px]" style={{ paddingLeft: 'var(--hub-gutter)', paddingRight: 'var(--hub-gutter)' }}>
         <div className="flex flex-col gap-8 min-[1024px]:flex-row min-[1024px]:items-end min-[1024px]:justify-between">
           <div>
