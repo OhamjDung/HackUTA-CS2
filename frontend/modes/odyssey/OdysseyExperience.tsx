@@ -5,6 +5,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useSessionUploads } from '@/app/providers';
 import ModeLink from '@/components/mode/ModeLink';
 import ModeSwitch from '@/components/mode/ModeSwitch';
+import HeroSign from '@/components/ui/HeroSign';
 import styles from './OdysseyExperience.module.css';
 import { useOdysseyMusic } from './useOdysseyMusic';
 
@@ -240,7 +241,7 @@ function Header({ pathname, selectedId, music }: { pathname: string; selectedId:
   const label = music.unavailable ? 'Odyssey music unavailable — retry' : soundOn ? 'Turn Odyssey music off' : 'Turn Odyssey music on';
   return <header className={styles.header}>
     <ModeLink href="/" className={styles.brand} aria-label="DoppelGamer Odyssey home">
-      <b className={styles.brandMark}>DOPPELGAMER</b>
+      <HeroSign className={`${styles.sign} ${styles.signHeader}`} />
       <span className={styles.brandSub}><Letters text="THE ODYSSEY EVENT" /></span>
     </ModeLink>
     <nav aria-label="Odyssey primary">{NAV.map(([href, navLabel]) => <ModeLink key={href} href={href} aria-current={pathname === href ? 'page' : undefined}>{navLabel}</ModeLink>)}</nav>
@@ -248,33 +249,51 @@ function Header({ pathname, selectedId, music }: { pathname: string; selectedId:
       <button type="button" className={styles.soundToggle} aria-label={label} aria-pressed={soundOn} title={label} onClick={music.toggle}>
         <span className={styles.bars} aria-hidden><i /><i /><i /></span>
       </button>
-      <ModeSwitch compact />
+      <ModeSwitch />
       <ModeLink href={`/play?bot=${selectedId}`} className={styles.outlineButton}><span>Enter the event</span></ModeLink>
     </div>
   </header>;
 }
 
+// Only the sea and the ship follow the pointer, and by the same amount, so no layer slides
+// against another and opens a seam. Paper, land and columns stay put.
 const HERO_LAYERS: Layer[] = [
   { name: 'paper' },
-  { name: 'land', depth: 2 },
-  { name: 'columnLeft', depth: 4, className: styles.heroColumn },
-  { name: 'columnRight', depth: 4, className: styles.heroColumn },
-  { name: 'waves', depth: 8, className: styles.heroWaves },
+  { name: 'land' },
+  { name: 'columnLeft', className: styles.heroColumn },
+  { name: 'columnRight', className: styles.heroColumn },
+  { name: 'waves', depth: 6, className: styles.heroWaves },
   { name: 'ship', depth: 6, className: styles.heroShip },
-  { name: 'helmet', depth: 11, className: styles.heroHelmet },
 ];
+
+/**
+ * The hero's two helmets, face to face: the engraved original and its digital clone. The clone
+ * is the original's ink mirrored (`helmet-twin-mask.webp`) filled with falling blue 1s and 0s.
+ * Both sit in picture coordinates (1536 x 1024) so they stay on the art at every size.
+ */
+function HeroHelmets() {
+  return <>
+    {/* The wave-crest plume was part of the wave layer; it is now cut out (`crest.webp`) and rides on the helmet. */}
+    <img src={`${LAYERS}/hero/crest.webp`} alt="" draggable={false} decoding="async" className={styles.crestHero} />
+    <img src={`${LAYERS}/hero/helmet-left.webp`} alt="" draggable={false} decoding="async" className={styles.helmetHero} />
+    <span className={styles.crestTwinGlow}><span className={styles.crestTwin} /></span>
+    <img src={`${LAYERS}/hero/helmet-twin-back.webp`} alt="" draggable={false} decoding="async" className={styles.helmetTwinBack} />
+    <span className={styles.helmetTwin}><i className={styles.twinGlitch} /></span>
+  </>;
+}
 
 function Home({ selectedId, onSelect, onBegin }: { selectedId: OdysseyBotId; onSelect: (id: OdysseyBotId) => void; onBegin: () => void }) {
   return <>
     <section className={styles.hero} data-hero data-loop>
-      <Stack dir="hero" width={1536} height={1024} layers={HERO_LAYERS} cover eager className={styles.heroArt} />
+      <Stack dir="hero" width={1536} height={1024} layers={HERO_LAYERS} cover eager className={styles.heroArt}>
+        <HeroHelmets />
+      </Stack>
       <div className={styles.burn} aria-hidden />
       <div className={styles.heroCopy}>
         <p data-reveal style={cssVars({ '--i': 0 })}>A new legend begins</p>
-        <h1 aria-label="DoppelGamer">
-          <span data-reveal style={cssVars({ '--i': 1 })} aria-hidden>Doppel</span>
-          <span data-reveal style={cssVars({ '--i': 2 })} aria-hidden>Gamer</span>
-        </h1>
+        <h1 className={styles.srOnly}>DoppelGamer</h1>
+        {/* The FaZe home sign (14-segment LED), inked in Odyssey blue with a gold glow. */}
+        <div data-reveal style={cssVars({ '--i': 1 })}><HeroSign className={`${styles.sign} ${styles.signHero}`} /></div>
         <h2 data-reveal style={cssVars({ '--i': 3 })}>The Odyssey Event</h2>
         <div data-reveal style={cssVars({ '--i': 4 })}>
           <ModeLink href={`/play?bot=${selectedId}`} className={styles.blueButton} onClick={onBegin}>Begin your Odyssey <span>→</span></ModeLink>
@@ -414,7 +433,7 @@ function Feature({ bot, compact = false }: { bot: (typeof BOTS)[number]; compact
       <span className={styles.typing} data-done={typed >= bot.dialogue.length || undefined} aria-hidden><i /><i /><i /></span>
     </div>}
     {!compact && <div className={styles.featureMeta}>
-      <h2>{bot.name} <span>/ {bot.role}</span></h2>
+      <h2>{bot.name} <span><span className={styles.srOnly}>, </span>{bot.role}</span></h2>
       <ModeLink href={`/play?bot=${bot.id}`} className={styles.blueButton}>Challenge {bot.name} <span>→</span></ModeLink>
     </div>}
   </article>;
@@ -436,7 +455,7 @@ function SceneCard({ href, art, title, body }: { href: string; art: 'temple' | '
   return <div className={styles.sceneSlot} data-reveal>
     <ModeLink href={href} className={styles.sceneCard} {...tilt}>
       <Stack dir={`scene-${art}`} width={1536} height={1024} cover anchor="center" layers={layers} />
-      <span className={styles.sceneText}><strong>{title}</strong><small>{body}</small><b aria-hidden>→</b></span>
+      <span className={styles.sceneText}><strong>{title}</strong><small>{body}</small><b className={styles.sceneGo} aria-hidden>→</b></span>
       <span className={styles.srOnly}>{art === 'temple' ? 'Greek temple beside the Aegean sea' : 'Ancient arena overlooking the sea'}</span>
     </ModeLink>
   </div>;
@@ -580,7 +599,7 @@ function Footer() {
     </Stack>
     <div className={styles.burn} aria-hidden />
     <div className={styles.footerContent}>
-      <ModeLink href="/" className={styles.brand}><b className={styles.brandMark}>DOPPELGAMER</b><span className={styles.brandSub}>THE ODYSSEY EVENT</span></ModeLink>
+      <ModeLink href="/" className={styles.brand}><HeroSign className={`${styles.sign} ${styles.signHeader}`} /><span className={styles.brandSub}>THE ODYSSEY EVENT</span></ModeLink>
       <nav aria-label="Odyssey footer">{NAV.map(([href, label]) => <ModeLink key={href} href={href}>{label}</ModeLink>)}</nav>
     </div>
   </footer>;

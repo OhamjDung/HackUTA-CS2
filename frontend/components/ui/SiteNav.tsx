@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { usePathname } from 'next/navigation';
 import { useBrand } from '@/app/providers';
 import { Avatar } from '@/components/bots/RosterArc';
@@ -63,7 +64,7 @@ function BrandLockup({ wordmark }: { wordmark: boolean }) {
  * `wordmark={false}` drops the small wordmark from the lockup (the home page
  * shows it large in the stage instead).
  */
-export default function SiteNav({ wordmark = true }: { wordmark?: boolean } = {}) {
+function SiteNavBar({ wordmark = true }: { wordmark?: boolean }) {
   const pathname = usePathname() ?? '/';
   const brand = useBrand();
   const hasMark = Boolean(brand.fazeMark ?? brand.fazeMarkMono);
@@ -102,7 +103,7 @@ export default function SiteNav({ wordmark = true }: { wordmark?: boolean } = {}
       </nav>
 
       <div className="flex items-center gap-[14px] justify-self-end">
-        <ModeSwitch compact />
+        <ModeSwitch />
         {brand.profile && (
           <span
             className="hidden h-[40px] w-[40px] overflow-hidden rounded-full border border-white/20 min-[480px]:block"
@@ -120,5 +121,14 @@ export default function SiteNav({ wordmark = true }: { wordmark?: boolean } = {}
         </ModeLink>
       </div>
     </header>
+  );
+}
+
+/** ModeLink / ModeSwitch read search params, so the bar sits behind a Suspense boundary for static routes. */
+export default function SiteNav(props: { wordmark?: boolean } = {}) {
+  return (
+    <Suspense fallback={null}>
+      <SiteNavBar {...props} />
+    </Suspense>
   );
 }

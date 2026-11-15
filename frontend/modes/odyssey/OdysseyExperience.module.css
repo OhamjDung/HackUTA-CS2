@@ -10,6 +10,7 @@
   --blue-deep: #003c73;
   --ink: #111820;
   --paper: #fff1cf;
+  --blue-ink: #0a2f5c;
   --gold: #c39a3a;
   --shadow: #3a2a0e;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
@@ -100,20 +101,26 @@
   z-index: 10;
 }
 .brand { color: var(--ink); line-height: 1; }
-.brandMark {
-  display: block;
-  font-size: 21px;
-  font-weight: 400;
-  letter-spacing: 0.035em;
-  background: linear-gradient(110deg, var(--ink) 42%, #d8ae4c 50%, var(--ink) 58%) 100% 0 / 300% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+/* The FaZe home sign (components/ui/HeroSign): same 14-segment LED glyphs, but the lit segments
+   are deep Odyssey blue and the glow is gold. --rim / --accent also tint the sign's light spill. */
+.sign { --rim: #f2b632; --accent: #ffd36a; }
+.shell .sign { transform: none; } /* the sign's own cursor drift is off here: only the sea moves */
+.shell .sign :global(.hero-sign-ghost) { fill: #07549a12; }
+.shell .sign :global(.hero-sign-lit) {
+  fill: var(--blue-ink);
+  filter:
+    drop-shadow(0 0 1px #fff0b8)
+    drop-shadow(0 0 4px #f5c242dd)
+    drop-shadow(0 0 12px #eaa91e99)
+    drop-shadow(0 0 28px #f5c24255);
 }
+.shell .sign :global(.hero-sign-spill) { opacity: 0.55; }
+.signHeader { width: 190px; }
+.signHeader :global(.hero-sign-spill) { display: none; }
+.signHero { width: min(560px, 40vw); margin: 18px auto 14px; }
 .brandSub { display: block; font-size: 10px; font-weight: 700; letter-spacing: 0.28em; margin-top: 8px; }
 .word { display: inline-block; white-space: nowrap; }
 .letter { display: inline-block; }
-.shell[data-motion] .brandMark { animation: gild 9s ease-in-out 1.5s infinite; }
 .shell[data-motion] .header .brandSub .letter { animation: letterIn 0.5s var(--ease) both; animation-delay: calc(var(--i) * 40ms + 300ms); }
 
 .header nav, .footer nav { display: flex; gap: clamp(16px, 2.2vw, 28px); text-transform: uppercase; }
@@ -146,10 +153,15 @@
 }
 
 .headerActions { display: flex; align-items: center; justify-self: end; gap: 10px; }
+/* Every bordered control in Odyssey shares one engraved rule: a 3px double blue line.
+   Round icon buttons are all 40px with a 20px icon. */
 .outlineButton {
   position: relative;
-  border: 4px double var(--blue);
-  padding: 9px 12px;
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  border: 3px double var(--blue);
+  padding: 0 14px;
   color: var(--ink);
   font-size: 11px;
   font-weight: 800;
@@ -163,24 +175,31 @@
 .outlineButton:hover { background-size: 100% 100%; color: #fff1cf; }
 .outlineButton:active { translate: 0 2px; box-shadow: 0 1px 0 #07549a26; }
 
-.soundToggle {
-  width: 36px;
-  height: 36px;
+.soundToggle,
+.shell :global(.dg-mode-toggle[data-mode]) {
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
-  border: 1px solid var(--blue);
+  box-sizing: border-box;
+  border: 3px double var(--blue);
   border-radius: 50%;
-  background: linear-gradient(#fffaf0, #fff0cc);
+  background: linear-gradient(#fffaf0, #fff0cc) padding-box;
   color: var(--blue);
   cursor: pointer;
-  box-shadow: 0 2px 0 #07549a33, inset 0 1px 0 #fff;
+  box-shadow: 0 2px 0 #07549a33;
   transition: background var(--t-mid), color var(--t-mid), translate var(--t-fast), box-shadow var(--t-fast);
 }
-.soundToggle:hover { box-shadow: 0 3px 0 #07549a44, 0 6px 12px -6px #3a2a0e88, inset 0 1px 0 #fff; }
-.soundToggle:active { translate: 0 2px; box-shadow: inset 0 2px 4px #0003; }
-.soundToggle[aria-pressed='true'] { background: linear-gradient(#0b62b0, var(--blue)); color: #fff; box-shadow: 0 2px 0 var(--blue-deep), inset 0 1px 0 #ffffff40; }
+.soundToggle:hover,
+.shell :global(.dg-mode-toggle:hover) { box-shadow: 0 3px 0 #07549a44, 0 6px 12px -6px #3a2a0e88; }
+.soundToggle:active,
+.shell :global(.dg-mode-toggle:active) { translate: 0 2px; box-shadow: inset 0 2px 4px #0003; }
+/* Playing: the face fills with blue inside the same double rule. */
+.soundToggle[aria-pressed='true'] { background: linear-gradient(#0b62b0, var(--blue)) padding-box; color: #fff1cf; }
+.shell :global(.dg-mode-toggle__icon svg) { width: 22px; height: 22px; fill: var(--blue); }
+.shell :global(.dg-mode-toggle:focus-visible) { outline: 3px solid var(--blue); outline-offset: 4px; }
 .bars { display: flex; align-items: flex-end; gap: 2px; height: 14px; }
-.bars i { width: 3px; height: 4px; border-radius: 1px; background: currentColor; opacity: 0.7; transition: height var(--t-mid); }
+.bars i { width: 3px; height: 4px; border-radius: 1px; background: currentColor; opacity: 0.8; transition: height var(--t-mid); }
 .soundToggle[aria-pressed='true'] .bars i { opacity: 1; height: 10px; }
 .shell[data-motion] .soundToggle[aria-pressed='true'] .bars i { animation: eq 0.9s ease-in-out infinite alternate; }
 .shell[data-motion] .soundToggle[aria-pressed='true'] .bars i:nth-child(2) { animation-delay: -0.3s; animation-duration: 0.7s; }
@@ -245,30 +264,76 @@
   overflow: hidden;
   container-type: size;
 }
-/* Pointer parallax (near layers move more), plus scroll parallax (far layers sink faster). */
+/* Pointer parallax for the sea and ship only (the only `.depth` layers in the hero). */
 .shell[data-motion] .hero .depth {
-  translate:
-    calc(var(--px, 0) * var(--d) * -1.1px)
-    calc(var(--py, 0) * var(--d) * -0.7px + var(--hero-p, 0) * (12 - var(--d)) * 7px);
+  translate: calc(var(--px, 0) * var(--d) * -1.1px) calc(var(--py, 0) * var(--d) * -0.7px);
   transition: translate 0.6s var(--ease);
 }
 .shell[data-motion] .heroWaves { animation: bob 7s ease-in-out infinite alternate; }
 .shell[data-motion] .heroShip { transform-origin: 42.3% 88.4%; animation: rock 5.5s ease-in-out infinite alternate; }
-.shell[data-motion] .heroHelmet { animation: float 8s ease-in-out infinite alternate; }
+
+/* Helmets and their crests, placed in picture coordinates (1536 x 1024) from four variables:
+   --ax / --bx (left edge of the original and the clone, % of width), --hy (top, % of height)
+   and --hw (helmet width, % of width). The helmet crop is 358 x 470 source px; the crest crop
+   is 390 x 196 and starts 113 px above the helmet and 32 px further out on the clone side. */
+.hero { --ax: 7.16; --bx: 26.69; --hy: 34.67; --hw: 15.82; }
+.helmetHero, .helmetTwin, .helmetTwinBack, .crestHero, .crestTwinGlow {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  max-width: none;
+}
+.helmetHero, .helmetTwin, .helmetTwinBack { top: calc(var(--hy) * 1%); width: calc(var(--hw) * 1%); aspect-ratio: 358 / 470; height: auto; }
+.helmetHero { left: calc(var(--ax) * 1%); }
+.crestHero, .crestTwinGlow {
+  top: calc((var(--hy) - 113 * var(--hw) / 358 * 1.5) * 1%);
+  width: calc(390 * var(--hw) / 358 * 1%);
+  aspect-ratio: 390 / 196;
+  height: auto;
+}
+.crestHero { left: calc(var(--ax) * 1%); }
+/* Parchment inside the clone's outline, so its engraved gaps never show the wave behind. */
+.helmetTwinBack { left: calc(var(--bx) * 1%); }
+.helmetTwin {
+  left: calc(var(--bx) * 1%);
+  overflow: hidden;
+  /* Deep blue body under the falling digits, cut to the mirrored helmet's ink. */
+  background:
+    url('/images/odyssey/layers/hero/matrix-digits.webp') 0 0 / 160px 336px repeat,
+    linear-gradient(#00244aee, #003366ee);
+  -webkit-mask: url('/images/odyssey/layers/hero/helmet-twin-mask.webp') center / 100% 100% no-repeat;
+  mask: url('/images/odyssey/layers/hero/helmet-twin-mask.webp') center / 100% 100% no-repeat;
+}
+/* The clone's crest: the same plume, mirrored, made only of bright binary, with a soft blue glow.
+   The glow sits on the wrapper because a filter on the masked element would be cut off by its mask. */
+.crestTwinGlow {
+  left: calc((var(--bx) - 32 * var(--hw) / 358) * 1%);
+  filter: drop-shadow(0 0 2px #9fd0ffcc) drop-shadow(0 0 7px #3a86d0aa) drop-shadow(0 0 16px #0d66b666);
+}
+.crestTwin {
+  position: absolute;
+  inset: 0;
+  background:
+    url('/images/odyssey/layers/hero/matrix-digits.webp') 0 0 / 120px 252px repeat,
+    linear-gradient(#0d66b6cc, #07549acc);
+  -webkit-mask: url('/images/odyssey/layers/hero/crest-twin-mask.webp') center / 100% 100% no-repeat;
+  mask: url('/images/odyssey/layers/hero/crest-twin-mask.webp') center / 100% 100% no-repeat;
+}
+.shell[data-motion] .crestTwin { animation: crestRain 6s linear infinite; }
+.shell[data-motion] .crestTwinGlow { animation: crestPulse 3.2s ease-in-out infinite alternate; }
+/* A faint light band that sweeps down now and then, like a scan of the clone. */
+.twinGlitch {
+  position: absolute;
+  inset: -20% 0 auto;
+  height: 18%;
+  background: linear-gradient(transparent, #8fc3f055 45%, #d6ecff88 50%, #8fc3f055 55%, transparent);
+  opacity: 0;
+}
+.shell[data-motion] .helmetTwin { animation: digitRain 9s linear infinite; }
+.shell[data-motion] .twinGlitch { animation: scan 6s ease-in-out 1.2s infinite; }
 
 .heroCopy { position: absolute; z-index: 2; left: 54%; top: 12%; text-align: center; }
 .heroCopy p, .pageIntro p { font-size: 12px; font-weight: 800; letter-spacing: 0.35em; text-transform: uppercase; }
-.heroCopy h1 {
-  font-size: clamp(4rem, 7.5vw, 7.4rem);
-  font-weight: 300;
-  line-height: 0.82;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  margin: 24px 0 16px;
-  /* Letterpress: light edge below, faint dark edge above, as if pressed into the paper. */
-  text-shadow: 0 1px 0 #fffaf0, 0 2px 1px #fff6e0aa, 0 -1px 0 #3a2a0e22;
-}
-.heroCopy h1 span { display: block; }
 .heroCopy h2 { text-transform: uppercase; font-size: 18px; letter-spacing: 0.25em; margin-bottom: 60px; }
 .scrollCue {
   position: absolute;
@@ -331,8 +396,9 @@
 .introNum {
   display: inline-grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
+  box-sizing: border-box;
   border: 3px double var(--blue);
   border-radius: 50%;
   letter-spacing: 0.04em;
@@ -399,7 +465,7 @@
 .roster small { font-size: 11px; letter-spacing: 0.14em; margin-top: 8px; }
 
 /* ---- Bot feature ---------------------------------------------------------- */
-.feature { max-width: 1220px; position: relative; margin: auto; }
+.feature { max-width: 1220px; position: relative; margin: auto; container-type: inline-size; }
 .featureArt { position: relative; width: 100%; aspect-ratio: 1819 / 865; }
 .featureGroup { position: absolute; inset: 0; }
 /* The picture's own parchment fades into the page instead of ending in a hard rectangle. */
@@ -415,8 +481,21 @@
 .shell[data-motion] .leave .figure { animation: sink 0.6s cubic-bezier(0.55, 0, 0.8, 0.4) both; }
 .shell[data-motion] .leave .featureWaves { animation: fadeOut 0.45s ease-in 0.15s both; }
 .shell[data-motion] .leave .cloud { transform-origin: 38.5% 30.6%; animation: unpop 0.25s ease-in both; }
-.dialogue { position: absolute; left: 51%; top: 20%; width: 40%; text-align: center; }
-.dialogue p { text-transform: uppercase; font-size: clamp(17px, 2.1vw, 30px); line-height: 1.25; letter-spacing: 0.06em; }
+/* Text sits on measured parts of the feature art (same for all four bots): the cloud's inner area is
+   x 47-93%, y 8-44%; clear parchment between the cloud and the waves is y 49-70%. */
+.dialogue {
+  position: absolute;
+  left: 47%;
+  top: 8%;
+  width: 46%;
+  height: 36%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.dialogue p { text-transform: uppercase; font-size: clamp(15px, 2.2cqw, 27px); line-height: 1.25; letter-spacing: 0.05em; text-wrap: balance; }
 .untyped { visibility: hidden; }
 .typing { display: flex; justify-content: center; gap: 9px; margin-top: 12px; transition: opacity 0.4s; }
 .typing[data-done] { opacity: 0; }
@@ -424,51 +503,71 @@
 .shell[data-motion] .typing i { animation: odysseyTyping 1.2s ease-in-out infinite; }
 .typing i:nth-child(2) { animation-delay: 0.16s; }
 .typing i:nth-child(3) { animation-delay: 0.32s; }
-.featureMeta { position: absolute; left: 53%; bottom: 10%; text-align: center; }
-.featureMeta h2 { font-size: 22px; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 20px; }
-.featureMeta h2 span { font-size: 13px; }
+/* Name plate and challenge button, centred under the cloud in the clear band above the waves. */
+.featureMeta {
+  position: absolute;
+  left: 47%;
+  top: 49%;
+  width: 46%;
+  height: 21%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 1.3cqw, 16px);
+  text-align: center;
+}
+.featureMeta h2 { font-size: clamp(16px, 2cqw, 25px); font-weight: 500; text-transform: uppercase; letter-spacing: 0.12em; line-height: 1; }
+.featureMeta h2 > span { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 7px; font-size: clamp(10px, 0.95cqw, 12px); font-weight: 700; letter-spacing: 0.28em; color: var(--blue); }
+.featureMeta h2 > span::before, .featureMeta h2 > span::after { content: ''; width: 22px; height: 1px; background: currentColor; opacity: 0.6; }
+.featureMeta .blueButton { padding: clamp(10px, 1.1cqw, 15px) clamp(18px, 2cqw, 27px); font-size: clamp(10px, 0.95cqw, 12px); }
 
 /* ---- Scene cards ---------------------------------------------------------- */
 .scenesSection { padding: 0 clamp(22px, 5vw, 76px) 70px; }
 .sceneGrid { max-width: 1180px; margin: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
 .sceneSlot { position: relative; }
-/* A second card peeking out behind, like a pile of cards. */
-.sceneSlot::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border: 2px solid var(--blue);
-  border-radius: 24px;
-  background: #f6e2b6;
-  translate: 8px 8px;
-  rotate: 1.2deg;
-  box-shadow: 0 12px 20px -16px #3a2a0e88;
-  transition: rotate 0.45s var(--ease), translate 0.45s var(--ease);
-}
-.sceneSlot:hover::before { rotate: 2.4deg; translate: 12px 11px; }
+/* An engraved plaque: square corners, the shared double rule, a hairline frame inside,
+   and a round arrow seal that matches the header's icon buttons. */
 .sceneCard {
   display: block;
   height: 240px;
   position: relative;
   z-index: 1;
   overflow: hidden;
-  border: 4px double var(--blue);
-  border-radius: 24px;
+  border: 3px double var(--blue);
   background: #ffeac0;
   container-type: size;
-  box-shadow: 0 10px 16px -12px #3a2a0e99;
-  transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease);
+  box-shadow: 0 2px 0 #e2c993, 0 18px 30px -22px #3a2a0eaa;
+  transition: translate 0.4s var(--ease), box-shadow 0.4s var(--ease), border-color var(--t-mid);
 }
-.sceneCard:hover { transform: translateY(-5px); box-shadow: 0 26px 32px -20px #3a2a0eaa; }
+.sceneCard:hover { translate: 0 -4px; border-color: var(--blue-deep); box-shadow: 0 2px 0 #e2c993, 0 28px 36px -22px #3a2a0eaa; }
 .sceneCard .depth { transition: translate 0.5s var(--ease), scale 0.5s var(--ease); }
-.sceneCard:hover .depth { scale: 1.06; translate: calc(var(--tx, 0) * var(--d) * -1.6px) calc(var(--ty, 0) * var(--d) * -1px); }
-.sceneCard::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 35%, #fff1cf 68%); }
-.sceneText { position: absolute; z-index: 2; right: 25px; top: 50%; translate: 0 -50%; width: 32%; color: var(--ink); text-transform: uppercase; }
+.sceneCard:hover .depth { scale: 1.05; translate: calc(var(--tx, 0) * var(--d) * -1.2px) calc(var(--ty, 0) * var(--d) * -0.8px); }
+.sceneCard::after { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, transparent 32%, #fff1cf 64%); }
+.sceneCard::before { content: ''; position: absolute; inset: 7px; z-index: 3; border: 1px solid #07549a55; pointer-events: none; }
+.sceneText { position: absolute; z-index: 2; right: 30px; top: 50%; translate: 0 -50%; width: 34%; color: var(--ink); text-transform: uppercase; }
 .sceneText strong, .sceneText small { display: block; }
-.sceneText strong { font-size: 23px; font-weight: 500; }
-.sceneText small { font-size: 14px; font-weight: 700; line-height: 1.2; margin-top: 12px; }
-.sceneText b { display: block; text-align: right; font-size: 28px; transition: translate var(--t-mid) var(--ease); }
-.sceneCard:hover .sceneText b { translate: 8px 0; }
+.sceneText strong { font-size: 22px; font-weight: 600; letter-spacing: 0.06em; line-height: 1.1; }
+.sceneText strong::after { content: ''; display: block; width: 44px; height: 2px; margin-top: 12px; background: var(--blue); transition: width var(--t-mid) var(--ease); }
+.sceneCard:hover .sceneText strong::after { width: 72px; }
+.sceneText small { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; line-height: 1.35; margin-top: 12px; }
+.sceneGo {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-top: 18px;
+  box-sizing: border-box;
+  border: 3px double var(--blue);
+  border-radius: 50%;
+  color: var(--blue);
+  font-size: 18px;
+  line-height: 1;
+  background: linear-gradient(#fffaf0, #fff0cc) padding-box;
+  box-shadow: 0 2px 0 #07549a33;
+  transition: background var(--t-mid), color var(--t-mid), translate var(--t-mid) var(--ease);
+}
+.sceneCard:hover .sceneGo { translate: 6px 0; color: #fff1cf; background: linear-gradient(#0b62b0, var(--blue)) padding-box; }
 .shell[data-motion] .sun { transform-origin: 61% 22.7%; animation: spin 70s linear infinite; }
 .shell[data-motion] .flag { animation: flutter 2.4s ease-in-out infinite alternate; }
 .flag1 { transform-origin: 22.5% 8.5%; }
@@ -683,6 +782,10 @@
 @keyframes youPulse { 0%, 100% { background-color: transparent; } 50% { background-color: #07549a12; } }
 @keyframes drift { to { translate: -4% 0; } }
 @keyframes sail { from { translate: -7% 0; } to { translate: 7% 0; } }
+@keyframes digitRain { to { background-position: 0 336px, 0 0; } }
+@keyframes crestRain { to { background-position: 0 -252px, 0 0; } }
+@keyframes crestPulse { from { opacity: 0.86; } to { opacity: 1; } }
+@keyframes scan { 0%, 55% { opacity: 0; translate: 0 0; } 60% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; translate: 0 720%; } }
 @keyframes washOut { from { clip-path: circle(150% at 50% 50%); } to { clip-path: circle(0% at 50% 50%); } }
 
 @media (prefers-reduced-motion: reduce) {
@@ -696,12 +799,10 @@
   .header nav { grid-row: 2; grid-column: 1 / -1; overflow: auto; justify-content: center; }
   .headerActions .outlineButton { display: none; }
   .hero { min-height: 600px; }
-  .hero .cover { left: 38%; translate: -38% 0; }
+  .hero .cover { left: 12%; translate: -12% 0; }
   .heroCopy { left: auto; right: 5%; top: 10%; width: 52%; }
-  .heroCopy h1 { font-size: clamp(3rem, 11vw, 5.5rem); }
+  .signHero { width: 100%; }
   .roster { grid-template-columns: repeat(2, 1fr); }
-  .featureMeta { bottom: 5%; }
-  .dialogue { top: 14%; }
   .sceneText { width: 40%; }
   .leaderboard { padding-inline: 25px; }
 }
@@ -712,10 +813,13 @@
   .headerActions { justify-self: start; }
   .header nav { justify-content: flex-start; width: 100%; }
   .hero { height: 720px; }
-  .hero .cover { left: 33%; translate: -33% 0; }
+  .hero .cover { left: 4%; translate: -4% 0; }
+  /* The phone shows about a third of the art: bring the pair closer and a touch smaller. */
+  .hero { --ax: 9; --bx: 23; --hy: 41; --hw: 12.5; }
   .heroCopy { top: 40px; right: 18px; width: 58%; }
   .heroCopy p { font-size: 9px; }
-  .heroCopy h1 { font-size: 48px; }
+  .signHero { width: 100%; margin-block: 12px 10px; }
+  .signHeader { width: 160px; }
   .heroCopy h2 { font-size: 12px; margin-bottom: 30px; }
   .blueButton { font-size: 10px; padding: 12px 15px; }
   .intro { height: 610px; }
@@ -728,9 +832,11 @@
   .roster strong { font-size: 14px; }
   .feature { overflow: hidden; min-height: 520px; }
   .featureArt { width: auto; height: 520px; translate: -31% 0; }
-  .dialogue { left: 45%; top: 12%; width: 52%; }
-  .dialogue p { font-size: 16px; }
-  .featureMeta { left: 42%; bottom: 8%; width: 56%; }
+  /* The phone crops the art to the figure, so only the left of the cloud shows: the quote fits that
+     part, and the name plate and button move below the art instead of over the figure. */
+  .dialogue { left: 45%; top: 11%; width: 52%; height: 24%; }
+  .dialogue p { font-size: 13px; }
+  .featureMeta { position: static; width: auto; height: auto; margin-top: 16px; }
   .featureMeta h2 { font-size: 17px; }
   .sceneGrid, .setupGrid { grid-template-columns: 1fr; }
   .sceneCard { height: 210px; }

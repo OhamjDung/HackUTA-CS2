@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { BrandAssets } from '@/lib/brandAssets';
 import { BOTS, DEFAULT_BOT_ID } from '@/lib/bots';
+import DemoGate from '@/components/auth/DemoGate';
 
 const BrandContext = createContext<BrandAssets>({ bots: {} });
 
@@ -63,7 +64,9 @@ export default function Providers({ brand, children }: { brand: BrandAssets; chi
   return (
     <BrandContext.Provider value={brand}>
       <BotSelectionContext.Provider value={selection}>
-        <SessionUploadContext.Provider value={sessionUploads}>{children}</SessionUploadContext.Provider>
+        <SessionUploadContext.Provider value={sessionUploads}>
+          <DemoGate>{children}</DemoGate>
+        </SessionUploadContext.Provider>
       </BotSelectionContext.Provider>
     </BrandContext.Provider>
   );
