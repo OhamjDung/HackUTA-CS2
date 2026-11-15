@@ -134,6 +134,14 @@ Checked on 2026-11-14.
   broky move and fight. A frozen client stays frozen until the map reloads. The restart fix
   (`mp_warmup_end`, `mp_restartgame 1`) did not change the result while `record` was still sent.
   Also seen once: `bot_add_ct "donk"` straight after `bot_kick` added bots named chelo and SELLTER.
+- Clone files against the players' held-back matches (Tom, 2026-11-14; full report in
+  `CLONE_AUDIT.md`). Each clone's `stats.json` was compared with every player in its held-back
+  match. Among the target and his four teammates, the target scored highest in 5 of 8 tests
+  (position and route overlap, per side, both clones) and second in the other 3. Misses: donk T
+  (5 rounds) and broky CT routes. T-side position overlap does not separate donk from broky. Real
+  broky made 10 of 17 held-back kills with the AWP; `broky_v1`'s full buy is an AK-47 or M4A4.
+  Routes average 18.5 s against about 70 s alive per round. One route file matched its recording
+  on every tick. No bot was measured: this is a file-level check.
 - Every GitHub repository in section 4 exists. Stars, licenses, and update dates come from GitHub.
 - The OpenCS2 counts in section 7 come from queries against its index tables.
 - The match service's cs2 backend, against a fake console and hand-written game state updates
@@ -983,6 +991,8 @@ demo. A released product would need each player's or team's permission.
 
 Newest first. One line per change: date, who, what changed.
 
+- 2026-11-14, Tom (with Claude): added `CLONE_AUDIT.md`, a file-level audit of both clones against
+  the held-back matches and of the MVP state; recorded its result in section 3.
 - 2026-11-14, Ashirwad: match service clone mode (`CS2_BOTS=clone`): `clone_add` to CloneDirector
   through MatchBridge, wait for each clone bot via the new `matchbridge_bots`, `de_mirage` only;
   start script `-Bots clone`. 42 tests pass against fakes; not run in CS2.
