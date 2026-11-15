@@ -504,6 +504,8 @@ async function setup() {
   const real = await api("/replay/clones").catch(() => []);
   $("r-clone").innerHTML = real.map(c => `<option value="${esc(c.clone_id)}">${esc(c.display_name)} (${c.routes} rounds)</option>`).join("");
   $("r-clone").onchange = rCloneChanged; $("r-side").onchange = rSideChanged; $("r-route").onchange = rRouteChanged;
+  if (real.some(c => c.clone_id === param("clone"))) $("r-clone").value = param("clone");
+  if (["T", "CT"].includes(param("side"))) $("r-side").value = param("side");
   if (real.length) rCloneChanged();
 
   $("g-file").onchange = genFileChanged; $("g-case").onchange = genCaseChanged;

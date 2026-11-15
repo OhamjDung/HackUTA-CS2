@@ -274,7 +274,8 @@ def create_app(settings: Settings | None = None, channel: ConsoleChannel | None 
         if not prof:
             raise HTTPException(404, f"No clone data for {clone_id}")
         keep = ["clone_id", "display_name", "source", "map", "rounds", "weapons", "aggression", "aim_skill",
-                "reaction_ms", "positions", "route_shares", "similarity", "source_games", "model"]
+                "reaction_ms", "positions", "route_shares", "similarity", "source_games", "model",
+                "buy_plan", "quirks", "quirk_controls", "learned", "built_at", "stand_in_bot"]
         return {k: prof.get(k) for k in keep}
 
     @app.get("/replay/clones/{clone_id}/routes")

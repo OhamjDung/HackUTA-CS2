@@ -22,6 +22,7 @@ const PAGES = [
   ["watch.html", "Bot vs bot"],
   ["replay.html", "Replay"],
   ["proof.html", "Proof"],
+  ["profile.html", "Clone profiles"],
 ];
 
 function header() {

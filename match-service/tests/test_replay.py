@@ -144,3 +144,17 @@ def test_score_endpoint_on_saved_cs2_trace(tmp_path):
         assert r["reference"]["match_id"] == "2393024"
         side = next(s for s in ("T", "CT") if r["held_back_vs_bot"].get(s))
         assert 0 < r["held_back_vs_bot"][side]["position_overlap"] <= 1
+
+
+def test_profile_data_exposes_existing_purchases_and_quirks_without_reference_payload():
+    with TestClient(create_app(Settings())) as client:
+        for cid in ('donkL', 'brokyL', 'donk_v1', 'broky_v1'):
+            source = json.loads((REPO_CLONES / f'{cid}.json').read_text())
+            response = client.get(f'/replay/clones/{cid}')
+            assert response.status_code == 200
+            data = response.json()
+            for key in ('buy_plan', 'quirks', 'quirk_controls', 'positions', 'similarity'):
+                assert data[key] == source.get(key)
+            assert 'quirk_reference' not in data and 'steam_id' not in data
+        for asset in ('profile.html', 'profile.js', 'profile.css'):
+            assert client.get(f'/demo/{asset}').status_code == 200

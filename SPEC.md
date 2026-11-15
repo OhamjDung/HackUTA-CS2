@@ -64,7 +64,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Independent mock replay QA, and fixes | Ashirwad (Codex QA; fixes by Ashirwad) | Done. All 12 findings fixed in `match-service/`: edge suite 11 pass (the 8 expected failures now pass), browser harness 31 of 31 with no page errors, 73 match service tests pass on the merged main. Mock only. | `tools/replay-qa/`, `match-service/` | 2026-11-14 |
 | Offline generated-path review export | Arjun (Codex) | Done. Eight development cases exported on A100 (24 generated paths plus real paths), JSON checked and plots inspected; 12 CPU tests pass. No route promotion. | `clone-model/review.py` | 2026-11-14 |
 | Replay page: real player next to clone | Unassigned | In progress (demo version by Ashirwad: 2D map from positions, no video; a generated-path tab shows the model's offline development review files, run against the mock in a browser) | `match-service/demo/replay.html`, `match-service/match_service/generated.py` | 2026-11-14 |
-| Clone profile page | Unassigned | Not started | Not decided | 2026-11-14 |
+| Clone profile page | Ashirwad | Done locally. Four clone profiles; side-specific time-weighted opening heat maps, weapons, purchases, quirk filter and labelled real-player reference scores. 85 service/3 calculation tests and desktop/mobile browser checks pass; no CS2 run. | `match-service/demo/profile.html` | 2026-11-15 |
 | Caster voice (Gemini script, ElevenLabs audio) | Unassigned | Not started | Not decided | 2026-11-14 |
 | Pro bot voices: donk and broky (ElevenLabs) | Unassigned (research by Codex) | In progress. MVP targets verified voice packs for `donk_v1` and `broky_v1`. Player authorization, verified voices, and playback tests pending. | Section 9.5 | 2026-11-14 |
 | Similarity search (MongoDB Atlas) | Unassigned | Not started | Not decided | 2026-11-14 |
@@ -134,6 +134,12 @@ only when no usable base exists, and say so here.
 Checked on 2026-11-14.
 
 **Checked by running a query or request:**
+- Clone profile page (Ashirwad, 2026-11-15): 85 service tests and 3 Node calculation tests pass.
+  Chrome browser checks against a local mock passed for all four clones, both sides, real heat
+  route counts, quirk filtering, fast switching, 390px layout, matching replay links, invalid query
+  fallback, server-error recovery and an empty catalogue, with zero page errors. Desktop/mobile
+  screenshots inspected. No CS2 process controlled, no bot-performance claim or holdout rescore.
+
 - Remaining-work task 5 (Ashirwad, 2026-11-15): 84 match-service tests pass. L catalogue and
   stand-in/CloneDirector start commands checked with fake channels; shared bot names rejected
   before commands for either player and either team arrangement. Clone-mode environment defaults
@@ -408,6 +414,7 @@ One install of CS2-Bot-Improver gives the first four rows.
 | Generating model: player identity | CS2 Clone Lab, `sim/identity.py` |
 | Generating model: reading recordings into its training format | CS-NET v4's own parser (`demo_parser/`) and data scripts |
 | Model test numbers | CS-NET v4's `scripts/evaluate_pretrain.py` |
+| Clone profile page | Existing demo `proof.html`, `common.js` Radar and recorded-route endpoints; reuses this repository’s open-source viewer and profile data. New time-weighted grid rendering, no additional runtime dependency. |
 | Replay page | CS-NET v4's viewer (`visualizer/`) |
 | Per-bot voice | Existing match/replay events, [ElevenLabs synthesis API](https://elevenlabs.io/docs/overview/capabilities/text-to-speech) (hosted service), then CS2-Bot-Controller's voice API (AGPL-3.0) for optional game audio. Use [Xiph libopus](https://opus-codec.org/license/) (BSD-3-Clause) to encode game packets offline. |
 | Independent mock replay QA | Existing match-service tests/FastAPI TestClient and pytest; Playwright (Apache-2.0) drives the existing pages. New task-specific synthetic fixtures and report, no second viewer |
@@ -1094,8 +1101,21 @@ of the replay.
 - **Replay page.** Starts from CS-NET v4's viewer, which already draws a generated path over the real
   path. Add: the clone's recorded round next to the real player's round, the real first-person video
   from OpenCS2, and the caster audio.
-- **Profile page.** Heat map of positions per side. Weapons, purchases, route frequencies, reaction
-  numbers. An AI-written scouting report. Similarity scores. "Most similar professionals".
+- **Profile page (`/demo/profile.html`, Ashirwad, 2026-11-15).** Four data-built profiles
+  (donk/broky, v1/L), selected with `?clone=&side=`. Time-weighted 96-unit heat cells from
+  the existing 8 Hz recorded opening routes; each observed interval contributes its elapsed time,
+  with no extension past the last sample. The background is route coverage, not collision geometry.
+  All-route heat is loaded with at most six concurrent requests; switching aborts stale reads.
+  Side changes update area/route shares and purchase plans. Ordered stored weapon preferences
+  are labelled as the original shot-count policy, separate from the unpromoted inventory candidate.
+  The L quirk table compares player and population values, filters distinctive quirks, and shows
+  control implementation status; v1 has an explicit no-quirks state. Similarity is labelled
+  real-player building vs held-back overlap, never clone accuracy. Reaction time stays unmeasured.
+  Source IDs and small-sample limits are shown; no held-back recordings were opened or rescored.
+  Existing profile responses add only `buy_plan`, `quirks`, `quirk_controls`, `learned`, `built_at`
+  and `stand_in_bot`; previous fields are retained and raw quirk reference traces are not exposed.
+  Links from the demo/navigation lead to the page; the recorded-replay link retains clone and side.
+  AI scouting reports and similar-professional search remain future work.
 - **Character showcase viewer (`frontend/`).** Five artist-rigged, KTX2-compressed models
   (built by `scripts/chargen/`) on a WebGPU canvas with a TSL glitch hot-swap transition.
   Rigs integrated and verified (C2).
@@ -1466,6 +1486,9 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-15, Ashirwad: built the local clone profile page from existing demo components and profile/route data; added side-specific opening heat maps, purchases, weapons, quirk filtering and labelled player-reference scores. Additive profile response fields and clone/side replay links; 85 service tests, 3 calculation tests and Chrome desktop/mobile checks pass. No game run or holdout rescore.
+
 
 - 2026-11-15, Ashirwad (Codex): completed remaining-work task 5 offline: added L sample profiles, full-catalogue defaults for clone-mode startup, catalogue labels and duplicate installed-name validation. Existing halftime fix verified with repeated transitional packets; 84 service tests pass. API shapes unchanged; no CS2 run.
 

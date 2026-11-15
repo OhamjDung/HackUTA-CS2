@@ -115,6 +115,7 @@ teammates' lobby, match page and clone dashboard, and show what each feature doe
 - **Replay**: a bot's round next to the real player's closest recorded round, on one clock; both
   bots in one round; every recorded round of the real players; and the model's generated paths
   (below). `replay.html?tab=gen` opens that tab.
+- **Clone profiles** (`/demo/profile.html`): choose donk/broky v1 or L; inspect side-specific opening heat maps, area/route shares, stored weapons and purchases, L quirk measurements/control status, and real-player reference overlaps. `?clone=brokyL&side=CT` links to a specific view.
 - **Proof**: the clone files' "player vs himself" numbers and habits, and the in-game score of a
   match: one played with `CS2_BOTS=clone` for the clone column, one with `stand_in` for the
   default-bot column. Each trace records which (`bots`).
@@ -319,3 +320,16 @@ uv run pytest
 ```
 
 On Windows PCs where Application Control blocks `uv run pytest`, use `uv run python -m pytest`.
+
+### Clone profile checks
+
+The profile page reuses the recorded-route API. `GET /replay/clones/{id}` retains all
+previous fields and adds purchase plans, quirks, control descriptions, learned status,
+build date and installed bot name. Heat cells accumulate elapsed time at each interval's
+starting position across 8 Hz opening traces; they do not describe whole-round bot play.
+Each side has its own intensity scale. No keys, external services or extra runtime packages.
+
+Run service tests with `uv run python -m pytest`, and heat-map/missing-value checks with
+`node --test tests/profile-data.test.cjs`. Local mock checks passed in Chrome at desktop
+and 390px widths, including profile/side switching, empty/error states and replay links.
+85 service tests and 3 calculation tests pass; no CS2 run or new holdout evaluation.

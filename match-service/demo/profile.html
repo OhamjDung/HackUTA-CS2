@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clone profiles · CS2 Clones</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="profile.css">
+  <script src="common.js"></script>
+  <script src="profile.js" defer></script>
+</head>
+<body>
+<main>
+  <div class="row profile-toolbar">
+    <div><p class="eyebrow">PLAYER INTELLIGENCE / MIRAGE</p><h1>Clone profiles</h1></div>
+    <span class="spacer"></span>
+    <label>Clone<select id="clone" disabled><option>Loading profiles…</option></select></label>
+    <label>Side<select id="side"><option value="T">T side</option><option value="CT">CT side</option></select></label>
+  </div>
+  <p id="error" class="error" role="alert"></p>
+  <p id="loading" role="status">Loading recorded player data…</p>
+  <div id="content" hidden>
+    <section class="card profile-hero" aria-labelledby="player-name">
+      <div class="row"><div><p class="eyebrow" id="identity"></p><h2 id="player-name"></h2></div><span class="spacer"></span><span class="pill warn">In-game likeness unmeasured</span></div>
+      <p class="muted" id="summary"></p>
+      <div class="profile-metrics" id="metrics"></div>
+      <div class="row profile-links"><a id="replay" href="replay.html">Explore recorded rounds →</a><a href="proof.html">Open match scoring →</a></div>
+    </section>
+    <div class="grid two profile-section">
+      <section class="card" aria-labelledby="heat-heading">
+        <div class="row"><h2 id="heat-heading">Opening positions</h2><span class="spacer"></span><span id="heat-side" class="pill"></span></div>
+        <p class="muted small">Time spent along recorded openings, up to 20 seconds or first contact/death. Background cells show recorded route coverage, not map walls.</p>
+        <div class="radar-wrap"><canvas id="heatmap" class="radar" width="800" height="800" role="img" aria-label="Opening position heat map"></canvas><div id="heat-empty" class="empty" role="status"></div></div>
+        <div class="heat-legend"><span>Less time</span><i></i><span>More time</span></div>
+        <p id="heat-caption" class="muted small" role="status"></p>
+      </section>
+      <div class="grid">
+        <section class="card"><h2>Most visited areas</h2><p class="muted small">Share of recorded alive time across the source matches. This covers more of each round than the opening heat map.</p><div id="positions"></div></section>
+        <section class="card"><h2>Opening route choices</h2><div id="routes"></div></section>
+        <section class="card"><h2>Weapon preferences</h2><p class="muted small">Ordered preferences in this clone file, derived from shot counts. They are not inventory shares or a skill rating.</p><div id="weapons" class="row"></div><p class="muted small">The committed profiles still use the original weapon policy; the offline inventory-based correction remains a separate candidate.</p></section>
+      </div>
+    </div>
+    <section class="card profile-section"><h2>Purchases by round type</h2><p class="muted small">The stored purchase plan for the selected side. Items retained from previous rounds may not appear as purchases.</p><div id="buys" class="grid buys-grid"></div></section>
+    <section class="card profile-section">
+      <div class="row"><h2>Measured player quirks</h2><span class="spacer"></span><label class="quirk-filter"><input type="checkbox" id="distinctive" checked> Distinctive quirks only</label></div>
+      <p class="muted small">Source-player measurements across both sides. “Distinctive” means consistently at least one standard deviation from the comparison players. Control status describes implementation, not measured bot behaviour.</p>
+      <p class="muted small">On narrow screens, scroll the table horizontally to see comparison values and controls.</p>
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Player quirk comparisons"><table><thead><tr><th scope="col">Habit</th><th scope="col">Player</th><th scope="col">Other players’ mean</th><th scope="col">Difference</th><th scope="col">Bot control</th></tr></thead><tbody id="quirks"></tbody></table></div>
+      <p id="quirk-empty" class="muted"></p>
+    </section>
+    <section class="card profile-section"><h2>How consistent is the real player?</h2><p class="muted small">Building matches compared with a separate held-back real match. These overlaps are reference values, not clone accuracy or bot performance.</p><div class="table-scroll"><table><thead><tr><th>Side</th><th>Position overlap</th><th>Route overlap</th><th>Building / held-back rounds</th></tr></thead><tbody id="similarity"></tbody></table></div><p id="holdout" class="muted small"></p></section>
+    <details class="card profile-section"><summary>Source matches and measurement limits</summary><div id="provenance"></div><p class="muted small">Opening routes hand control back to the existing bot AI. Reaction time is unmeasured; aim settings do not establish human skill. Learned quirk controls need live verification. No held-back matches were rescored for this page.</p></details>
+  </div>
+</main>
+</body>
+</html>
