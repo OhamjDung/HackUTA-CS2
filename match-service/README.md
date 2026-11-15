@@ -136,7 +136,9 @@ stand-in with `bot_add_ct "<name>"` / `bot_add_t "<name>"`, put the person at th
 `mp_warmup_end` and `mp_restartgame 1` (and `tv_record` with `CS2_RECORD=tv`). Game state is
 ignored until 2 s after the
 restart (`CS2_RESTART_SECONDS`), because Bot Mode can report `live` before the match starts. Scores
-and the end of the match come from game state. One match at a time; at most one
+and the end of the match come from game state. At halftime CS2 can send one update with the team
+names swapped and the scores not, so the service only accepts the reading of the two scores where
+neither team's score drops (the names break a tie). One match at a time; at most one
 human (the person at the CS2 PC).
 
 ### Setup on the CS2 machine (Windows)

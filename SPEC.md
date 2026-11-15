@@ -158,6 +158,10 @@ Checked on 2026-11-14.
   recordings in `game/csgo/addons/counterstrikesharp/plugins/BotControllerImpl/recordings/`. When
   the match ended or restarted, the bot base's fill bots (tomiko, swerzieN) replaced donk and broky;
   cause not found.
+- Halftime score fix (Ashirwad, 2026-11-14): a test replays Tom's match 09a357d5a255 sequence (7-1,
+  then an update with names swapped but not scores, then both swapped). The old code gives 7-7; the
+  fixed code keeps 7-1 and ends 9-2 with 11 `round.ended` events. Also with the scores swapping
+  first. Against fake game state only; not yet rerun in CS2. 49 match service tests pass.
 - In-game similarity scorer (Ashirwad, 2026-11-14), on the two held-back recordings (2393242,
   2393024) downloaded from OpenCS2. The map-area lookup built from broky's match names the area of
   93.3% of the positions in donk's match correctly (92.6% without height), so x and y are enough.
@@ -749,7 +753,10 @@ setup steps.
   security check.
 - Events come in through CS2's Game State Integration, posted to `/gsi`. Scores come from the team
   scores in game state. Team names `Alpha` (starts CT) and `Bravo` (starts T) keep scores with the
-  right team after sides swap.
+  right team after sides swap. At halftime CS2 can send one update with the names swapped and the
+  scores not (Tom's match 09a357d5a255 jumped from 7-1 to 7-7), so the service only accepts a
+  reading of the two scores where neither team's score drops, takes the one that adds the fewest
+  rounds, and uses the names only to break a tie.
 - One match at a time. At most one human: the person at the CS2 PC. Bot against bot puts that
   person in spectator.
 - Recording is set by `CS2_RECORD`. `off` (default): nothing is recorded and `demo_url` is `null`
@@ -1095,6 +1102,8 @@ demo. A released product would need each player's or team's permission.
 
 Newest first. One line per change: date, who, what changed.
 
+- 2026-11-14, Ashirwad: fixed the halftime score jump Tom found (7-1 to 7-7 in match 09a357d5a255):
+  the service now picks the score reading where no team's score drops. Not yet rerun in CS2.
 - 2026-11-14, Ashirwad: in-game similarity scorer (`clone_pipeline/ingame.py`): Mirage area lookup and
   donk/broky held-back references from OpenCS2, scores a match trace against them (section 10.2).
   Tested on the clones' route files; no CS2 trace scored yet.

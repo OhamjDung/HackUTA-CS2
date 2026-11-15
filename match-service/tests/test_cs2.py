@@ -124,6 +124,35 @@ def full_match(client, channel, tmp_path, record):
         assert client.get(f"/demos/{match_id}.dem").status_code == 404
 
 
+@pytest.mark.parametrize("glitch", ["names_first", "scores_first"])
+def test_halftime_swap_glitch(game, glitch):
+    """Tom's match 09a357d5a255: at halftime one update had the team names swapped but not the scores.
+    The service jumped from 7-1 to 7-7. The true result was 9-1 in 10 rounds."""
+    client, channel = game
+    match_id = client.post("/matches", json=wingman(players=[])).json()["match_id"]
+    wait_sent(channel, "map de_mirage")
+    gsi(client)
+    wait_for(client, match_id, "ready")
+    wait_sent(channel, "mp_restartgame 1")
+    gsi(client, phase="live")
+    wait_for(client, match_id, "live")
+
+    gsi(client, phase="live", ct=("Alpha", 7), t=("Bravo", 1))  # Alpha (started CT) leads 7-1
+    if glitch == "names_first":
+        gsi(client, phase="live", ct=("Bravo", 7), t=("Alpha", 1))  # names swapped, scores not yet
+    else:
+        gsi(client, phase="live", ct=("Alpha", 1), t=("Bravo", 7))  # scores swapped, names not yet
+    gsi(client, phase="live", ct=("Bravo", 1), t=("Alpha", 7))      # both swapped
+    assert client.get(f"/matches/{match_id}").json()["score"] == {"CT": 7, "T": 1}
+
+    gsi(client, phase="live", ct=("Bravo", 1), t=("Alpha", 8))
+    gsi(client, phase="live", ct=("Bravo", 2), t=("Alpha", 8))  # Bravo wins one after the swap
+    gsi(client, phase="gameover", ct=("Bravo", 2), t=("Alpha", 9))
+    m = wait_for(client, match_id, "ended")
+    assert m["score"] == {"CT": 9, "T": 2} and m["round"] == 11
+    assert events(client, match_id).count("round.ended") == 11
+
+
 def test_live_before_start_is_ignored(tmp_path):
     # Seen on Tom's PC: Bot Mode reported `live` 0.2 s after ready, before the service ended warmup.
     channel = RecordingChannel()

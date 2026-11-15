@@ -157,7 +157,7 @@ class Cs2Backend:
         swapped = ct.get("name") == START_NAME["T"] or t.get("name") == START_NAME["CT"]
         ct_score, t_score = int(ct.get("score", 0)), int(t.get("score", 0))
         # Our score is keyed by the side each team STARTED on.
-        target = Score(CT=t_score if swapped else ct_score, T=ct_score if swapped else t_score)
+        target = self._target_score(m.score, ct_score, t_score, swapped)
         self._record_positions(record, payload)
         await self._advance_score(record, target)
 
@@ -282,6 +282,23 @@ class Cs2Backend:
         late = sorted({p.clone_id for p in clones if (self.bot_names[p.clone_id], JOINTEAM[p.team]) in missing})
         return (f"These clones did not join within {self.s.clone_join_seconds:.0f} s: {', '.join(late)}. "
                 "Check the CloneDirector lines in the CS2 console, or run clone_list there.")
+
+    @staticmethod
+    def _target_score(current: Score, ct_score: int, t_score: int, swapped_by_name: bool) -> Score:
+        """Which of CS2's two side scores belongs to which starting side.
+
+        The team names say whether the sides have swapped, but at halftime CS2 sent an update where
+        the names had swapped and the scores had not (Tom's match 09a357d5a255: 7-1 became 7-7 and
+        six extra round.ended events). Scores never go down, so only a reading where neither team's
+        score drops is possible. Of those, take the one that adds the fewest rounds; the team names
+        only break a tie. An update that fits neither reading is ignored.
+        """
+        straight, crossed = Score(CT=ct_score, T=t_score), Score(CT=t_score, T=ct_score)
+        options = [s for s in (straight, crossed) if s.CT >= current.CT and s.T >= current.T]
+        if not options:
+            return current
+        preferred = crossed if swapped_by_name else straight
+        return min(options, key=lambda s: (s.CT + s.T, s is not preferred))
 
     async def _advance_score(self, record: MatchRecord, target: Score) -> None:
         m = record.match
