@@ -58,3 +58,14 @@ runs on a private match only.
 `match-service/README.md` defines the Server API and its messages. Other teammates build against it.
 Change an endpoint, a message, or the clone profile format only with the owner's agreement, and
 record the change in `SPEC.md`.
+
+## 7. Running CS2 on Tom's PC (learned 2026-11-14)
+
+- **Never send `record` to CS2 over the network console.** It froze the client clock and crashed the
+  game once. Use the bot base's chat commands or the service's `tv` setting.
+- **Check bot slots with `status` before `!replay <slot>`.** Slot numbers change whenever bots are
+  re-added, and a route recorded for one side walks into a wall from the other.
+- **Do not start, stop or restart CS2, the launcher or the match service on the PC without the user
+  asking.** The user closed them on purpose, and a low-memory PC can kill the service.
+- On Windows run tests with `uv run python -m pytest`; `uv run pytest` is blocked there.
+- `data/` is git-ignored. Recordings and audit files in it must be handed over by another route.

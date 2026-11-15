@@ -39,7 +39,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Side-by-side page, stand-in version (two synced panels; replay page content replaces it) | Ashirwad | Not started | Not decided | 2026-11-14 |
 | Lobby page | Tom (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | Match page | Nikesh (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
-| CS2 with the bot base installed on the demo laptop | Tom | Done. CS2-Bot-Improver v1.4.9 runs in Bot Mode on Tom's PC. A donk-vs-broky stand-in match on Mirage plays when no `record` command is sent. CloneDirector is not installed there yet. | Tom's PC (the demo machine) | 2026-11-14 |
+| CS2 with the bot base installed on the demo laptop | Tom | Done. CS2-Bot-Improver v1.4.9 runs in Bot Mode on Tom's PC. A donk-vs-broky stand-in match on Mirage plays and its score counts through `/gsi`. The bot base's `!record`/`!replay` replays a recorded walk, and a converted donk route file loads and moves a bot; whether it runs the right route is not confirmed. CloneDirector is not installed there yet. | Tom's PC (the demo machine) | 2026-11-14 |
 | CS2 base game download on Arjun's current PC | Arjun (Codex) | Done. Steam manifest confirms complete download/staging, update result 0, 74.3 GB installed. Bot base not installed by this agent. | Steam default library on C: | 2026-11-14 |
 | Clone pipeline: recording in, clone profile out | Arjun (Codex) | Done. 10 tests pass; purchase order corrected in both clones. | `clone-pipeline/`, `HANDOFF.md` | 2026-11-14 |
 | donk clone (`donk_v1`): profile, purchases, grenades, 80 route files | Arjun | Done. Built from 4 matches, 80 rounds. | `clones/` | 2026-11-14 |
@@ -143,6 +143,17 @@ Checked on 2026-11-14.
   broky made 10 of 17 held-back kills with the AWP; `broky_v1`'s full buy is an AK-47 or M4A4.
   Routes average 18.5 s against about 70 s alive per round. One route file matched its recording
   on every tick. No bot was measured: this is a file-level check.
+- Playback and scores on Tom's PC (2026-11-14, after Ash's change to stop sending `record`).
+  Wingman donk_v1 (CT) vs broky_v1 (T) on `de_mirage` went `ready` then `live`, and
+  `GET /matches/<id>` showed CT 1, T 0, round 1. The bot base's chat commands work: `!record test` then
+  `!stoprecord` saved 962 ticks and `!replay 1 test` made a bot walk the recorded path. A converted
+  file, `!replay <slot> donk_v1_t_2393226_r13`, loads and moves the bot; on a CT bot it walked into a
+  wall, as a T-side route played from CT spawn would. The real recording differs from the converter's
+  files in `EntityFlags` (65665 vs 1), `Commands[].Fields` (24-59 vs 0), `InputHistory` (about 157k
+  characters vs empty), `Subticks` (22 vs none), `MouseDx/Dy` and `MoveType`. The bot base saves its
+  recordings in `game/csgo/addons/counterstrikesharp/plugins/BotControllerImpl/recordings/`. When
+  the match ended or restarted, the bot base's fill bots (tomiko, swerzieN) replaced donk and broky;
+  cause not found.
 - Every GitHub repository in section 4 exists. Stars, licenses, and update dates come from GitHub.
 - The OpenCS2 counts in section 7 come from queries against its index tables.
 - The match service's cs2 backend, against a fake console and hand-written game state updates
@@ -196,8 +207,10 @@ Checked on 2026-11-14.
 - Every time estimate in section 11.
 - Sending console commands to CS2 through RCON (`-usercon`, `rcon_password`) or the MatchBridge
   plugin. Not needed while netcon works.
-- That the service's game state shows scores counting once `record` is not sent. Tom saw the match
-  play on screen; nobody has read the score through `/gsi` in that state.
+- The wingman match ending by itself at 9 rounds through the service (the service was stopped for
+  low memory first), and `round.ended` in `/matches/<id>/events`.
+- Whether a converted route file (`donk_v1_t_2393226_r13`) makes a T-side bot run donk's real path.
+  It loads and the bot moves; the path was not checked.
 - Why `bot_add_ct "donk"` once added other bots straight after `bot_kick`.
 - CounterStrikeSharp loading MatchBridge, `Server.NextFrame` running
   the commands, and `matchbridge_jointeam` moving the player.
@@ -1034,6 +1047,10 @@ Newest first. One line per change: date, who, what changed.
   user's explicit confirmation.
 - 2026-11-14, Arjun (Codex): added the Stage A learned-clone trainer and free-running identity-swap evaluator from pinned CS-NET/CS2 Clone Lab starting points; seven CPU tests pass. Colab pretrained-weight setup and ten match downloads ran; match parsing is underway. Requested G4 was unavailable; A100-SXM4-80GB was allocated for training. No learned-identity success is claimed yet.
 
+- 2026-11-14, Tom (with Claude): ran the playback gate's first half on Tom's PC: `!record`/`!replay`
+  work, a converted route file loads and moves a bot (route not confirmed), and scores count through
+  the service after Ash's `record` fix. Saved a real recording for the converter. Added
+  `TOM_HANDOFF.md`. Updated sections 0.2 and 3.
 - 2026-11-14, Tom (with Claude): added `CLONE_AUDIT.md`, a file-level audit of both clones against
   the held-back matches and of the MVP state; recorded its result in section 3.
 - 2026-11-14, Ashirwad: match service clone mode (`CS2_BOTS=clone`): `clone_add` to CloneDirector
