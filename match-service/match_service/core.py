@@ -39,8 +39,19 @@ class Settings:
     cs2_console_password: str = ""  # RCON password, or the MatchBridge plugin's token
     gsi_token: str = "change-me"
     demo_dir: Path | None = None
+    # How to record the match. `off`: no recording, demo_url is null. `tv`: GOTV (tv_record), not
+    # tested in CS2. The player's own `record` is not offered: over netcon it froze CS2's client
+    # and once crashed it (Tom's run, SPEC.md section 3).
+    cs2_record: str = "off"
     map_load_seconds: float = 90.0
     restart_seconds: float = 2.0  # wait after mp_restartgame before trusting game state
+    # Who plays a clone. `stand_in`: the built-in bot named in `stand_in_bot`. `clone`: Arjun's
+    # CloneDirector plugin (`clone_add`), which takes commands from the server console only, so
+    # those commands go through the MatchBridge plugin even when everything else uses netcon.
+    cs2_bots: str = "stand_in"
+    cs2_plugin_port: int = 27100
+    cs2_plugin_token: str = ""  # empty: use cs2_console_password
+    clone_join_seconds: float = 20.0  # how long to wait for every clone bot to join
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -61,8 +72,13 @@ class Settings:
             cs2_console_password=env.get("CS2_CONSOLE_PASSWORD", cls.cs2_console_password),
             gsi_token=env.get("GSI_TOKEN", cls.gsi_token),
             demo_dir=Path(demo_dir) if demo_dir else None,
+            cs2_record=env.get("CS2_RECORD", cls.cs2_record),
             map_load_seconds=float(env.get("CS2_MAP_LOAD_SECONDS", cls.map_load_seconds)),
             restart_seconds=float(env.get("CS2_RESTART_SECONDS", cls.restart_seconds)),
+            cs2_bots=env.get("CS2_BOTS", cls.cs2_bots),
+            cs2_plugin_port=int(env.get("CS2_PLUGIN_PORT", cls.cs2_plugin_port)),
+            cs2_plugin_token=env.get("CS2_PLUGIN_TOKEN", cls.cs2_plugin_token),
+            clone_join_seconds=float(env.get("CS2_CLONE_JOIN_SECONDS", cls.clone_join_seconds)),
         )
 
 

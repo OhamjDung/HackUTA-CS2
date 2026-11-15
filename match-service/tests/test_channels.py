@@ -13,7 +13,7 @@ MATCH_COMMANDS = ["game_type 0", "map de_mirage", 'bot_add_ct "donk"', "jointeam
 
 def test_server_side_translation():
     assert server_side(MATCH_COMMANDS, jointeam_command="matchbridge_jointeam") == [
-        "game_type 0", "tv_enable 1", "map de_mirage", 'bot_add_ct "donk"',
+        "game_type 0", "map de_mirage", 'bot_add_ct "donk"',
         "matchbridge_jointeam 3", "tv_record match_1", "tv_stoprecord"]
     # Over RCON nothing can move the player at the PC, so jointeam is dropped.
     assert "jointeam 3" not in server_side(MATCH_COMMANDS, jointeam_command=None)

@@ -43,3 +43,10 @@ def test_bad_stand_in_bot_profile_is_skipped(tmp_path):
     write(tmp_path, "newline", "donk\nquit")
     write(tmp_path, "space", "two words")
     assert list(load_clones(tmp_path)) == ["good"]
+
+
+def test_bad_clone_id_profile_is_skipped(tmp_path):
+    write(tmp_path, "good", "donk")
+    (tmp_path / "bad.json").write_text(json.dumps(
+        {"clone_id": "x; quit", "display_name": "x", "source": "pro"}))
+    assert list(load_clones(tmp_path)) == ["good"]
