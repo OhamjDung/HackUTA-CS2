@@ -25,3 +25,6 @@ __pycache__/
 *\ 2.*
 *\ 3.*
 **/*\ [0-9].*
+
+# Raw Sketchfab downloads (multi-MB scene.bin + uncompressed textures) - never commit
+raw_downloads/

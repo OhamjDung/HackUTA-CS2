@@ -48,6 +48,15 @@ export default function CharacterModel({ config }: CharacterModelProps) {
         } else {
           clipActiveRef.current = false;
         }
+        // Studio stage: characters cast the floor shadow. Quantized skinned
+        // meshes carry rest-pose bounds, so skip frustum culling to avoid
+        // pose-dependent pop-outs.
+        gltf.scene.traverse((o: THREE.Object3D) => {
+          if ((o as THREE.Mesh).isMesh) {
+            o.castShadow = true;
+            o.frustumCulled = false;
+          }
+        });
         setScene(gltf.scene);
       })
       .catch((err) => {

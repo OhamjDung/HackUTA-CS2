@@ -2,15 +2,18 @@ export type CharacterId = 'cs2' | 'smash' | 'fortnite' | 'fifa' | 'halo';
 
 export interface CharacterConfig {
   id: CharacterId;
+  /** Short internal name (legacy HUD / logs). */
   name: string;
+  /** Label shown in the studio HUD ("01 / CS2"). */
+  displayName: string;
   url: string;
   scale: [number, number, number];
   position: [number, number, number];
   idleAnimationName: string;
-  /** HUD accent (active pill, signal bar, locked dot) + cool fill light. */
-  accentColor: string;
-  /** Key rim light color for the OLED stage. */
+  /** Per-character tint for the subtle studio rim light. */
   rimColor: string;
+  /** Per-character accent (kept for compatibility with earlier HUDs). */
+  accentColor: string;
 }
 
 export interface AssetCacheEntry {
