@@ -2,13 +2,25 @@ node_modules/
 .next/
 out/
 dist/
+build/
+coverage/
+
+# Frontend-local design notes — not the shared team rules (root AGENTS.md/CLAUDE.md/SPEC.md
+# stay tracked). Keep this out of pushes.
+AGENTS.md
 *.tsbuildinfo
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 __pycache__/
 *.pyc
 .DS_Store
+*.pem
 .env
 .env*.local
+.vercel
+
 # macOS/iCloud sync conflict duplicates (e.g. "AssetManager 2.ts") — never stage these.
 *\ 2.*
 *\ 3.*

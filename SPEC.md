@@ -983,6 +983,11 @@ demo. A released product would need each player's or team's permission.
 
 Newest first. One line per change: date, who, what changed.
 
+- 2026-11-14, Nikesh: rounded out `frontend/.gitignore` (added `build/`, `coverage/`, `*.pem`,
+  npm/yarn debug logs, `.vercel`) and untracked `frontend/AGENTS.md` (git rm --cached + ignored) —
+  it's frontend-local design notes, not the shared rules file. Root docs (`AGENTS.md`, `CLAUDE.md`,
+  `HANDOFF.md`, `SPEC.md`) are untouched and stay tracked/pushed per section 1/2 above, per the
+  user's explicit confirmation.
 - 2026-11-14, Ashirwad: match service clone mode (`CS2_BOTS=clone`): `clone_add` to CloneDirector
   through MatchBridge, wait for each clone bot via the new `matchbridge_bots`, `de_mirage` only;
   start script `-Bots clone`. 42 tests pass against fakes; not run in CS2.
