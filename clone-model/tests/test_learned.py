@@ -119,3 +119,14 @@ def test_temporal_hook_leaves_all_unknown_slots_unchanged():
     assert torch.equal(result[:,:,:4], x[:,:,:4])
     assert torch.equal(result[:,:,5:], x[:,:,5:])
     assert not torch.equal(result[:,:,4], x[:,:,4])
+
+
+def test_spectator_roster_filter_requires_five_real_players_per_side():
+    import pandas as pd
+    from parse_compat import active_roster
+    frame = pd.DataFrame({"steamid": [str(i) for i in range(11)], "team_num": [2]*5 + [3]*5 + [float("nan")]})
+    result = active_roster(frame)
+    assert result["steamid"].tolist() == [str(i) for i in range(10)]
+    frame.loc[10,"team_num"] = 2
+    with pytest.raises(ValueError):
+        active_roster(frame)

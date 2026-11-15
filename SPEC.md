@@ -555,7 +555,7 @@ selection and early stopping; do not tune on the held-back matches.
 
 **Implementation in progress (Arjun/Codex, 2026-11-14):** `clone-model/` pins CS-NET revision
 `268dd2193c8a3d6e330c07dde5a851196c94eeaa` and adapts CS2 Clone Lab's MIT-licensed identity/FiLM
-code from `2d3f50eeab9d6883abdb58d83f8c9bd1538b194a`. Seven CPU tests pass, including a real small
+code from `2d3f50eeab9d6883abdb58d83f8c9bd1538b194a`. Eight CPU tests pass, including a real small
 CS-NET backbone forward/backward check, exact zero-initial output change, frozen backbone,
 unknown identity remaining baseline after bias changes, and shuffled target/identity alignment.
 
@@ -569,6 +569,7 @@ registry, source revision, and base-weight/data-manifest hashes.
 Colab notebook setup and raw downloads ran on an L4. At Arjun's request, G4 was selected for
 optimization, but Colab reported it unavailable and allocated an **A100-SXM4-80GB** instead.
 The original L4 parsing session is being retained until prepared matches are transferred.
+Match 2393037 contains an eleventh, unassigned person at the first live tick. The upstream parser rejected it. `parse_compat.py` filters roster and metadata together to exactly five unique players on each playing team and rejects ambiguous cases; its regression test passes.
 Optimizer progress and final validation have not yet been established at this point; do not
 describe downloaded weights or parsed matches as learned player identities.
 
@@ -1014,6 +1015,8 @@ demo. A released product would need each player's or team's permission.
 ## 19. Change log
 
 Newest first. One line per change: date, who, what changed.
+
+- 2026-11-14, Arjun (Codex): added a strict CS-NET parser roster wrapper after broky match 2393037 exposed an extra unassigned person; checked its live-tick roster from the real demo and added a passing regression test. Eight learned-model tests pass.
 
 - 2026-11-14, Nikesh: rounded out `frontend/.gitignore` (added `build/`, `coverage/`, `*.pem`,
   npm/yarn debug logs, `.vercel`) and untracked `frontend/AGENTS.md` (git rm --cached + ignored) —

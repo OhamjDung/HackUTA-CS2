@@ -37,7 +37,10 @@ folder and check out `268dd2193c8a3d6e330c07dde5a851196c94eeaa`. Download its pa
 `scripts/download_checkpoints.py --pretrain-only`.
 
 The Colab notebook downloads and parses the ten recordings with CS-NET's `demo_parser` at
-0.25-second intervals. `games.json` records tuples of player, match ID, dataset shard, demo stem,
+0.25-second intervals. `parse_compat.py` wraps that parser to filter its roster and metadata
+consistently to exactly five players on each playing team. Match 2393037 contains an extra
+unassigned person; a roster that remains ambiguous is rejected, never guessed.
+`games.json` records tuples of player, match ID, dataset shard, demo stem,
 and train/test source split. Parsed files are named `<match_id>.json.gz`.
 
 From this directory, with the paths set for your machine:
