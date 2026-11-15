@@ -1,10 +1,14 @@
-"""Ways to send console commands to CS2.
+"""Ways to send console commands to CS2. Pick one with CS2_CONSOLE.
 
-NetconChannel talks to CS2's network console: start CS2 with `-netconport <port>` and it accepts
-plain-text commands over TCP, one per line, and streams console output back. This is how it works
-in other Source games; whether CS2 still supports it is NOT checked yet (SPEC.md section 3). If it
-doesn't, add a channel that talks to a small CounterStrikeSharp plugin instead. Nothing else in the
-service needs to change, because everything goes through `send` and `query`.
+- `netcon` (default): CS2's network console. Start CS2 with `-netconport <port>` and it accepts
+  plain-text commands over TCP, one per line, and streams console output back. This is how it works
+  in other Source games; whether CS2 still supports it is NOT checked (SPEC.md section 3).
+- `rcon`: Valve's RCON protocol. Not checked whether Bot Mode accepts it.
+- `plugin`: the MatchBridge plugin in plugin/MatchBridge, which runs inside CS2 on
+  CounterStrikeSharp (which CS2-Bot-Improver already installs). The most likely to work, but it
+  must be built and installed first.
+
+Everything in the service goes through `send` and `query`, so switching changes nothing else.
 """
 
 import asyncio
@@ -56,6 +60,100 @@ class NetconChannel:
         finally:
             writer.close()
             await writer.wait_closed()
+
+
+def server_side(commands: list[str], jointeam_command: str | None) -> list[str]:
+    """Rewrite client-only commands for channels that run commands on the server side.
+
+    RCON and the MatchBridge plugin run commands as the server, not as the player at the PC, so:
+    - `record <name>` / `stop` (a player's own recording) become `tv_record <name>` / `tv_stoprecord`
+      (the server's recording, which needs `tv_enable 1` before the map loads).
+    - `jointeam <n>` moves the player at the PC. Only the plugin can do that (`jointeam_command`);
+      over RCON it is dropped and the player picks a team by hand.
+    """
+    out: list[str] = []
+    for c in commands:
+        word, _, rest = c.partition(" ")
+        if word == "map":
+            out += ["tv_enable 1", c]
+        elif word == "record":
+            out.append(f"tv_record {rest}")
+        elif c == "stop":
+            out.append("tv_stoprecord")
+        elif word == "jointeam":
+            if jointeam_command:
+                out.append(f"{jointeam_command} {rest}")
+        else:
+            out.append(c)
+    return out
+
+
+class RconChannel:
+    """Valve's RCON protocol, through the `rcon` library (GPLv3).
+
+    Needs `rcon_password` set in CS2. Whether CS2's Bot Mode (the game hosting the match itself)
+    accepts RCON is NOT checked; a dedicated server does.
+    """
+
+    def __init__(self, host: str, port: int, password: str, timeout: float = 3.0):
+        self.host, self.port, self.password, self.timeout = host, port, password, timeout
+
+    async def _run(self, command: str) -> str:
+        from rcon.exceptions import SessionTimeout, WrongPassword
+        from rcon.source import rcon
+
+        try:
+            return await asyncio.wait_for(
+                rcon(command, host=self.host, port=self.port, passwd=self.password), self.timeout)
+        except WrongPassword as exc:
+            raise ConnectionError("RCON refused the password") from exc
+        except SessionTimeout as exc:
+            raise ConnectionError("RCON session timed out") from exc
+
+    async def send(self, commands: list[str]) -> None:
+        for c in server_side(commands, jointeam_command=None):
+            await self._run(c)
+
+    async def query(self, command: str, wait_seconds: float = 1.0) -> str:
+        return await self._run(command)
+
+
+class PluginChannel:
+    """The MatchBridge plugin (plugin/MatchBridge in this folder), running inside CS2.
+
+    Protocol: TCP to 127.0.0.1, first line `auth <token>`, then one command per line. The plugin
+    answers each line with `ok` (or `denied` after a wrong token) and runs the command on the
+    game's main thread. `matchbridge_jointeam <n>` moves the player at the PC to a team.
+    """
+
+    def __init__(self, host: str, port: int, token: str, timeout: float = 3.0):
+        self.host, self.port, self.token, self.timeout = host, port, token, timeout
+
+    async def _exchange(self, lines: list[str]) -> str:
+        reader, writer = await asyncio.wait_for(asyncio.open_connection(self.host, self.port), self.timeout)
+        try:
+            writer.write(f"auth {self.token}\n".encode())
+            await writer.drain()
+            first = (await asyncio.wait_for(reader.readline(), self.timeout)).decode().strip()
+            if first != "ok":
+                raise ConnectionError(f"MatchBridge refused the token ({first or 'no answer'})")
+            replies = []
+            for line in lines:
+                writer.write(f"{line}\n".encode())
+                await writer.drain()
+                replies.append((await asyncio.wait_for(reader.readline(), self.timeout)).decode().strip())
+            return "\n".join(replies)
+        finally:
+            writer.close()
+            await writer.wait_closed()
+
+    async def send(self, commands: list[str]) -> None:
+        await self._exchange(server_side(commands, jointeam_command="matchbridge_jointeam"))
+
+    async def query(self, command: str, wait_seconds: float = 1.0) -> str:
+        # The plugin can't return console output, only that it ran the command.
+        reply = await self._exchange(["matchbridge_ping"])
+        return "match-service-check" if reply == "pong" else reply
 
 
 class RecordingChannel:

@@ -91,7 +91,8 @@ class Cs2Backend:
             console = {"reachable": False, "error": str(exc)}
         return {
             "backend": self.name,
-            "console": {"host": self.s.cs2_console_host, "port": self.s.cs2_console_port, **console},
+            "console": {"kind": self.s.cs2_console, "host": self.s.cs2_console_host,
+                        "port": self.s.console_port(), **console},
             "gsi": {"last_update": self.gsi_at, "map": map_name(self.gsi),
                     "phase": (self.gsi.get("map") or {}).get("phase")},
             "current_match": self.current.match.match_id if self.busy() else None,
@@ -130,8 +131,11 @@ class Cs2Backend:
         try:
             await self.ch.send(["game_type 0", f"game_mode {GAME_MODE[m.mode]}", f"map {m.map}"])
         except (OSError, asyncio.TimeoutError) as exc:
-            return await self._fail(record, f"Can't reach the CS2 console at {self.s.cs2_console_host}:"
-                                            f"{self.s.cs2_console_port} ({exc!r}). Is CS2 running with -netconport?")
+            hint = {"netcon": "Is CS2 running with -netconport?",
+                    "rcon": "Is rcon_password set in CS2, and does the password match?",
+                    "plugin": "Is the MatchBridge plugin installed, and does the token match?"}[self.s.cs2_console]
+            return await self._fail(record, f"Can't reach the CS2 console ({self.s.cs2_console}) at "
+                                            f"{self.s.cs2_console_host}:{self.s.console_port()} ({exc!r}). {hint}")
 
         # If CS2 is already on this map, first wait for the reload to drop it, so bots aren't added to
         # the old map just before it reloads. Not checked how GSI reports a reload; capped at 20 s.

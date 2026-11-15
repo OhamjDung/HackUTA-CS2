@@ -17,11 +17,22 @@ from fastapi.responses import FileResponse
 
 from .backends.cs2 import Cs2Backend
 from .backends.mock import MockBackend
-from .console import ConsoleChannel, NetconChannel
+from .console import ConsoleChannel, NetconChannel, PluginChannel, RconChannel
 from .core import MatchRecord, Settings, load_clones, now
 from .models import TEAM_SIZE, Clone, Event, Match, MatchCreate, MatchPlayer
 
 log = logging.getLogger("match_service")
+
+
+def make_channel(settings: Settings) -> ConsoleChannel:
+    host, port, password = settings.cs2_console_host, settings.console_port(), settings.cs2_console_password
+    if settings.cs2_console == "netcon":
+        return NetconChannel(host, port)
+    if settings.cs2_console == "rcon":
+        return RconChannel(host, port, password)
+    if settings.cs2_console == "plugin":
+        return PluginChannel(host, port, password)
+    raise ValueError(f"Unknown CS2_CONSOLE {settings.cs2_console!r}; use 'netcon', 'rcon' or 'plugin'")
 
 
 def create_app(settings: Settings | None = None, channel: ConsoleChannel | None = None) -> FastAPI:
@@ -42,7 +53,7 @@ def create_app(settings: Settings | None = None, channel: ConsoleChannel | None 
     if settings.backend == "mock":
         backend = MockBackend(settings, emit)
     elif settings.backend == "cs2":
-        channel = channel or NetconChannel(settings.cs2_console_host, settings.cs2_console_port)
+        channel = channel or make_channel(settings)
         backend = Cs2Backend(settings, emit, channel)
     else:
         raise ValueError(f"Unknown MATCH_BACKEND {settings.backend!r}; use 'mock' or 'cs2'")

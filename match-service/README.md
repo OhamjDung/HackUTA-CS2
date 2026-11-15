@@ -86,9 +86,20 @@ CS2-Bot-Improver bot. `donk_v1` and `broky_v1` use the bots named `donk` and `br
 CS2-Bot-Improver already ships. A clone without `stand_in_bot` is rejected in this mode.
 
 How it controls the game:
-- **Commands out** through CS2's network console: start CS2 with `-netconport 2121`. Not confirmed
-  that CS2 still supports this. If it doesn't, add another channel in `console.py` (RCON, or a
-  small plugin); nothing else changes.
+- **Commands out** through one of three channels (`CS2_CONSOLE`). Try them in this order:
+  1. `netcon` (default): CS2's network console. Start CS2 with `-netconport 2121`. Not confirmed
+     that CS2 still supports this.
+  2. `rcon`: Valve's remote console protocol. Start CS2 with `-usercon` and run
+     `rcon_password <password>` in its console. Not confirmed that CS2 answers RCON in Bot Mode.
+  3. `plugin`: the MatchBridge plugin in `plugin/MatchBridge/`, for CounterStrikeSharp (which
+     CS2-Bot-Improver installs). It runs each command inside the game. It must be built once with
+     the .NET 8 SDK.
+
+  With `rcon` and `plugin` the commands run on the server side, where `record`, `stop` and
+  `jointeam` don't exist. The service sends `tv_record` / `tv_stoprecord` instead (with
+  `tv_enable 1` before the map loads). With `plugin`, `jointeam` becomes
+  `matchbridge_jointeam`, which moves the person at the PC. With `rcon` nothing can move them, so
+  they pick a team themselves.
 - **Events in** through CS2's Game State Integration: CS2 POSTs the map, phase and scores to `/gsi`.
 
 What a match does: switch to the map and mode, wait for CS2 to report the map, set team names
@@ -98,29 +109,59 @@ stand-in with `bot_add_ct "<name>"` / `bot_add_t "<name>"`, put the person at th
 end warmup. Scores and the end of the match come from game state. One match at a time; at most one
 human (the person at the CS2 PC).
 
-Setup on the CS2 machine:
+### Setup on the CS2 machine (Windows)
+
+`start-cs2.ps1` does the setup and starts the service. It needs [uv](https://docs.astral.sh/uv/)
+(`winget install --id=astral-sh.uv -e`). From the `match-service` folder:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\start-cs2.ps1                  # netcon
+powershell -ExecutionPolicy Bypass -File .\start-cs2.ps1 -Console rcon    # RCON
+powershell -ExecutionPolicy Bypass -File .\start-cs2.ps1 -Console plugin  # MatchBridge
+```
+
+It finds the CS2 folder through Steam (or pass `-Cs2Dir "<folder>"`), installs the game state
+config into `game\csgo\cfg` with a random token, prints what CS2 needs for the chosen channel, and
+with `-Console plugin` builds MatchBridge (if `dotnet` is installed) and copies it into
+`game\csgo\addons\counterstrikesharp\plugins\MatchBridge\` with its `matchbridge.json`. The RCON
+password and plugin token default to the game state token; set them with `-ConsolePassword`.
+Restart CS2 after the first run so it reads the new files. Then open `GET /health`: it says whether
+the console answers and when game state last arrived. **The script has not been run on Windows
+yet.**
+
+By hand, on any system:
 1. Copy `gsi/gamestate_integration_matchservice.cfg` into `game/csgo/cfg/` in the CS2 folder.
    Change `token` and, if the service runs on another machine, the address in `uri`.
-2. Add `-netconport 2121` to CS2's launch options.
+2. Set up the channel as listed above.
 3. Run the service:
    ```bash
-   MATCH_BACKEND=cs2 GSI_TOKEN=<token> CS2_DEMO_DIR="<CS2 folder>/game/csgo" \
+   MATCH_BACKEND=cs2 CS2_CONSOLE=netcon GSI_TOKEN=<token> CS2_DEMO_DIR="<CS2 folder>/game/csgo" \
      uv run uvicorn match_service.main:app --host 0.0.0.0 --port 8000
    ```
-4. Open `GET /health`. It says whether the console answers and when game state last arrived.
+
+To build MatchBridge by hand: install the .NET 8 SDK, run `dotnet build plugin/MatchBridge -c Release`,
+then copy `plugin/MatchBridge/bin/Release/net8.0/MatchBridge.dll` and a `matchbridge.json` (see
+`matchbridge.example.json`; set your own token) into
+`game/csgo/addons/counterstrikesharp/plugins/MatchBridge/`. It listens on 127.0.0.1 only.
 
 | Setting | Default | What it does |
 | --- | --- | --- |
 | `MATCH_BACKEND` | `mock` | `mock` or `cs2` |
-| `CS2_CONSOLE_HOST`, `CS2_CONSOLE_PORT` | `127.0.0.1`, 2121 | Where the CS2 console listens |
+| `CS2_CONSOLE` | `netcon` | `netcon`, `rcon` or `plugin` |
+| `CS2_CONSOLE_HOST` | `127.0.0.1` | Where the channel listens |
+| `CS2_CONSOLE_PORT` | 2121 / 27015 / 27100 | Default depends on `CS2_CONSOLE` |
+| `CS2_CONSOLE_PASSWORD` | not set | RCON password, or the MatchBridge token |
 | `GSI_TOKEN` | `change-me` | Must match `token` in the game state config file |
 | `CS2_DEMO_DIR` | not set | Folder where CS2 saves `match_<id>.dem`; served at `demo_url` |
 | `CS2_MAP_LOAD_SECONDS` | 90 | How long to wait for CS2 to report the map before failing |
 | `WARMUP_SECONDS` | 5 | Time in `ready` before the match goes live |
 | `SERVER_IP`, `SERVER_PORT` | `127.0.0.1`, 27015 | What goes in `server` and `join_link` |
 
-Not checked yet: that CS2 accepts `-netconport`, the exact game state CS2 sends on a map change,
-where CS2 saves recordings, and that `jointeam` and the team-name commands behave as written.
+Not checked yet: that CS2 accepts `-netconport`; that it answers RCON in Bot Mode; that MatchBridge
+builds and loads (it has never been compiled), and that running commands through `Server.NextFrame`
+and moving the player with `ChangeTeam` work; that `start-cs2.ps1` runs; the exact game state CS2
+sends on a map change; where CS2 saves recordings; and that `jointeam` and the team-name commands
+behave as written. The RCON and plugin channels are tested against fake servers only.
 
 ## Tests
 

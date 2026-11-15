@@ -29,7 +29,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Research: which bots, dataset, and model to build on | Arjun | Done | Sections 4, 7, 8 | 2026-11-14 |
 | This spec and the agent rules | Arjun | Done | `SPEC.md`, `AGENTS.md`, `CLAUDE.md` | 2026-11-14 |
 | Match service, mock version (Server API with a fake CS2 server) | Ashirwad | Done | `match-service/` | 2026-11-14 |
-| Match service, real version (starts and controls a real CS2 match) | Ashirwad | In progress. Written (`MATCH_BACKEND=cs2`); tested only against a fake console, not in CS2 | `match-service/match_service/backends/cs2.py` | 2026-11-14 |
+| Match service, real version (starts and controls a real CS2 match) | Ashirwad | In progress. Written (`MATCH_BACKEND=cs2`) with three console channels (netcon, RCON, MatchBridge plugin) and a Windows start script; tested only against fake servers, not in CS2 | `match-service/match_service/backends/cs2.py` | 2026-11-14 |
 | Stand-in bots: built-in CS2-Bot-Improver pro bots used in place of clones until CloneDirector works | Ashirwad | In progress. `donk_v1` and `broky_v1` profiles use the `donk` and `broky` bots; not run in CS2 | `match-service/sample_clones/` | 2026-11-14 |
 | Side-by-side page, stand-in version (two synced panels; replay page content replaces it) | Ashirwad | Not started | Not decided | 2026-11-14 |
 | Lobby page | Tom (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
@@ -113,6 +113,9 @@ Checked on 2026-11-14.
 - The OpenCS2 counts in section 7 come from queries against its index tables.
 - The match service's cs2 backend, against a fake console and hand-written game state updates
   (`match-service/tests/test_cs2.py`, 10 tests, all pass). This checks the service's logic only.
+- The RCON and MatchBridge console channels, against fake servers that speak the same protocols
+  (`match-service/tests/test_channels.py`, 5 tests, all pass). This checks the Python side only.
+  All 26 match service tests pass.
 
 **Checked by reading source or documentation, not by running:**
 - What each open-source project can do (section 4).
@@ -130,8 +133,13 @@ Checked on 2026-11-14.
 - Adding a custom entry to the bot personality file.
 - Running or training CS-NET v4 on this project's data.
 - Every time estimate in section 11.
-- Sending console commands to CS2 from the match service. The service uses CS2's network console
-  (`-netconport`); no source confirms CS2 still supports it.
+- Sending console commands to CS2 from the match service, through any of the three channels:
+  CS2's network console (`-netconport`; no source confirms CS2 still supports it), RCON on a Bot
+  Mode game (`-usercon`, `rcon_password`), or the MatchBridge plugin.
+- Building MatchBridge (never compiled), CounterStrikeSharp loading it, `Server.NextFrame` running
+  the commands, and `matchbridge_jointeam` moving the player.
+- `tv_record` / `tv_stoprecord` recording a Bot Mode game (used by the RCON and plugin channels).
+- Running `match-service/start-cs2.ps1` on Windows. It was written on a Mac without PowerShell.
 - CS2 sending game state to the match service's `/gsi` endpoint, and what it sends on a map change.
 - `jointeam`, `mp_teamname_1`/`_2`, and `bot_add_ct "<name>"` behaving as the service expects.
 - Recording a bot match to a `.dem` file on the laptop and serving it at `demo_url`.
@@ -174,6 +182,8 @@ One install of CS2-Bot-Improver gives the first four rows.
 | Match control API | This repository's `match-service/` |
 | Match service: events from the game | CS2's Game State Integration (Valve). Field names from the [CounterStrike2GSI](https://github.com/antonpup/CounterStrike2GSI) README; read only, no code copied |
 | Match service: commands to the game | CS2's network console (`-netconport`). Idea from [csctl](https://github.com/403-Fruit/csctl) (CS:GO); read only. The client is written from zero: about 40 lines, no CS2 client found |
+| Match service: commands to the game, fallback 1 | RCON through the [rcon](https://pypi.org/project/rcon/) Python library (GPL-3.0), used as a dependency |
+| Match service: commands to the game, fallback 2 | MatchBridge, a CounterStrikeSharp plugin (`match-service/plugin/MatchBridge/`). Written from zero: no plugin found that runs console commands sent over a local port (LeaderOS Connect, the closest, runs store purchases). Project settings copied from CS2-Bot-Improver's own plugins; calls from the CounterStrikeSharp docs |
 | Stand-in bots | CS2-Bot-Improver's pro bot profiles and the `bot_add_ct "<name>"` blocks in its `Commands.txt` |
 | Style numbers for every professional | OpenCS2's ready-made index tables |
 
@@ -542,8 +552,14 @@ endpoints and the events do not change when `clone_add` replaces it.
 
 **What is written (`MATCH_BACKEND=cs2`, not yet run in CS2).** `match-service/README.md` has the
 setup steps.
-- Commands go out through CS2's network console. The channel is one small class
-  (`console.py`), so RCON or a plugin can replace it without other changes.
+- Commands go out through one of three channels in `console.py`, set by `CS2_CONSOLE`:
+  `netcon` (CS2's network console, the default), `rcon`, or `plugin` (MatchBridge, a small
+  CounterStrikeSharp plugin that runs each command inside the game). RCON and the plugin run
+  commands on the server side, so the service translates the client-only ones: `record` and `stop`
+  become `tv_record` and `tv_stoprecord` (with `tv_enable 1` before the map loads), and `jointeam`
+  becomes `matchbridge_jointeam` (plugin) or is dropped (RCON; the person picks a team).
+- `match-service/start-cs2.ps1` sets up the Windows PC and starts the service: it installs the game
+  state config with a token, builds and installs MatchBridge when asked, and sets the settings.
 - Events come in through CS2's Game State Integration, posted to `/gsi`. Scores come from the team
   scores in game state. Team names `Alpha` (starts CT) and `Bravo` (starts T) keep scores with the
   right team after sides swap.
@@ -552,8 +568,7 @@ setup steps.
 - The recording is `match_<id>.dem`, served at `demo_url` from `CS2_DEMO_DIR`.
 - `GET /health` reports whether the console answers and when game state last arrived.
 
-How the service sends console commands to CS2 is not decided and not tested. The owner of the real
-version decides.
+Which channel works in CS2 is not tested. Try netcon first, then RCON, then the plugin.
 
 **The link to the replay page.** `demo_url` is the input to the clone pipeline for the clone's side
 of the replay.
@@ -799,9 +814,8 @@ demo. A released product would need each player's or team's permission.
 4. **Is broky on FaZe's November 2026 lineup?**
 5. **Project name and domain name.**
 6. **A license file for this repository.**
-7. **How the real match service sends commands to CS2.** Written for CS2's network console; not
-   tested in CS2. If the game runs on a dedicated server instead of the laptop, RCON is the likely
-   better channel. Fallback: a small CounterStrikeSharp plugin.
+7. **Which console channel works in CS2.** All three are written (netcon, RCON, MatchBridge
+   plugin); none is tested in CS2. Tom's laptop test with `GET /health` decides.
 
 ## 17. After the hackathon
 
@@ -832,6 +846,8 @@ demo. A released product would need each player's or team's permission.
 
 Newest first. One line per change: date, who, what changed.
 
+- 2026-11-14, Ashirwad: added RCON and MatchBridge plugin fallbacks for match service console
+  commands, and `start-cs2.ps1` to set up the Windows PC. Tested against fake servers only.
 - 2026-11-14, Ashirwad: wrote the match service's cs2 backend (console commands out, game state
   in, stand-in bots, recordings, `/health`); added `donk_v1` and `broky_v1` profiles with
   `stand_in_bot`. Tested against a fake console only.

@@ -28,8 +28,10 @@ class Settings:
     public_url: str = "http://localhost:8000"
     clones_dir: Path = DEFAULT_CLONES_DIR
     # cs2 backend only
+    cs2_console: str = "netcon"  # netcon, rcon or plugin (see console.py)
     cs2_console_host: str = "127.0.0.1"
-    cs2_console_port: int = 2121
+    cs2_console_port: int | None = None  # None: 2121 for netcon, 27015 for rcon, 27100 for plugin
+    cs2_console_password: str = ""  # RCON password, or the MatchBridge plugin's token
     gsi_token: str = "change-me"
     demo_dir: Path | None = None
     map_load_seconds: float = 90.0
@@ -47,12 +49,18 @@ class Settings:
             base_port=int(env.get("SERVER_PORT", env.get("MOCK_BASE_PORT", cls.base_port))),
             public_url=env.get("PUBLIC_URL", env.get("MOCK_PUBLIC_URL", cls.public_url)).rstrip("/"),
             clones_dir=Path(env.get("CLONES_DIR", DEFAULT_CLONES_DIR)),
+            cs2_console=env.get("CS2_CONSOLE", cls.cs2_console),
             cs2_console_host=env.get("CS2_CONSOLE_HOST", cls.cs2_console_host),
-            cs2_console_port=int(env.get("CS2_CONSOLE_PORT", cls.cs2_console_port)),
+            cs2_console_port=int(env["CS2_CONSOLE_PORT"]) if env.get("CS2_CONSOLE_PORT") else None,
+            cs2_console_password=env.get("CS2_CONSOLE_PASSWORD", cls.cs2_console_password),
             gsi_token=env.get("GSI_TOKEN", cls.gsi_token),
             demo_dir=Path(demo_dir) if demo_dir else None,
             map_load_seconds=float(env.get("CS2_MAP_LOAD_SECONDS", cls.map_load_seconds)),
         )
+
+
+    def console_port(self) -> int:
+        return self.cs2_console_port or {"netcon": 2121, "rcon": 27015, "plugin": 27100}[self.cs2_console]
 
 
 @dataclass
