@@ -36,6 +36,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Character showcase: chromatic lighting/HUD sync + GLB gatekeeper | Nikesh | Done. Per-character rim/accent verified live (artist FIFA rig renders through mixer path, 0 errors); `verify-models.mjs`: 5/5 PASS (Idle clip, skins, meshopt, 0.31MB/10MB) | `frontend/` | 2026-11-14 |
 | 3D Character Glitch-Swap Showcase (Nodes A1-A5, B1-B4, C1-C2) | Nikesh | COMPLETE & VERIFIED. Artist KTX2+Meshopt rigs integrated (5/5 gatekeeper PASS, 0.31MB); 5-character live sweep: mixer path, 1.85m framing, chromatic rim/HUD, KTX transcode clean, 0 errors, 0 refetches | `frontend/`, `frontend/scripts/chargen/` | 2026-11-14 |
 | Stand-in bots: built-in CS2-Bot-Improver pro bots used in place of clones until CloneDirector works | Ashirwad | In progress. `donk_v1` and `broky_v1` profiles use the `donk` and `broky` bots; not run in CS2 | `match-service/sample_clones/` | 2026-11-14 |
+| In-game similarity score: a bot's rounds in CS2 against the real player's held-back match (section 10.2) | Ashirwad | In progress. Scorer, map-area lookup and both held-back references written and tested (16 pipeline tests); no real CS2 trace scored yet | `clone-pipeline/clone_pipeline/ingame.py`, `clone-pipeline/references/` | 2026-11-14 |
 | Side-by-side page, stand-in version (two synced panels; replay page content replaces it) | Ashirwad | In progress. Demo pages served by the match service at `/demo/`: bot vs bot with one live map panel per bot, play vs a bot, replay (real round vs bot round on one clock, clone vs clone, recorded rounds) and proof. Run against the mock in a browser; bot positions from CS2 not yet seen | `match-service/demo/`, `match-service/match_service/replay.py` | 2026-11-14 |
 | Lobby page | Tom (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | Match page | Nikesh (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
@@ -154,6 +155,14 @@ Checked on 2026-11-14.
   recordings in `game/csgo/addons/counterstrikesharp/plugins/BotControllerImpl/recordings/`. When
   the match ended or restarted, the bot base's fill bots (tomiko, swerzieN) replaced donk and broky;
   cause not found.
+- In-game similarity scorer (Ashirwad, 2026-11-14), on the two held-back recordings (2393242,
+  2393024) downloaded from OpenCS2. The map-area lookup built from broky's match names the area of
+  93.3% of the positions in donk's match correctly (92.6% without height), so x and y are enough.
+  The references rebuilt from those matches reproduce both profiles' `player_vs_self` numbers
+  exactly. A stand-in "bot" replaying each clone's own route files beats one replaying the other
+  clone's routes on route overlap on every side for both players, and on position overlap except
+  broky's T side (the same blind spot as the audit). This is a perfect-playback check on the files,
+  not a bot in CS2. `clone-pipeline/tests/test_ingame.py`; 16 pipeline tests pass.
 - Every GitHub repository in section 4 exists. Stars, licenses, and update dates come from GitHub.
 - The OpenCS2 counts in section 7 come from queries against its index tables.
 - The match service's cs2 backend, against a fake console and hand-written game state updates
@@ -218,6 +227,8 @@ Checked on 2026-11-14.
   it). CS2 is said to send them only to a spectator, so bot-vs-bot traces should work and
   play-vs-bot matches have none. Field shape from the CounterStrike2GSI docs.
 - Why `bot_add_ct "donk"` once added other bots straight after `bot_kick`.
+- Scoring a real CS2 trace: needs the match service's position trace from game state (`allplayers`,
+  sent only while the person at the PC spectates), which has not arrived from CS2 yet.
 - CounterStrikeSharp loading MatchBridge, `Server.NextFrame` running
   the commands, and `matchbridge_jointeam` moving the player.
 - `tv_record` / `tv_stoprecord` recording a Bot Mode game (`CS2_RECORD=tv`).
@@ -271,6 +282,7 @@ One install of CS2-Bot-Improver gives the first four rows.
 | Match control API | This repository's `match-service/` |
 | Match service: events from the game | CS2's Game State Integration (Valve). Field names from the [CounterStrike2GSI](https://github.com/antonpup/CounterStrike2GSI) README; read only, no code copied |
 | Match service: commands to the game | CS2's network console (`-netconport`). Idea from [csctl](https://github.com/403-Fruit/csctl) (CS:GO); read only. The client is written from zero: about 40 lines, no CS2 client found |
+| In-game similarity score | The pipeline's own `similarity.compare()` and `build.stats_block()`; area names are CS2's `last_place_name` from OpenCS2 recordings, looked up by position. Scorer written from zero: no tool found that scores game-state traces |
 | Match service: commands to the game, fallback 1 | RCON through the [rcon](https://pypi.org/project/rcon/) Python library (GPL-3.0), used as a dependency |
 | Match service: commands to the game, fallback 2 | MatchBridge, a CounterStrikeSharp plugin (`match-service/plugin/MatchBridge/`). Written from zero: no plugin found that runs console commands sent over a local port (LeaderOS Connect, the closest, runs store purchases). Project settings copied from CS2-Bot-Improver's own plugins; calls from the CounterStrikeSharp docs |
 | Stand-in bots | CS2-Bot-Improver's pro bot profiles and the `bot_add_ct "<name>"` blocks in its `Commands.txt` |
@@ -830,6 +842,15 @@ Measures, each per side:
 
 The claim: the clone is closer to donk than the default bot is, on all three.
 
+**How it is measured (written, 2026-11-14).** `clone-pipeline/clone_pipeline/ingame.py` scores a
+match trace from the match service (`GET /matches/{id}/trace`, positions per round from game state)
+against `clone-pipeline/references/<player>_<held-back match>.json`, the held-back match's stats.
+Positions get area names from a lookup built from real Mirage recordings
+(`clone_pipeline/maps/de_mirage_places.json`). It prints the ceiling, the clone and a baseline bot
+side by side, with round counts. Two limits: a bot's route stops at 20 s or death, while a real
+route also stops at first damage; and time to first contact is not measured, since a trace has no
+damage events.
+
 17 held-back rounds is a small sample. Show round counts next to every number.
 
 ### 10.3 Model proof
@@ -1060,6 +1081,9 @@ demo. A released product would need each player's or team's permission.
 
 Newest first. One line per change: date, who, what changed.
 
+- 2026-11-14, Ashirwad: in-game similarity scorer (`clone_pipeline/ingame.py`): Mirage area lookup and
+  donk/broky held-back references from OpenCS2, scores a match trace against them (section 10.2).
+  Tested on the clones' route files; no CS2 trace scored yet.
 - 2026-11-14, Ashirwad: demo pages at `/demo/` (play vs a bot, bot vs bot side by side, replay,
   proof) with placeholders for Arjun's pieces; match traces from game state positions; replay
   endpoints; 47 tests; pages run against the mock.

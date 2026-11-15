@@ -1,0 +1,93 @@
+{
+ "player": "broky",
+ "match_id": "2393024",
+ "rounds": {
+  "T": 10,
+  "CT": 12
+ },
+ "positions": {
+  "T": {
+   "TopofMid": 0.1607,
+   "SideAlley": 0.1261,
+   "Apartments": 0.0865,
+   "BombsiteA": 0.0859,
+   "TRamp": 0.0827,
+   "PalaceAlley": 0.0787,
+   "PalaceInterior": 0.0732,
+   "House": 0.0628,
+   "Middle": 0.0562,
+   "TSpawn": 0.0541,
+   "Catwalk": 0.0445,
+   "CTSpawn": 0.0271,
+   "BackAlley": 0.0263,
+   "Connector": 0.0139,
+   "Stairs": 0.0089,
+   "BombsiteB": 0.0046,
+   "Shop": 0.0039,
+   "Jungle": 0.0032,
+   "Scaffolding": 0.0006
+  },
+  "CT": {
+   "CTSpawn": 0.4214,
+   "BombsiteB": 0.1392,
+   "Shop": 0.099,
+   "Underpass": 0.092,
+   "Apartments": 0.0579,
+   "Jungle": 0.0551,
+   "BombsiteA": 0.0409,
+   "Middle": 0.0248,
+   "Connector": 0.0225,
+   "SnipersNest": 0.0214,
+   "Truck": 0.0097,
+   "Catwalk": 0.0086,
+   "Ladder": 0.0041,
+   "Stairs": 0.0033
+  }
+ },
+ "route_shares": {
+  "T": {
+   "SideAlley": 0.3,
+   "PalaceAlley": 0.2,
+   "Apartments": 0.1,
+   "PalaceInterior": 0.1,
+   "BackAlley": 0.1,
+   "Catwalk": 0.1,
+   "House": 0.1
+  },
+  "CT": {
+   "Shop": 0.3333,
+   "BombsiteB": 0.1667,
+   "Apartments": 0.1667,
+   "CTSpawn": 0.0833,
+   "Middle": 0.0833,
+   "Connector": 0.0833,
+   "Ladder": 0.0833
+  }
+ },
+ "seconds_to_first_contact": {
+  "T": [
+   76.8,
+   20.81,
+   82.41,
+   41.86,
+   113.95,
+   37.38,
+   61.55,
+   61.89,
+   9.17,
+   76.23
+  ],
+  "CT": [
+   28.45,
+   9.11,
+   34.03,
+   27.83,
+   21.75,
+   103.3,
+   24.75,
+   11.69,
+   98.19,
+   39.42
+  ]
+ }
+}

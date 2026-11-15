@@ -1,0 +1,85 @@
+{
+ "player": "donk",
+ "match_id": "2393242",
+ "rounds": {
+  "T": 5,
+  "CT": 12
+ },
+ "positions": {
+  "T": {
+   "TopofMid": 0.1708,
+   "SideAlley": 0.1451,
+   "BombsiteA": 0.1414,
+   "Catwalk": 0.122,
+   "CTSpawn": 0.1179,
+   "TSpawn": 0.0729,
+   "Middle": 0.0665,
+   "Underpass": 0.0461,
+   "PalaceInterior": 0.0388,
+   "PalaceAlley": 0.0376,
+   "Connector": 0.0128,
+   "BackAlley": 0.0079,
+   "House": 0.0076,
+   "Ladder": 0.0052,
+   "TRamp": 0.0043,
+   "SnipersNest": 0.0032
+  },
+  "CT": {
+   "BombsiteA": 0.3271,
+   "CTSpawn": 0.2343,
+   "Jungle": 0.112,
+   "Connector": 0.0895,
+   "SnipersNest": 0.0585,
+   "BombsiteB": 0.0552,
+   "Stairs": 0.0285,
+   "Middle": 0.0236,
+   "PalaceAlley": 0.0189,
+   "TSpawn": 0.0166,
+   "Shop": 0.0078,
+   "TRamp": 0.0072,
+   "SideAlley": 0.0065,
+   "Underpass": 0.0056,
+   "PalaceInterior": 0.0048,
+   "TopofMid": 0.0036,
+   "Catwalk": 0.0002
+  }
+ },
+ "route_shares": {
+  "T": {
+   "TopofMid": 0.4,
+   "SideAlley": 0.4,
+   "Underpass": 0.2
+  },
+  "CT": {
+   "Stairs": 0.1667,
+   "Middle": 0.1667,
+   "SnipersNest": 0.1667,
+   "Connector": 0.1667,
+   "BombsiteA": 0.0833,
+   "PalaceInterior": 0.0833,
+   "Jungle": 0.0833,
+   "Underpass": 0.0833
+  }
+ },
+ "seconds_to_first_contact": {
+  "T": [
+   48.44,
+   83.94,
+   71.61,
+   98.91,
+   11.64
+  ],
+  "CT": [
+   10.89,
+   75.19,
+   17.11,
+   35.77,
+   21.03,
+   28.67,
+   24.98,
+   24.23,
+   38.55,
+   11.02
+  ]
+ }
+}
