@@ -153,34 +153,43 @@ export default function FazeHome() {
     const measure = () => {
       measureAnchor();
       wrap.style.setProperty('--anchor-x', String(stageInput.anchorX));
+      // The overlay (character switcher) sits under the character too.
+      section.style.setProperty('--anchor-x', String(stageInput.anchorX));
     };
     const measureAnchor = () => {
       const w = wrap.clientWidth;
       if (w < 900) {
         stageInput.anchorX = 0.5;
         stageInput.anchorScale = 1;
+        stageInput.anchorLift = 0;
         return;
       }
       const base = wrap.getBoundingClientRect().left;
-      const h1 = section.querySelector<HTMLElement>('[data-headline]');
-      const hud = section.querySelector<HTMLElement>('[data-hud]');
-      if (!h1 || !hud) {
+      const lockup = section.querySelector<HTMLElement>('[data-headline]');
+      if (!lockup) {
         stageInput.anchorX = stageXFraction(w);
         return;
       }
-      // The absolutely positioned headline shrink-wraps its longest line.
-      const left = h1.getBoundingClientRect().right - base;
-      const right = hud.getBoundingClientRect().left - base;
-      stageInput.anchorX = Math.min(0.68, Math.max(0.5, (left + (right - left) * 0.42) / w));
+      // Centre the character in the open space between the brand lockup and
+      // the scale ruler on the right edge.
+      const left = lockup.getBoundingClientRect().right - base;
+      const right = w - Math.max(56, w * 0.04);
+      stageInput.anchorX = Math.min(0.8, Math.max(0.55, (left + (right - left) * 0.5) / w));
       // At the 1536×1024 reference the gap is ~0.48× the stage height; shrink below that.
       const gap = right - left;
-      stageInput.anchorScale = Math.min(1, Math.max(0.72, gap / (0.48 * wrap.clientHeight)));
+      // Slightly smaller and raised, leaving room for the switcher under the feet.
+      stageInput.anchorScale = Math.min(1, Math.max(0.72, gap / (0.48 * wrap.clientHeight))) * 0.92;
+      stageInput.anchorLift = 0.15;
     };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(wrap);
     document.fonts?.ready.then(measure);
-    return () => ro.disconnect();
+    return () => {
+      ro.disconnect();
+      // The Bots page shares the stage; it sets its own anchor but not a lift.
+      stageInput.anchorLift = 0;
+    };
   }, []);
 
   const scopeRest = useCallback(() => ({ x: stageInput.anchorX, y: 0.2 }), []);

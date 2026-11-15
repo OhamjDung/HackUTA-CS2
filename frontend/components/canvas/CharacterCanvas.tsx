@@ -119,6 +119,7 @@ function StageRig({ children }: { children: React.ReactNode }) {
     const halfH = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)) * CAMERA_DISTANCE;
     const halfW = halfH * (state.size.width / Math.max(1, state.size.height));
     g.position.x = (stageInput.anchorX * 2 - 1) * halfW;
+    g.position.y = stageInput.anchorLift;
     g.scale.setScalar(stageInput.anchorScale);
   });
 

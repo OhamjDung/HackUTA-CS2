@@ -331,18 +331,89 @@ body {
   .sb-glow, .sb-aurora, .sb-beam, .sb-grain { animation: none; }
 }
 
-/* ---- Home: display wordmark in the open stage space ---------------------- */
-.hero-wordmark {
-  font-size: clamp(30px, 3.9vw, 62px);
-  line-height: 1;
+/* ---- Home: DoppelGamer LED sign + tagline lockup --------------------------- */
+.hero-lockup {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(100%, 380px);
+  margin-inline: auto;
+}
+@media (min-width: 900px) {
+  .hero-lockup {
+    /* Sized to the open space left of the character. */
+    width: clamp(340px, 45vw, 860px);
+    margin-inline: 0;
+  }
+}
+.hero-sign {
+  position: relative;
+  display: grid;
+  width: 100%;
+  transform: translate3d(var(--sign-x, 0px), var(--sign-y, 0px), 0);
+}
+.hero-sign > * {
+  grid-area: 1 / 1;
+}
+.hero-sign svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.hero-sign-ghost {
+  fill: rgba(255, 255, 255, 0.038);
+}
+.hero-sign-lit {
+  fill: color-mix(in oklab, var(--rim) 14%, #fff8f5);
+  filter:
+    drop-shadow(0 0 2px color-mix(in oklab, var(--rim) 70%, #fff))
+    drop-shadow(0 0 7px color-mix(in oklab, var(--rim) 95%, transparent))
+    drop-shadow(0 0 20px color-mix(in oklab, var(--rim) 65%, transparent))
+    drop-shadow(0 0 48px color-mix(in oklab, var(--accent) 40%, transparent));
+  /* Hum on opacity: animating filter here would replace the glow. */
+  animation: led-power-on 1.4s steps(1, end) both, sign-hum 9s ease-in-out 1.4s infinite;
+}
+@keyframes sign-hum {
+  0%, 100% { opacity: 0.93; }
+  50% { opacity: 1; }
+}
+.hero-sign-spill {
+  position: absolute;
+  inset: -35% -20%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(50% 50% at 40% 50%, color-mix(in oklab, var(--rim) 26%, transparent), transparent 70%),
+    radial-gradient(40% 45% at 70% 60%, color-mix(in oklab, var(--accent) 16%, transparent), transparent 70%);
+  filter: blur(28px);
+  animation: sign-spill 7s ease-in-out infinite;
+}
+@keyframes sign-spill {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+.lockup-actions {
+  margin-top: max(40px, 7.5cqw);
+}
+/* "Choose your bot" arrow takes the sign's live colour (dark arrow stays readable on all five). */
+.cta-arrow {
+  background: var(--rim);
+  color: #0b0b0d;
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--rim) 60%, #fff),
+    0 0 14px color-mix(in oklab, var(--rim) 70%, transparent);
+}
+.lockup-tagline {
+  display: block;
+  margin-top: 3.6cqw;
+  font-size: 5.6cqw;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.045em;
   white-space: nowrap;
-  letter-spacing: 0.04em;
-  text-shadow:
-    0 0 1px rgba(255, 245, 247, 0.95),
-    0 0 6px rgba(228, 0, 43, 0.85),
-    0 0 18px rgba(228, 0, 43, 0.5),
-    0 0 42px rgba(228, 0, 43, 0.28);
-  animation: led-power-on 1.4s steps(1, end) both, led-hum 9s ease-in-out 1.4s infinite;
+  text-align: center;
 }
 @keyframes led-power-on {
   0% { opacity: 0; }
@@ -351,10 +422,6 @@ body {
   24% { opacity: 1; }
   30% { opacity: 0.35; }
   38%, 100% { opacity: 1; }
-}
-@keyframes led-hum {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.12); }
 }
 
 /* Headline: slow drift of the character gradient across both lines.
@@ -417,5 +484,5 @@ a:hover .faze-mark img {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-wordmark, .headline-accent, .faze-mark::before, .faze-sheen { animation: none; }
+  .hero-sign-lit, .hero-sign-spill, .headline-accent, .faze-mark::before, .faze-sheen { animation: none; }
 }
