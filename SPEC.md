@@ -50,6 +50,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Generating model: CS-NET v4 plus player identity | Arjun (Codex) | In progress. First A100 experiment trained 600 updates, selected step 400; both held-out identity tests failed. Experimental checkpoints/results preserved; offline review export verified, identity fidelity not established. | `clone-model/` | 2026-11-14 |
 | Offline weapon-role and habit audit handoff | Arjun's friend (handoff prepared) | Not started. CPU-only audit/fix handoff ready; recipient must remove consumed handoff docs on task branch after reading. | `handoffs/friend/01-HABIT-AUDIT-AND-FIX.md` | 2026-11-14 |
 | Independent mock replay QA handoff | Arjun's friend (optional second task) | Not started. Existing Ashirwad replay implementation remains with its owner; QA/report only. | `handoffs/friend/02-MOCK-REPLAY-QA.md` | 2026-11-14 |
+| Claude continuation handoff | Arjun (Codex) | Done. Full context, explicit scoped tool authorization, continuation prompt and recipient cleanup instructions prepared. | `handoffs/claude-continuation/` | 2026-11-14 |
 | Offline generated-path review export | Arjun (Codex) | Done. Eight development cases exported on A100 (24 generated paths plus real paths), JSON checked and plots inspected; 12 CPU tests pass. No route promotion. | `clone-model/review.py` | 2026-11-14 |
 | Replay page: real player next to clone | Unassigned | In progress (demo version by Ashirwad: 2D map from positions, no video, no generated path) | `match-service/demo/replay.html` | 2026-11-14 |
 | Clone profile page | Unassigned | Not started | Not decided | 2026-11-14 |
@@ -1100,6 +1101,8 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-14, Arjun (Codex): prepared Claude continuation context and prompt, including user-requested broad project tool authorization, failed-run evidence, exact environment/artifact references, ownership limits and consumed-handoff cleanup.
 
 - 2026-11-14, Ashirwad: added `GET /matches/{id}/score` (in-game similarity from a match trace) and filled the proof page's clone and default-bot columns from it; traces record `bots`; `start-cs2.ps1` saves traces to `data/traces/`; the proof page shows the failed first identity test. Tested against the mock only.
 
