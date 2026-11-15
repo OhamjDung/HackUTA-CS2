@@ -53,12 +53,12 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Quirk test ("who is it?" plus per-quirk checks), looser than the first identity test | Arjun (Claude) | Done. Rule fixed before scoring. Real players pass on their own held-back matches: donk 1st of 5 and 8 of 10 quirks, broky 1st of 5 and 9 of 10. No bot match or model output scored yet. | `clone-pipeline/clone_pipeline/quirks.py`, section 8.8 | 2026-11-14 |
 | Diagnosis of the failed neural identity model | Arjun (Claude) | Done. Adapters judged not usable: no change in 64% to 72% of test windows. Not offered as bots. | `clone-model/results/diagnosis-2026-11-14.md` | 2026-11-14 |
 | Second learned-identity experiment (`v2.py`): many identities, identity at every step, likelihood "who is it?" test | Arjun (Claude) | Blocked: the Colab session is a processor-only runtime, and the agent cannot change that setting. Arjun must pick a GPU runtime, then run the first cell once. Code written; 19 CPU tests pass (12 existing, 7 new). Pass rule fixed in the code before any run. No training has run and there is no result. | `clone-model/v2.py`, `clone-model/colab_train2.ipynb` | 2026-11-14 |
-| Offline weapon-role and habit audit handoff | Arjun's friend (handoff prepared) | Not started. CPU-only audit/fix handoff ready; recipient must remove consumed handoff docs on task branch after reading. | `handoffs/friend/01-HABIT-AUDIT-AND-FIX.md` | 2026-11-14 |
-| Independent mock replay QA handoff | Arjun's friend (optional second task) | Not started. Existing Ashirwad replay implementation remains with its owner; QA/report only. | `handoffs/friend/02-MOCK-REPLAY-QA.md` | 2026-11-14 |
 | Claude continuation handoff | Arjun (Codex) | Done and consumed. Claude read it on 2026-11-14 and removed the folder, as its own instructions said. | removed (`handoffs/claude-continuation/`) | 2026-11-14 |
 | Continuation handoff (Arjun's remaining model and game work) | Ashirwad | In progress. Handoff read and its context saved outside the repo; folder removed. Tasks: map-geometry review of generated paths (done), generated-path viewer (done: replay page tab), generated-route converter (done: candidates only), adapter diagnosis (done: development data only, plan for experiment 2), CS2 checklist for Tom. | Removed from the repo | 2026-11-14 |
 | Map-geometry check of generated review paths | Ashirwad | Done. Checks all 8 development cases: all 32 paths pass, real paths included; 15 of 24 generated paths mostly stand still. Automated check only; a person must still review paths. Not run in CS2. 12 CPU tests pass | `clone-model/map_review.py`, `clone-model/results/generated-path-map-review.md` | 2026-11-14 |
 | Generated-path playback candidates (8.5 steps 5-7, candidates only) | Ashirwad | In progress. Converter, gates and provenance written; 13 synthetic tests pass (30 pipeline tests). One real development case converted with a hand-made check file (no geometry check). Output is a candidate for a person to review, never promoted; not run in CS2 | `clone-pipeline/clone_pipeline/generated.py` | 2026-11-14 |
+| Offline weapon-role and habit audit | Ashirwad (Codex) | Done offline. Audited 141 build rounds, froze policy/method, then described 39 holdout rounds once. 11 audit and 27 pipeline tests pass; actual CLI candidates built from seven raw demos. All 141 same-input route files unchanged and readable by the service. Candidate review only; no CS2 or playable-clone promotion. | `tools/habit-audit/`, `clone-pipeline/`; ignored `data/habit-audit/` | 2026-11-14 |
+| Independent mock replay QA | Ashirwad (Codex) | Done on separate branch `friend/replay-qa` (d04dbf8). Existing 47 service tests pass; edge checks 3 pass/8 expected failures; Chromium checks 22 pass/9 desired-behavior failures. Twelve findings reported; implementation unchanged. | `tools/replay-qa/` on `friend/replay-qa` | 2026-11-14 |
 | Offline generated-path review export | Arjun (Codex) | Done. Eight development cases exported on A100 (24 generated paths plus real paths), JSON checked and plots inspected; 12 CPU tests pass. No route promotion. | `clone-model/review.py` | 2026-11-14 |
 | Replay page: real player next to clone | Unassigned | In progress (demo version by Ashirwad: 2D map from positions, no video; a generated-path tab shows the model's offline development review files, run against the mock in a browser) | `match-service/demo/replay.html`, `match-service/match_service/generated.py` | 2026-11-14 |
 | Clone profile page | Unassigned | Not started | Not decided | 2026-11-14 |
@@ -131,6 +131,7 @@ only when no usable base exists, and say so here.
 Checked on 2026-11-14.
 
 **Checked by running a query or request:**
+- Offline habit audit/correction (Ashirwad, 2026-11-14): verified archive SHA256, 141 build rounds then a frozen-method one-time 39-round holdout description; 11 audit tests and 27 pipeline tests pass. Candidate CLI builds ran on seven raw demos; same-input comparison changes only weapons/buy_plan/timestamp, all 141 route payloads byte-identical. Existing match-service catalogue accepts both candidates and its replay reader loads all 141 at 8 Hz. Three pipeline warnings explicitly identify unavailable inventories in legacy synthetic fixtures. No CS2 buying, route playback or clone promotion. Exact commands and denominators: `tools/habit-audit/README.md`, `tools/habit-audit/pipeline/README.md`, `tools/habit-audit/RESULTS.md`.
 - The match service in CS2 (Tom, Bot Mode on Windows, 2026-11-14): netcon commands reach the game
   (`/health` reachable), game state arrives at `/gsi`, and a wingman donk-vs-broky match loaded
   `de_mirage`, added both bots, set the team names, and went `ready` then `live`. **Failed in the
@@ -364,6 +365,7 @@ One install of CS2-Bot-Improver gives the first four rows.
 | CloneDirector plugin skeleton | CS2-Smarter-Bot's source, and the code samples in CS2-Bot-Controller's `TECH.md` |
 | Grenade throws | CS2-Bot-NadeSystem and its Mirage data files |
 | Reading recordings | demoparser2 |
+| Independent source habit audit | Existing pipeline habits/routes and pinned CS-NET parser format (MIT, `clone-model/THIRD_PARTY.md`); new standard-library reader/report adapter because no existing repository tool measures sparse JSON with explicit missing-time denominators; no upstream source copied |
 | Generating model: network and trained weights | CS-NET v4 |
 | Generating model: player identity | CS2 Clone Lab, `sim/identity.py` |
 | Generating model: reading recordings into its training format | CS-NET v4's own parser (`demo_parser/`) and data scripts |
@@ -398,7 +400,7 @@ One install of CS2-Bot-Improver gives the first four rows.
 
 | Habit | Measured from recordings as | Applied to the bot through |
 |---|---|---|
-| Weapon choice | How often the player buys each weapon | The weapon preference list in the bot personality file (`botprofile.db`) |
+| Weapon choice | Primary carried at the first live tick, counted per observed round; shots as explicit fallback | The weapon preference list in the bot personality file (`botprofile.db`) |
 | Purchases | What the player buys at each money level | The per-bot purchase call (`SetBuyPlan`) |
 | Aggression | How early the player meets an enemy, and how often the player takes the round's first fight | The `Aggression` number in the personality file |
 | Teamwork | Average distance to the nearest teammate | The `Teamwork` number in the personality file |
@@ -415,10 +417,43 @@ before utility. The controller executes buys sequentially; putting frequent gren
 leave no money for the gun. Both built profiles and their `buy_plan.json` files were updated
 without changing item membership, measured frequencies, or the profile format.
 
-Weapon preferences currently count shots, which favors automatic weapons. The single full-buy
-plan favors AK-47 on T and M4A4 on CT for both clones; broky's AWP use is in the data but its full
-purchase mix is not reproduced. This is a limit of the current habit model, not proof that the
-players have identical roles. `clones/README.md` records current evidence and limits.
+**Current pipeline code (Ashirwad, 2026-11-14).** The demoparser2 adapter also reads inventory
+(display names, not CS-NET's per-file IDs). Primary preferences count possession at the first live
+tick, at most one tick after freeze end, including a retained AWP with a knife active. Missing
+inventory is unknown and warns; known empty inventory stays empty. Per side/equipment category,
+the purchase plan chooses one modal carried primary legal to buy on that side, with deterministic
+name ties. Pistol primaries are excluded; static primary-price caps are $1,000 for eco and $2,000
+for force. An ineligible carried primary can fall back to an observed affordable purchase; wholly
+missing inventories use purchase-frequency fallback. Other items keep the half-round purchase
+threshold, with primary, one armor choice, then utility. Existing keys and aliases are preserved.
+These caps are conservative policy assumptions, not a current installed-game price query.
+
+**Runtime economic limit.** CloneDirector's cash buckets differ from equipment categories; its
+full bucket begins at $4,000, while the AWP requires $4,750 before armor. A static one-primary plan
+cannot guarantee a runtime affordability fallback. No alias or purchase execution was checked in
+CS2, and the remaining bot/director interface was not changed.
+
+**Candidates versus playable bundles.** Actual CLI builds on the seven verified build demos put
+AWP first and in both full-buy plans for broky; donk stays AK/M4. Both candidate model fields are
+null and no holdout was passed to those builds (similarity is null). On identical verified inputs,
+only weapons, buy_plan and built_at changed; all 141 routes and non-weapon personality lines are
+unchanged. Reports, method/policy locks and candidates are ignored under `data/habit-audit/`;
+commands and summaries are in `tools/habit-audit/`. The committed `clones/` bundles remain the
+historical shots-ranked/rifle-buy version pending owner review. The historical donk bundle includes
+unverified account match 2393226; its canonical candidate uses only three verified matches (62
+rather than 80 rounds). Those identity/input differences also change non-weapon statistics and are
+not attributed to the purchase correction.
+
+**Independent source audit.** The sparse parsed-data audit weights actual elapsed alive time,
+decodes each file's weapon map, separates possession/active weapon/fire/kill counts, and reports
+speed, pauses, wrapped yaw turns, areas and opening coverage with missing-data denominators.
+Seven build matches contain 141 rounds; broky's AWP possession covers 59.1% CT and 34.5% T of
+observed inventory-known alive time. Donk has no observed AWP possession in 62 verified build
+rounds. After the method and policy were frozen from build data, one descriptive audit of both
+holdouts (39 rounds) reproduced broky's 10/17 AWP kills and showed substantial T-side variation.
+The sparse fire-event proxy has a shorter horizon than full-round raw weapon_fire; both counts
+are reported separately. These are source-player observations, not bot performance, aim, identity
+learning or skill. `tools/habit-audit/RESULTS.md` records counts, hashes, commands and limits.
 
 ### 5.2 Layer 2: routes
 
@@ -1364,6 +1399,10 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-14, Ashirwad (Codex): completed independent CPU habit audit and inventory-based weapon-role correction with exact-ID guards, missing-data fallbacks and economy limits. 11 audit/27 pipeline tests pass; seven raw-demo CLI candidates retain 141 byte-identical routes and existing service compatibility. Policy/method frozen before one descriptive 39-round holdout audit. Committed clones and other owners' implementations unchanged.
+
+- 2026-11-14, Ashirwad (Codex): read and consumed Arjun's friend handoff package, removed only its temporary directory, and claimed the CPU habit audit/correction and independent mock replay QA. Instructions preserved outside the checkout.
 
 - 2026-11-14, Ashirwad: added `clone-model/diagnose_adapter.py` and `results/adapter-diagnosis.md`: why the first identity adapter failed, measured on development data only (no held-out data opened), and a predeclared Stage A plan for experiment 2 that needs Arjun's agreement before it changes 8.3.
 
