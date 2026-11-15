@@ -87,7 +87,8 @@ def test_unknown_route_source_is_rejected(tmp_path):
 
 @pytest.mark.parametrize("mode", ["stand_in", "clone"])
 def test_l_clones_are_selectable_and_start_with_their_installed_names(tmp_path, mode):
-    names = {"donkL": "donk", "brokyL": "broky"}
+    names = ({"donkL": "donkL", "brokyL": "brokyL"} if mode == "clone"
+             else {"donkL": "donk", "brokyL": "broky"})
     main, bridge = RecordingChannel(), RecordingChannel(names)
     extra = {"clones_dir": REPO_CLONES} if mode == "clone" else {}
     app = create_app(settings(tmp_path, cs2_bots=mode, **extra), channel=main, clone_channel=bridge)
@@ -98,7 +99,8 @@ def test_l_clones_are_selectable_and_start_with_their_installed_names(tmp_path, 
         for cid, name in names.items():
             assert clones[cid]["playable"]
             assert clones[cid]["stand_in_bot"] == name
-            assert "one per match" in clones[cid]["label"]
+            if mode == "stand_in":
+                assert "one per match" in clones[cid]["label"]
         wait_for(client, start(client, main, body), "ready")
     if mode == "clone":
         assert bridge.sent == ["clone_routes recorded", "clone_add donkL ct", "clone_add brokyL t"]
@@ -110,8 +112,14 @@ def test_l_clones_are_selectable_and_start_with_their_installed_names(tmp_path, 
 @pytest.mark.parametrize("player", ["donk", "broky"])
 @pytest.mark.parametrize("same_team", [False, True])
 def test_shared_installed_bot_names_are_rejected_before_commands(tmp_path, mode, player, same_team):
+    catalogue = tmp_path / "profiles"
+    catalogue.mkdir()
+    for cid in (f"{player}_v1", f"{player}L"):
+        profile = json.loads((REPO_CLONES / f"{cid}.json").read_text())
+        profile['stand_in_bot'] = player  # deliberately conflicting fixture, independent of installed entries
+        (catalogue / f"{cid}.json").write_text(json.dumps(profile))
     main, bridge = RecordingChannel(), RecordingChannel()
-    app = create_app(settings(tmp_path, cs2_bots=mode, clones_dir=REPO_CLONES),
+    app = create_app(settings(tmp_path, cs2_bots=mode, clones_dir=catalogue),
                      channel=main, clone_channel=bridge)
     body = {"map": "de_mirage", "mode": "competitive",
             "players": [{"steam_id": ASH, "team": "T"}],

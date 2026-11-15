@@ -24,7 +24,9 @@ from .console import ConsoleChannel, NetconChannel, PluginChannel, RconChannel
 from .core import MatchRecord, Settings, load_clones, now
 from .drivers import describe
 from .generated import ReviewInvalid, ReviewLibrary, ReviewNotFound
+from .coach import Coach
 from .puzzle_routes import add_puzzle_routes
+from .puzzles import ID_RE, NotFound, validate_puzzle
 from .models import TEAM_SIZE, Clone, CloneInfo, Event, Match, MatchCreate, MatchPlayer
 from .replay import RouteLibrary
 from .scoring import ScoringUnavailable, score_player
@@ -84,7 +86,9 @@ def create_app(settings: Settings | None = None, channel: ConsoleChannel | None 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         http["client"] = httpx.AsyncClient(timeout=5.0)
+        coach.start()
         yield
+        await coach.stop()
         for record in matches.values():
             if record.task and not record.task.done():
                 record.task.cancel()
@@ -318,6 +322,55 @@ def create_app(settings: Settings | None = None, channel: ConsoleChannel | None 
             raise HTTPException(422, str(exc))
 
     app.state.puzzles = add_puzzle_routes(app, settings, backend)  # replay puzzles (puzzle_routes.py)
+
+    # Death coach (coach.py, SPEC.md section 9.7). Chat goes through MatchBridge when the service has it,
+    # so `say` runs on the server console; with netcon only, it is said from the player's console.
+    async def coach_say(commands: list[str]) -> None:
+        await backend.clone_ch.send(commands)
+
+    def coach_match() -> dict | None:
+        """The running match's clones and the person's team, so the coach speaks in the right voice."""
+        live = [r for r in matches.values() if r.active]
+        if not live:
+            return None
+        players = live[-1].match.players
+        human = next((p.team for p in players if not p.is_clone), None)
+        return {"human_team": human,
+                "clones": [{"clone_id": p.clone_id, "team": p.team} for p in players if p.is_clone]}
+
+    coach = Coach(settings.coach, settings.death_dir, lambda: http["client"],
+                  coach_say if backend.name == "cs2" else None, match=coach_match)
+    app.state.coach = coach
+
+    def read_puzzle_file(folder: Path, death_id: str) -> dict:
+        path = folder / f"{death_id}.json"
+        if not ID_RE.match(death_id) or not path.is_file():
+            raise HTTPException(404, f"No death {death_id}")
+        try:
+            return validate_puzzle(json.loads(path.read_text(encoding="utf-8"))).model_dump()
+        except (ValueError, json.JSONDecodeError) as exc:
+            raise HTTPException(422, f"Death {death_id} is invalid: {exc}")
+
+    @app.get("/coach")
+    async def coach_status():
+        """Whether the coach is on, which parts have keys, and the last advice it gave."""
+        return coach.status()
+
+    @app.post("/coach/deaths/{death_id}")
+    async def coach_death(death_id: str):
+        """Coach a saved death again (chat and voice), e.g. to try the voice without dying in CS2."""
+        return await coach.coach(read_puzzle_file(settings.death_dir, death_id))
+
+    @app.post("/coach/puzzles/{puzzle_id}")
+    async def coach_puzzle(puzzle_id: str):
+        """Coach the original death of a library puzzle (the seed puzzles work without CS2)."""
+        try:
+            puzzle = app.state.puzzles.load(puzzle_id)
+        except NotFound:
+            raise HTTPException(404, f"No puzzle {puzzle_id}")
+        except ValueError as exc:
+            raise HTTPException(422, f"Puzzle {puzzle_id} is invalid: {exc}")
+        return await coach.coach(puzzle.model_dump())
 
     @app.get("/", include_in_schema=False)
     async def root():

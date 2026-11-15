@@ -23,7 +23,7 @@ def describe(clone: Clone, settings: Settings) -> CloneInfo:
     """How this clone would be played now, and whether it can be."""
     base = clone.model_dump()
     shared = (f"; shares installed bot {clone.stand_in_bot} with {clone.clone_id[:-1]}_v1, one per match"
-              if clone.stand_in_bot and clone.clone_id.endswith("L") else "")
+              if clone.stand_in_bot and clone.clone_id.endswith("L") and clone.stand_in_bot != clone.clone_id else "")
     if settings.backend != "cs2":
         return CloneInfo(**base, driver="mock", label="simulated", playable=True)
     if settings.cs2_bots == "clone":

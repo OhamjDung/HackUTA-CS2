@@ -11,6 +11,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
+from .coach import CoachSettings
 from .models import Clone, Event, Match
 
 log = logging.getLogger("match_service")
@@ -24,6 +25,9 @@ DEFAULT_REVIEW_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "r
 DEFAULT_PUZZLE_SEED_DIR = Path(__file__).resolve().parent.parent / "seed_puzzles"
 DEFAULT_PUZZLE_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "puzzles"
 DEFAULT_DEATH_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "deaths"
+
+# Local secrets for the coach (GEMINI_API_KEY, ELEVENLABS_*). Git-ignored.
+ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 
 # emit(record, event_name, data) records an event and sends it to the match's callback_url.
 Emit = Callable[["MatchRecord", str, dict], Awaitable[None]]
@@ -77,6 +81,9 @@ class Settings:
     # Which route files CloneDirector plays: `recorded` (cut from the player's matches) or `generated`
     # (written by a trained model; needs `model` in the profile). See drivers.py.
     cs2_routes: str = "recorded"
+    # Death coach (coach.py): advice in CS2 chat and in the user's voice after the person dies. Off unless
+    # set; from_env turns it on (COACH=off turns it off) and reads keys from match-service/.env too.
+    coach: CoachSettings = field(default_factory=lambda: CoachSettings(enabled=False))
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -116,6 +123,7 @@ class Settings:
             cs2_routes=env.get("CS2_CLONE_ROUTES", cls.cs2_routes),
             cs2_settle_seconds=float(env.get("CS2_SETTLE_SECONDS", cls.cs2_settle_seconds)),
             puzzle_settle_seconds=float(env.get("CS2_PUZZLE_SETTLE_SECONDS", cls.puzzle_settle_seconds)),
+            coach=CoachSettings.from_env(dict(env), env_file=ENV_FILE),
         )
 
 

@@ -84,6 +84,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Replay page: real player next to clone | Unassigned | In progress (demo version by Ashirwad: 2D map from positions, no video; a generated-path tab shows the model's offline development review files, run against the mock in a browser) | `match-service/demo/replay.html`, `match-service/match_service/generated.py` | 2026-11-14 |
 | Clone profile page | Ashirwad | Done locally. Four clone profiles; side-specific time-weighted opening heat maps, weapons, purchases, quirk filter and labelled real-player reference scores. 85 service/3 calculation tests and desktop/mobile browser checks pass; no CS2 run. | `match-service/demo/profile.html` | 2026-11-15 |
 | Replay puzzles: 10 s rewind on death, Puzzles tab, library with ratings, instant mistake feedback, multi-POV form | Tom (with Claude) | In progress. Service, library, feedback, seed puzzles (two real pro moments) and the Puzzles tab built and tested without CS2 (25 service tests, 9 C# tests, browser check on a mock). **The in-game rewind and playback in CloneDirector is written and compiled but never run in CS2.** The multi-POV form stores footage only. See section 9.6 | `match-service/match_service/puzzles.py`, `feedback.py`, `puzzle_routes.py`, `seed_puzzles/`, `clone-director/PuzzleMode.cs`, `frontend/app/puzzles/`, `frontend/components/puzzles/` | 2026-11-15 |
+| Death coach: Gemini advice in CS2 chat and the user's own voice (ElevenLabs) after the player dies | Ashirwad | In progress. Written and tested against fakes only: 19 coach tests, 145 match service tests pass on a Mac after merging main; voice chosen per player of the clone in the match; silent playback through `sounddevice` ran. **No real Gemini or ElevenLabs call made yet (keys not added), never run in CS2.** It depends on CloneDirector's death recorder, which has also never run in CS2. **Handed to Tom to test on his PC** (keys are there): `uv sync`, then `POST /coach/puzzles/pro_2393226_r7_donk` to hear donk's and broky's voices without CS2, then a `-Bots clone` match with a donk or broky clone. See section 9.7 | `match-service/match_service/coach.py`, `match-service/tests/test_coach.py` | 2026-11-15 |
 | Caster voice (Gemini script, ElevenLabs audio) | Unassigned | Not started | Not decided | 2026-11-14 |
 | Pro bot voices: donk and broky (ElevenLabs) | Unassigned (research by Codex) | In progress. MVP targets verified voice packs for `donk_v1` and `broky_v1`. Player authorization, verified voices, and playback tests pending. | Section 9.5 | 2026-11-14 |
 | Similarity search (MongoDB Atlas) | Unassigned | Not started | Not decided | 2026-11-14 |
@@ -153,6 +154,14 @@ only when no usable base exists, and say so here.
 Checked on 2026-11-14.
 
 **Checked by running a query or request:**
+- Death coach (Ashirwad, 2026-11-15): 19 coach tests and the full match service suite (145, on main as of 19857ed) pass on a Mac against fake
+  Gemini/ElevenLabs servers and a fake console: rule fallback without keys, Gemini text used when it answers, fallback on a
+  Gemini error, console-command injection stripped, chat sent through MatchBridge only, ElevenLabs PCM streamed to the
+  audio sink, each new death file coached once and old ones skipped, and the voice of the clone's player picked
+  (teammate before opponent, from the running match or the death file's names). Real speaker playback ran with silent PCM. Not
+  checked: any real Gemini or ElevenLabs request, the Gemini model id `gemini-3.5-flash-lite` and `thinkingLevel`
+  field (taken from the Gemini docs on 2026-11-15), how `say` from the server console looks in CS2 chat, CS2 at all.
+
 - Clone profile page (Ashirwad, 2026-11-15): 85 service tests and 3 Node calculation tests pass.
   Chrome browser checks against a local mock passed for all four clones, both sides, real heat
   route counts, quirk filtering, fast switching, 390px layout, matching replay links, invalid query
@@ -484,6 +493,7 @@ One install of CS2-Bot-Improver gives the first four rows.
 | Style numbers for every professional | OpenCS2's ready-made index tables |
 | Character showcase viewer (5-model WebGPU hot-swap stage) | Written from zero: no template base exists for this design, and the architecture is prescribed by `frontend/AGENTS.md`. Frameworks: Next.js, three.js, React Three Fiber (all MIT, section 4.1) |
 | Odyssey layered art and motion | Layer cut-out: Pillow and NumPy (open source, HPND and BSD licences), run through `uv`. Motion: plain CSS plus small React hooks, the same approach as the FaZe home page; no animation library was added because CSS covers every effect used and FaZe already works this way. Written from zero on that base. |
+| Death coach (Gemini advice, chat, voice) | Written from zero: no existing open-source CS2 coach reads CloneDirector's death files. Calls the documented REST APIs (Gemini `generateContent`, ElevenLabs `text-to-speech/{voice_id}/stream`) with `httpx`, no SDK; playback with `sounddevice` (MIT). Reuses `feedback.py` and CloneDirector's death recorder (section 9.6). |
 
 ### 4.3 Rejected
 
@@ -1211,7 +1221,7 @@ netcon works in CS2 Bot Mode (Tom's run, 2026-11-14); RCON and the plugin stay a
 are available beside the v1 profiles in the default sample catalogue and demo selectors.
 Stand-in mode uses the ordinary installed bot without learned quirk controls. Environment-based
 startup with `MATCH_BACKEND=cs2 CS2_BOTS=clone` defaults to the full `clones/` catalogue;
-`CLONES_DIR` overrides this. An L label names its shared v1 personality. Any CS2 request
+`CLONES_DIR` overrides this. Legacy stand-in L labels name their shared v1 personality. Full CloneDirector profiles now use distinct installed names equal to each clone ID, as required by the updated bot entries; these profiles do not show the shared-name label. Any CS2 request
 containing two clones with the same installed bot name is rejected before console commands,
 regardless of team. Run v1/L comparisons in separate matches. No API fields or event shapes
 changed. Existing halftime handling passes the reported glitch and repeated packets offline;
@@ -1584,6 +1594,48 @@ Design and decisions: `.plans/replay-puzzles-spec.md`. Nothing here has run in C
   Starting a puzzle in the game needs `start-cs2.ps1 -Bots clone` (commands go through MatchBridge).
 - **Feedback rules** are distance and timing heuristics with untuned thresholds. They do not see walls.
 
+### 9.7 Death coach: advice in chat and in the user's own voice (added 2026-11-15, Ashirwad)
+
+When the person at the CS2 PC dies in a private match against bots, the service writes one or two
+sentences of advice, sends them to CS2 chat, and speaks them on the PC's speakers in the user's own
+ElevenLabs Instant Voice Clone. `match-service/match_service/coach.py`.
+
+1. **Trigger.** CloneDirector's death recorder (section 9.6, `PuzzleMode.cs`) saves the last 10 s of
+   every player after a human death into `PUZZLE_DEATH_DIR`. The coach checks that folder every second.
+   Files present when the service starts, and files older than 30 s when first seen, are skipped. So it
+   needs `start-cs2.ps1 -Bots clone` (CloneDirector loaded); GSI alone cannot see the bots while a person plays.
+2. **Advice.** `feedback.py` finds up to three rule-based mistakes. A compact JSON (killer and weapon,
+   kills, weapons and utility carried and thrown, living players near the death, the rule findings) goes to
+   Gemini `generateContent` (`GEMINI_MODEL`, default `gemini-3.5-flash-lite`; `thinkingLevel` `MINIMAL`;
+   4 s timeout). Without a key, or on any Gemini error, the top rule finding is used instead.
+3. **Chat.** The text is cleaned (no `;`, quotes, newlines or markdown; at most 220 characters) and sent as
+   up to two `say [Coach] ...` lines of at most 120 characters. In clone mode they go through MatchBridge, so
+   they run on the server console. With netcon only, `say` would come from the player's own console.
+4. **Voice.** The same text goes to ElevenLabs `POST /v1/text-to-speech/{voice_id}/stream` with
+   `eleven_flash_v2_5` and `output_format=pcm_24000`. Audio chunks play as they arrive through
+   `sounddevice` on the PC's default output, not inside CS2 voice chat (that path, `SendVoiceFrame`, stays
+   untested; section 9.5). Chat and voice run at the same time; either failing leaves the other.
+   **Whose voice:** each player has an ElevenLabs voice, set as `ELEVENLABS_VOICE_<PLAYER>`
+   (`ELEVENLABS_VOICE_DONK`, `ELEVENLABS_VOICE_BROKY`). A clone id maps to its player by dropping the version
+   (`donk_v2`, `donkL2`, `donkLF` -> donk). From the running match, a clone on the person's team speaks first,
+   else the clone they play against; with no match record, the death file's player names are used. Gemini is
+   told who speaks and whether as teammate or opponent, and never to claim to be the real person; chat shows
+   `[donk AI] ...`. `ELEVENLABS_VOICE_ID`, if set, is the voice for anyone without one; otherwise no voice.
+5. **Keys and settings.** `GEMINI_API_KEY`, `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_<PLAYER>` from the environment
+   or `match-service/.env` (git-ignored). `COACH=off` turns it off; `COACH_VOICE=off` and `COACH_CHAT=off`
+   turn off one part; `GEMINI_MODEL`, `GEMINI_THINKING`, `GEMINI_TIMEOUT`, `ELEVENLABS_MODEL` override defaults.
+   A missing key turns off only that part.
+6. **Routes (additions; the Server API is unchanged).** `GET /coach` (status and the last advice),
+   `POST /coach/deaths/{id}` (coach a saved death again), `POST /coach/puzzles/{id}` (coach a library or
+   seed puzzle's death; works without CS2, for trying the voice).
+
+**Voice permission.** Pro player voices follow section 9.5 and AGENTS.md section 8: use a player's voice
+only with that player's authorization. Section 9.5's rule of
+pre-rendered clips and no synthesis during a match is for the pro bot voices; this coach synthesises live
+on the service, never in the game process.
+
+**Cost.** ElevenLabs charges one credit per character, about 100 to 220 per death.
+
 ## 10. Proof and measurement
 
 ### 10.1 Side-by-side replay
@@ -1854,6 +1906,14 @@ demo. A released product would need each player's or team's permission.
 - 2026-11-15, Nikesh (with Claude): Odyssey and login logo, crest and login card. Odyssey header, hero and footer now use the FaZe home sign component (`components/ui/HeroSign`, 14-segment LED) with blue lit segments and a gold glow instead of the LED-font text. The wave-crest plume was cut out of `layers/hero/waves.webp` into `crest.webp` and now rides on the smaller left helmet; the clone helmet gets a mirrored binary crest (`crest-twin-mask.webp`) with a blue glow, and its 1s and 0s are larger and brighter (`matrix-digits.webp`). Helmets and crests are placed from four CSS variables (`--ax`, `--bx`, `--hy`, `--hw`). Login (`components/auth/DemoGate`): the background's baked-in wordmark is painted out (`public/images/login-background-nosign.webp`; the original PNG is kept), the FaZe home sign sits in its place in FaZe red, and the card is smaller and see-through so it fits between the two soldiers. Checked: `tsc` clean; browser at 1440 px (login and Odyssey) and 375 px (Odyssey). Not checked: login at phone width, `next build`.
 - 2026-11-15, Nikesh (with Claude): Odyssey home and header touchups in `frontend/modes/odyssey/`. Pointer parallax now moves only the waves and ship, by the same amount (paper, land, columns and helmets stay still). The hero helmet is smaller and further left, and faces a mirrored "digital clone" helmet filled with falling blue 1s and 0s (new `layers/hero/helmet-left.webp`, `helmet-twin-mask.webp`, `helmet-twin-back.webp`, `matrix-digits.webp`; `paper.webp` cleaned of the old helmet ghost). Header, hero and footer use the FaZe LED DoppelGamer wordmark in deep blue. The sound toggle, mode switch, Enter the event, section numbers and the new scene-card arrow share one 3px double blue rule and 40px circle size. The "Play a scene" cards are now square engraved plaques without the stacked card behind. Also removed the stale `compact` prop on the Odyssey `ModeSwitch`. Rerunning `split.py` would overwrite the cleaned `paper.webp`. Checked: `tsc` clean; browser at 1440, 768 and 375 px, 0 console errors. Not run: `next build`, reduced-motion check.
 - 2026-11-15, Tom (Codex): preserve bot-death samples in saved puzzle tracks and restore puzzle settings with a chat result when an attempt ends; 69 C# tests pass, live verification pending.
+- 2026-11-15, Ashirwad: merged main (19857ed; main kept on conflicts). Death coach now speaks in the voice of the player whose clone is in the match (`ELEVENLABS_VOICE_<PLAYER>`, teammate first); 145 service tests pass against fakes, no real API call or CS2 run.
+
+- 2026-11-15, Ashirwad: added the death coach (section 9.7): after a human death, Gemini advice from CloneDirector's death file and `feedback.py`, sent to CS2 chat through MatchBridge and spoken in the user's ElevenLabs voice on the PC speakers. New additive routes `/coach`, `/coach/deaths/{id}`, `/coach/puzzles/{id}`; new dependency `sounddevice`. 127 service tests pass against fakes; no real API call or CS2 run yet. Also merged main twice (conflicts were additive).
+
+- 2026-11-15, Ashirwad: synced latest main through fd41880 and reconciled catalogue labels/test fixtures with its distinct per-clone installed bot names. Legacy stand-in name collisions remain rejected; 85 service tests pass. Removed the uncommitted Odyssey caster prototype and its local sample assets at the user's request; no caster feature was committed.
+
+
+- 2026-11-15, Ashirwad: built the local clone profile page from existing demo components and profile/route data; added side-specific opening heat maps, purchases, weapons, quirk filtering and labelled player-reference scores. Additive profile response fields and clone/side replay links; 85 service tests, 3 calculation tests and Chrome desktop/mobile checks pass. No game run or holdout rescore.
 
 - 2026-11-15, Tom (Codex): added 30-second donk and broky action puzzles from recorded rounds and verified seed data and a broky death callback; player visibility remains to check.
 

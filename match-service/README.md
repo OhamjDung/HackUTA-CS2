@@ -358,3 +358,34 @@ Extra routes used by the Next.js Puzzles tab. The Server API above is unchanged.
 Settings: `PUZZLE_SEED_DIR` (default `seed_puzzles/`), `PUZZLE_DIR` (default `data/puzzles`), `PUZZLE_DEATH_DIR`
 (default `data/deaths`), `PUZZLE_GAME_DIR` (unset: practice in CS2 is refused). `start-cs2.ps1` points the last two at the
 CloneDirector plugin folder.
+
+## Death coach (not part of the Interface specs; added 2026-11-15)
+
+After the person at the CS2 PC dies, the service sends one or two sentences of advice to CS2 chat
+(`say [Coach] ...`, through MatchBridge) and speaks them on this PC's speakers in your ElevenLabs voice.
+It reads CloneDirector's death files, so start with `start-cs2.ps1 -Bots clone`. Details: `SPEC.md` section 9.7.
+
+Put the keys in `match-service/.env` (git-ignored); a missing key turns off only that part (no Gemini key:
+the rule-based feedback is said instead):
+
+```
+GEMINI_API_KEY=...
+ELEVENLABS_API_KEY=...
+ELEVENLABS_VOICE_DONK=...    # one voice per player; donk_v1/v2/L/L2/LF all use it
+ELEVENLABS_VOICE_BROKY=...
+# ELEVENLABS_VOICE_ID=...    # optional: voice for a clone whose player has none
+```
+
+The voice is the player whose clone is in your match: your teammate clone first, else the one you play
+against. Chat shows `[donk AI] ...`. To see your voices' names and ids:
+`curl -H "xi-api-key: $ELEVENLABS_API_KEY" https://api.elevenlabs.io/v1/voices`.
+
+| Route | What it does |
+|---|---|
+| `GET /coach` | Which parts are on, and the last advice |
+| `POST /coach/deaths/{id}` | Coach a saved death again |
+| `POST /coach/puzzles/{id}` | Coach a library puzzle's death, e.g. `pro_2393226_r7_donk`; works without CS2 |
+
+Settings: `COACH=off`, `COACH_VOICE=off`, `COACH_CHAT=off`, `GEMINI_MODEL` (default `gemini-3.5-flash-lite`),
+`GEMINI_THINKING` (default `MINIMAL`; empty leaves it out), `GEMINI_TIMEOUT` (4 s), `ELEVENLABS_MODEL`
+(default `eleven_flash_v2_5`). Audio plays with `sounddevice`.
