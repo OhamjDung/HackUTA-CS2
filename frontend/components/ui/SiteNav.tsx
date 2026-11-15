@@ -31,7 +31,7 @@ function isActive(pathname: string, href: string) {
  * (faze-mark-1color.* preferred at this size, faze-mark.* otherwise). If no file
  * is present the wordmark stands alone; the mark is never redrawn here.
  */
-function BrandLockup() {
+function BrandLockup({ wordmark }: { wordmark: boolean }) {
   const brand = useBrand();
   const mark = MARK_PX < 60 ? (brand.fazeMarkMono ?? brand.fazeMark) : (brand.fazeMark ?? brand.fazeMarkMono);
   const clear = Math.ceil(MARK_PX * 0.25);
@@ -44,16 +44,26 @@ function BrandLockup() {
       style={{ padding: `${clear}px ${clear}px ${clear}px 0`, gap: 14 }}
     >
       {mark && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={mark} alt="FaZe Clan" width={MARK_PX} height={MARK_PX} style={{ width: MARK_PX, height: 'auto', minWidth: 40 }} />
+        // Same 44px mark; a soft red halo and an occasional light sweep give it presence.
+        <span className="faze-mark" style={{ '--mark': `url("${mark}")` } as React.CSSProperties}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={mark} alt="FaZe Clan" width={MARK_PX} height={MARK_PX} style={{ width: MARK_PX, height: 'auto', minWidth: 40 }} />
+          <span className="faze-sheen" aria-hidden />
+        </span>
       )}
-      <span className="led-wordmark whitespace-nowrap text-[clamp(17px,1.32vw,21px)] leading-none">DoppelGamer</span>
+      {(wordmark || !mark) && (
+        <span className="led-wordmark whitespace-nowrap text-[clamp(17px,1.32vw,21px)] leading-none">DoppelGamer</span>
+      )}
     </ModeLink>
   );
 }
 
-/** Shared top bar for every route: lockup · centred tabs · profile + Enter studio. */
-export default function SiteNav() {
+/**
+ * Shared top bar for every route: lockup · centred tabs · profile + Enter studio.
+ * `wordmark={false}` drops the small wordmark from the lockup (the home page
+ * shows it large in the stage instead).
+ */
+export default function SiteNav({ wordmark = true }: { wordmark?: boolean } = {}) {
   const pathname = usePathname() ?? '/';
   const brand = useBrand();
   const hasMark = Boolean(brand.fazeMark ?? brand.fazeMarkMono);
@@ -65,7 +75,7 @@ export default function SiteNav() {
       }`}
       style={{ paddingLeft: 'var(--hub-gutter)', paddingRight: 'var(--hub-gutter)' }}
     >
-      <BrandLockup />
+      <BrandLockup wordmark={wordmark} />
 
       <nav aria-label="Primary" className="hidden items-center gap-[clamp(28px,3.1vw,48px)] min-[760px]:flex">
         {LINKS.map((l) => {

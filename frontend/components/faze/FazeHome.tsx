@@ -211,7 +211,7 @@ export default function FazeHome() {
           <ThermalScopeReticle containerRef={canvasWrapRef} active={thermalActive} restPosition={scopeRest} />
         </div>
 
-        <SiteNav />
+        <SiteNav wordmark={false} />
         <CreditsLink />
 
         <HeroStageOverlay

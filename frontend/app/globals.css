@@ -278,7 +278,14 @@ body {
 
 /* Headline second line picks up the live character colours. */
 .headline-accent {
-  background: linear-gradient(100deg, #fff 0%, color-mix(in oklab, var(--rim) 70%, #fff) 45%, var(--accent) 100%);
+  background: linear-gradient(
+    100deg,
+    #fff 0%,
+    color-mix(in oklab, var(--rim) 85%, #fff) 32%,
+    var(--rim) 52%,
+    color-mix(in oklab, var(--rim) 40%, var(--accent)) 70%,
+    var(--accent) 100%
+  );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -322,4 +329,93 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .sb-glow, .sb-aurora, .sb-beam, .sb-grain { animation: none; }
+}
+
+/* ---- Home: display wordmark in the open stage space ---------------------- */
+.hero-wordmark {
+  font-size: clamp(30px, 3.9vw, 62px);
+  line-height: 1;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+  text-shadow:
+    0 0 1px rgba(255, 245, 247, 0.95),
+    0 0 6px rgba(228, 0, 43, 0.85),
+    0 0 18px rgba(228, 0, 43, 0.5),
+    0 0 42px rgba(228, 0, 43, 0.28);
+  animation: led-power-on 1.4s steps(1, end) both, led-hum 9s ease-in-out 1.4s infinite;
+}
+@keyframes led-power-on {
+  0% { opacity: 0; }
+  12% { opacity: 0.9; }
+  16% { opacity: 0.1; }
+  24% { opacity: 1; }
+  30% { opacity: 0.35; }
+  38%, 100% { opacity: 1; }
+}
+@keyframes led-hum {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.12); }
+}
+
+/* Headline: slow drift of the character gradient across both lines.
+   Bottom padding lets the clipped gradient reach descenders (g, y). */
+.headline-accent {
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+  background-size: 140% 100%;
+  animation: headline-drift 12s ease-in-out infinite alternate;
+}
+@keyframes headline-drift {
+  from { background-position: 0% 0; }
+  to { background-position: 100% 0; }
+}
+
+/* ---- FaZe mark: halo + light sweep (size unchanged) ---------------------- */
+.faze-mark {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+  isolation: isolate;
+}
+.faze-mark::before {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(228, 0, 43, 0.42), rgba(228, 0, 43, 0.12) 55%, transparent 100%);
+  filter: blur(5px);
+  animation: faze-breathe 4.8s ease-in-out infinite;
+  transition: opacity 0.3s;
+}
+.faze-mark img {
+  filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.45)) drop-shadow(0 0 7px rgba(228, 0, 43, 0.5));
+  transition: filter 0.3s;
+}
+a:hover .faze-mark img {
+  filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.7)) drop-shadow(0 0 11px rgba(228, 0, 43, 0.8));
+}
+.faze-sheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  -webkit-mask: var(--mark) center / contain no-repeat;
+  mask: var(--mark) center / contain no-repeat;
+  background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, 0.9) 50%, transparent 62%);
+  background-size: 300% 100%;
+  background-position: 150% 0;
+  mix-blend-mode: screen;
+  animation: faze-sheen 7s ease-in-out 1.2s infinite;
+}
+@keyframes faze-breathe {
+  0%, 100% { opacity: 0.65; transform: scale(0.94); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+@keyframes faze-sheen {
+  0%, 72% { background-position: 150% 0; }
+  100% { background-position: -50% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-wordmark, .headline-accent, .faze-mark::before, .faze-sheen { animation: none; }
 }

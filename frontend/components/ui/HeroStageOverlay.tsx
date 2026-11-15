@@ -34,16 +34,24 @@ export default function HeroStageOverlay({
 
   return (
     <div className="pointer-events-none relative z-20 flex flex-col gap-10 px-[var(--gutter)] pb-12 min-[900px]:absolute min-[900px]:inset-0 min-[900px]:block min-[900px]:p-0">
+      {/* Display wordmark: fills the open space above the headline. */}
+      <p
+        aria-hidden
+        className="hero-wordmark led-wordmark order-first min-[900px]:absolute min-[900px]:left-[var(--gutter)] min-[900px]:top-[clamp(150px,34%,360px)]"
+      >
+        DoppelGamer
+      </p>
+
       {/* Headline */}
       <h1
         data-headline
         className="headline text-ink min-[900px]:absolute min-[900px]:bottom-[clamp(32px,4.1vw,64px)] min-[900px]:left-[var(--gutter)]"
       >
-        Clone anyone
-        <br />
-        on any game.
-        <br />
-        <span className="headline-accent">Another dimension.</span>
+        <span className="headline-accent block">
+          Clone anyone
+          <br />
+          on any game.
+        </span>
       </h1>
 
       {/* Right HUD column */}

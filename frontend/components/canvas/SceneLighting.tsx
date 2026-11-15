@@ -11,11 +11,17 @@ import { stageInput } from '@/lib/stageInput';
  * Built like a fighting-game select screen: a soft warm key, two hard
  * coloured rims from behind that carve the silhouette out of the dark, a top
  * kicker on hair and shoulders, and only a whisper of fill so the shadow side
- * keeps depth. With AgX tone mapping and a high bloom threshold, the rims are
+ * keeps depth. With neutral tone mapping and a high bloom threshold, the rims are
  * the only thing that glows.
  *
  * Grounding: shadow catcher + tight contact shadow under the soles + a faint
- * pool of the character's colour on the floor. Rims flash briefly on a swap.
+ * pool of the character's colour on the floor, plus a low bounce light in the
+ * same colour so the pool visibly reaches boots and shins. Rims flash briefly
+ * on a swap.
+ *
+ * Interaction: the key light eases toward the cursor (highlights slide across
+ * the model as the pointer moves) and the rims lift slightly while the cursor
+ * is near the character. Both are off under prefers-reduced-motion.
  */
 
 function radialTexture(stops: [number, string][], size = 256) {
@@ -38,6 +44,14 @@ export default function SceneLighting({ rimColor, accentColor }: { rimColor: str
   const rimBRef = useRef<THREE.DirectionalLight>(null);
   const fillRef = useRef<THREE.DirectionalLight>(null);
   const poolMatRef = useRef<THREE.MeshBasicMaterial>(null);
+  const bounceRef = useRef<THREE.PointLight>(null);
+  const keyPos = useRef({ x: 0, y: 0 });
+  const nearRef = useRef(0);
+  const calmRef = useRef(false);
+
+  useEffect(() => {
+    calmRef.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }, []);
 
   useEffect(() => {
     const key = keyRef.current;
@@ -96,13 +110,32 @@ export default function SceneLighting({ rimColor, accentColor }: { rimColor: str
     // Swap flash: rises to the glitch midpoint, then decays over ~1 s.
     const flash = since > 0 && since < 2 ? Math.min(1, since / 0.3) * Math.exp(-Math.max(0, since - 0.3) * 3.5) : 0;
     const breathe = 0.5 + 0.5 * Math.sin(state.clock.elapsedTime * 0.9);
+    const calm = calmRef.current;
+
+    // Key light follows the cursor (eased), so highlights slide over the model.
+    const kk = 1 - Math.exp(-Math.min(delta, 0.1) * 1.8);
+    const cx = !calm && stageInput.pointerSeen ? stageInput.pointerX - (stageInput.anchorX * 2 - 1) : 0;
+    const cy = !calm && stageInput.pointerSeen ? stageInput.pointerY : 0;
+    keyPos.current.x += (THREE.MathUtils.clamp(cx, -1, 1) - keyPos.current.x) * kk;
+    keyPos.current.y += (THREE.MathUtils.clamp(cy, -1, 1) - keyPos.current.y) * kk;
+    if (keyRef.current) keyRef.current.position.set(2.2 + keyPos.current.x * 1.6, 3.4 + keyPos.current.y * 0.8, 2.6);
+
+    // Rims lift while the cursor is near the character.
+    const near = !calm && stageInput.pointerSeen ? Math.max(0, 1 - Math.hypot(cx * 1.4, cy - 0.1)) : 0;
+    nearRef.current += (near - nearRef.current) * kk;
+    const lift = 1 + nearRef.current * 0.22;
+
     if (rimARef.current) {
       rimARef.current.color.lerp(rimTarget, k);
-      rimARef.current.intensity = 22 + flash * 18;
+      rimARef.current.intensity = (22 + flash * 18) * lift;
     }
     if (rimBRef.current) {
       rimBRef.current.color.lerp(accentTarget, k);
-      rimBRef.current.intensity = 15 + flash * 12;
+      rimBRef.current.intensity = (15 + flash * 12) * lift;
+    }
+    if (bounceRef.current) {
+      bounceRef.current.color.lerp(rimTarget, k);
+      bounceRef.current.intensity = 0.9 + breathe * 0.15 + flash * 1.2;
     }
     if (fillRef.current) fillRef.current.color.lerp(accentTarget, k);
     if (poolMatRef.current) {
@@ -122,6 +155,8 @@ export default function SceneLighting({ rimColor, accentColor }: { rimColor: str
       {/* Hard coloured rims from behind. */}
       <directionalLight ref={rimARef} position={[-3.2, 2.2, -1.6]} intensity={22} color={rimColor} />
       <directionalLight ref={rimBRef} position={[3.2, 1.8, -1.4]} intensity={15} color={accentColor} />
+      {/* Floor bounce in the character colour: ties boots and shins to the pool. */}
+      <pointLight ref={bounceRef} position={[0, 0.12, 0.55]} intensity={0.9} distance={1.6} decay={2} color={rimColor} />
       {/* Top kicker: crowns hair, helmet and shoulders. */}
       <spotLight position={[0, 4.2, -0.7]} angle={0.42} penumbra={0.85} intensity={26} distance={8} decay={1.4} color="#ffffff" />
 
