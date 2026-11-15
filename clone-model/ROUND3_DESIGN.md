@@ -305,6 +305,59 @@ out a donk match on another map and train on more than Mirage. Recommended: (a),
 
 ---
 
+## 8. Donk only: a model that generates donk's play (added 2026-11-15)
+
+Arjun's decision: train a donk model only, for now.
+
+### 8.1 Why the earlier models could not show "plays like donk"
+
+- Round 1 (`model.py`): identity changed nothing in 64% to 72% of test cases.
+- Round 2 (`v2.py`): picks out the right player among teammates for 8 of 10 players, but it only scores
+  recorded moves. CS-NET's prediction engine builds its own per-step inputs, so v2 identities cannot
+  generate play. No round 2 model has produced a single donk path.
+
+### 8.2 The design (`clone-model/donk.py`)
+
+| Choice | Source of the idea | Why here |
+|---|---|---|
+| Start from CS-NET, trained on many pros, then specialise to donk | AlphaStar: supervised learning on human replays first | donk has about 47 training rounds; the base supplies everything else |
+| Penalise drift from CS-NET's move probabilities (KL to the base, weight 0.1) | AlphaStar: KL penalty to the supervised human policy | Keeps the model human and stops it memorising 47 rounds |
+| Train only small adapters (LoRA, rank 16, about 1.2 million numbers) in the decoder | LoRA (Hu et al., 2021) | Little data; and the adapters fold back into a normal CS-NET file |
+| Fold the adapters into an ordinary CS-NET checkpoint | | CS-NET's own engine then generates donk play: no new generation code, which removes round 2's blocker |
+| Drop training windows whose real future breaks H8 to H10 | Section 4 of this design | Do not learn spectator or death artefacts as moves |
+| Sample 8 futures per moment and reject those breaking human limits | Imagination: planning by sampling a learned model's futures | Layer L5; also the basis of self-training (8.4) |
+
+### 8.3 How it is judged, fixed before the run
+
+Rounds: donk's development rounds, split by round number. Even rounds (dev-A) choose the checkpoint by
+teacher-forced loss. Odd rounds (dev-B) are used once, for the result. Matches 2393242 and 2393024 are
+not used: they were spent as final tests in round 2.
+
+For each dev-B moment, CS-NET's engine samples 8 free-running 4-second futures from the donk model and
+8 from the unchanged base model. Pass rule (constants at the top of `donk.py`):
+
+- **P1, path:** the donk model's mean path error is lower than the base's, and the 95% paired bootstrap
+  interval of the difference lies entirely below zero.
+- **P2, behaviour:** the donk model is closer than the base to real donk on at least 2 of 3: the
+  distribution of distance per step, the distribution of view turn per step, and backwards share.
+- **P3, human limits:** the donk model breaks H8 to H10 on no larger a share of steps than the base.
+
+A pass means donk's generated movement is measurably closer to donk than the generic model's. It is not
+the people panel (section 5, tier 2), it is not combat, and it is not in CS2.
+
+### 8.4 Next, if it passes: self-training by imagination (design only)
+
+Expert iteration, the loop behind AlphaZero, adapted to imitation:
+1. From training-round moments, sample 8 futures with the donk model.
+2. Keep only futures that pass the human limits and that a judge rates most donk-like. The judge: the
+   round 2 identity model's preference for donk over his teammates (`v2.py`), plus the donk envelope.
+3. Fine-tune on the kept futures together with the real data, with the same KL anchor.
+4. Repeat while dev-A improves.
+
+This lets the model learn from situations donk was never recorded in, which recorded data alone cannot
+give. It is also how a discriminator-style reward (as in GAIL) enters without full reinforcement
+learning, which would be too slow for the time left.
+
 ## 7. What is not known yet
 
 - Whether the bot base's aim settings behave like the numbers suggest. Only measuring a recording shows it.

@@ -55,6 +55,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Second learned-identity experiment (`v2.py`): many identities, identity at every step, likelihood "who is it?" test | Arjun (Claude) | Done. **Held-back test passed once**: 8 of 10 players had the true identity in their team's top 2 (rule: 6), 6 of 10 ranked first; donk 1st, broky 3rd (fails individually). Caveat: for 6 of 10 players, no identity fits the real moves slightly better than their own. Scores recorded moves only; generates no play. Weights saved on Arjun's PC (checksum matched); not committed. | `clone-model/v2.py`, `clone-model/results/second-a100.md` | 2026-11-14 |
 | Human limits measured from elite pros (`limits.py`) | Arjun (Claude) | Done. 80 player-matches, 50 pros, 8 non-held-back Mirage matches: turn speed, acceleration, flick time, backwards walking, per-step limits at 4 Hz. 5 tests pass. Also measures any recorded bot match. | `clone-pipeline/clone_pipeline/limits.py`, `clone-model/results/human-limits.csv` | 2026-11-15 |
 | Round 3 design: human limits and perception-first evaluation | Arjun (Claude) | Step 1 built, **not run in CS2**: clone bot entries get human aim settings (simulated 45° flick 0.34 s, peak under 1,200 °/s); `donkL`/`brokyL` no longer use the restlessness and crouch-at-burst rules; `limits check` tests a bot in a recording against 9 limits that all 80 real pro player-matches pass. Tests: 55 pipeline, 3 tool, 30 C#. Tom's test steps in `handoffs/tom-human-aim-test.md`. Steps 2 to 4 design only. | `clone-model/ROUND3_DESIGN.md`, `clone-director/tools/add_clone_bot_entries.py`, `clone-pipeline/references/human_limits.json` | 2026-11-15 |
+| Donk-only model (`donk.py`): CS-NET specialised to donk with LoRA and a KL anchor to the base | Arjun (Claude) | In progress. Code written; 5 CPU tests pass. Pass rule fixed before the run (`ROUND3_DESIGN.md` 8.3): free-running paths and behaviour on donk's dev-B rounds against the base model. Training on Colab: see section 8.11. No result yet. | `clone-model/donk.py` | 2026-11-15 |
 | Claude continuation handoff | Arjun (Codex) | Done and consumed. Claude read it on 2026-11-14 and removed the folder, as its own instructions said. | removed (`handoffs/claude-continuation/`) | 2026-11-14 |
 | Handoff of the remaining work (`handoffs/remaining-work.md`) | Arjun (Claude) | Done. Lists what is left to finish the spec, the critical path to the MVP (tasks 1 to 4 need Tom's PC), and a paste-in prompt per task. The recipient deletes the file when their tasks are done. | `handoffs/remaining-work.md` | 2026-11-14 |
 | Tom's MVP viability test (`handoffs/tom-mvp-test.md`) | Tom | Not started. Four steps on Tom's PC: route playback from the correct side, sending the real recording if it fails, installing CloneDirector with `clone_add`, and recording and scoring a clone match. Tom deletes the file after recording results here. | `handoffs/tom-mvp-test.md` | 2026-11-14 |
@@ -980,6 +981,15 @@ Full design: `clone-model/ROUND3_DESIGN.md`. Summary:
   generate routes; step 3 trains `v3`; step 4 tests. No unused donk Mirage match is left for a final
   test; the design recommends the people panel as the final test.
 
+### 8.11 Donk-only model (added 2026-11-15)
+
+Design: `clone-model/ROUND3_DESIGN.md` section 8. Code: `clone-model/donk.py`. CS-NET is specialised to
+donk with small adapters (LoRA) in its decoder and a penalty that keeps its move probabilities close to
+CS-NET's (the AlphaStar KL anchor). The adapters fold back into a normal CS-NET file, so CS-NET's own
+engine generates donk play, which round 2 could not do. Judged on free-running sampled futures on donk's
+odd development rounds against the base model, by a rule fixed before the run. State: see the status
+board.
+
 ## 9. Architecture
 
 ```
@@ -1533,6 +1543,8 @@ demo. A released product would need each player's or team's permission.
 - 2026-11-14, Arjun (Codex): corrected canonical donk identity and excluded one ambiguous-account match before optimization; added empty-match cache rejection. Ten parsed public matches transferred to A100, nine selected for learning. CS2 base download completed successfully on Arjun's PC.
 
 Newest first. One line per change: date, who, what changed.
+
+- 2026-11-15, Arjun (with Claude): added the donk-only model (`clone-model/donk.py`, design section 8 of `ROUND3_DESIGN.md`, SPEC 8.11): LoRA plus KL anchor to CS-NET, merged into a normal checkpoint so the engine generates donk play; pass rule fixed before the run. 5 CPU tests pass. Not yet trained.
 
 - 2026-11-15, Arjun (with Claude): round 3 step 1. `add_clone_bot_entries.py` now writes human aim settings into the four clone bot entries and can update entries that exist. `donkL`/`brokyL` stop applying the restlessness and crouch-at-burst rules. Added `limits calibrate` and `limits check` with thresholds in `clone-pipeline/references/human_limits.json`. Corrected design limit H3 (25,000 failed real pros). Fixed a C# test that still expected the bot name `donk` after Tom's rename. Added `handoffs/tom-human-aim-test.md`. Ran: 55 pipeline, 3 tool and 30 C# tests; the check passes real donk on his held-back match. Not run: anything in CS2; the vpk repacking path was not run here.
 
