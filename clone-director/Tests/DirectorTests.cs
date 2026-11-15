@@ -223,4 +223,42 @@ public sealed class DirectorTests
         public bool Buy(int slot, string[] aliases) { Plan = string.Join(' ', aliases); return true; }
         public bool ClearBuy(int slot) { Plan = null; return true; }
     }
+
+    [Fact]
+    public void JumpQuirkFollowsTheMeasuredRate()
+    {
+        Assert.Equal(0, Quirks.JumpsPerMinute(Profile));               // no quirk block: never jump
+        Assert.False(Quirks.JumpNow(0, 1.0 / 64, 0));
+        // 6 jumps per minute at 64 ticks per second is a chance of 6/60/64 per tick.
+        Assert.True(Quirks.JumpNow(6, 1.0 / 64, 0.001));
+        Assert.False(Quirks.JumpNow(6, 1.0 / 64, 0.002));
+        int jumps = 0;
+        var random = new Random(7);
+        for (int tick = 0; tick < 64 * 60 * 200; tick++)                // 200 minutes
+            if (Quirks.JumpNow(6, 1.0 / 64, random.NextDouble())) jumps++;
+        Assert.InRange(jumps / 200.0, 5.4, 6.6);
+    }
+
+    [Fact]
+    public void LearnedQuirkProfilesLoadAndBadJumpRatesAreRejected()
+    {
+        string root = FindClonesFolder();
+        var store = new ProfileStore(root);
+        foreach (var id in new[] { "donkL", "brokyL" })
+        {
+            var profile = store.Load(id);
+            Assert.InRange(Quirks.JumpsPerMinute(profile), 0.1, Quirks.MaxJumpsPerMinute);
+            Assert.NotEmpty(profile.Routes["T"]);
+            Assert.False(string.IsNullOrWhiteSpace(profile.StandInBot));
+        }
+        var bad = new CloneProfile { Id = "x", DisplayName = "x", QuirkControls = new() { ["jumps_per_min"] = new() { Value = 500 } } };
+        Assert.Throws<InvalidDataException>(() => store.Validate(bad));
+    }
+
+    private static string FindClonesFolder()
+    {
+        for (var dir = new DirectoryInfo(AppContext.BaseDirectory); dir is not null; dir = dir.Parent)
+            if (File.Exists(Path.Combine(dir.FullName, "clones", "donk_v1.json"))) return Path.Combine(dir.FullName, "clones");
+        throw new DirectoryNotFoundException("clones folder not found above the test output folder");
+    }
 }

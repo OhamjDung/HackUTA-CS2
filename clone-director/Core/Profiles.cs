@@ -13,8 +13,33 @@ public sealed class CloneProfile
     [JsonPropertyName("buy_plan")] public Dictionary<string, Dictionary<string, PurchasePlan>> BuyPlan { get; init; } = [];
     [JsonPropertyName("routes")] public Dictionary<string, Route[]> Routes { get; init; } = [];
     [JsonPropertyName("route_shares")] public Dictionary<string, Dictionary<string, double>> RouteShares { get; init; } = [];
+    // Optional. Written by clone_pipeline/quirks.py for learned-quirk clones such as "donkL".
+    [JsonPropertyName("quirk_controls")] public Dictionary<string, QuirkControl> QuirkControls { get; init; } = [];
 
     public string Personality => StandInBot ?? DisplayName;
+}
+
+public sealed class QuirkControl
+{
+    // A number for most quirks. Unknown extra fields (applied_by, status) are ignored.
+    [JsonPropertyName("value")] public double Value { get; init; }
+}
+
+public static class Quirks
+{
+    public const double MaxJumpsPerMinute = 60;
+    // Only jump while running, so a jump never interrupts a held position.
+    public const float MinRunSpeed = 150;
+    // After damage or a nearby enemy shot, leave the bot base alone for this long.
+    public const float QuietSecondsAfterFight = 5;
+
+    /// <summary>Jumps per minute for this clone, or 0 when the profile has no such quirk.</summary>
+    public static double JumpsPerMinute(CloneProfile profile) =>
+        profile.QuirkControls.TryGetValue("jumps_per_min", out var control) ? control.Value : 0;
+
+    /// <summary>True when a jump should start on this tick. draw is uniform in [0, 1).</summary>
+    public static bool JumpNow(double jumpsPerMinute, double tickSeconds, double draw) =>
+        jumpsPerMinute > 0 && draw < jumpsPerMinute / 60 * tickSeconds;
 }
 
 public sealed class PurchasePlan
@@ -70,6 +95,10 @@ public sealed class ProfileStore(string root)
             !Regex.IsMatch(profile.Personality, @"\A[a-zA-Z0-9_ .-]+\z"))
             throw new InvalidDataException("Invalid bot personality name.");
         if (profile.Map != "de_mirage") throw new InvalidDataException("Only de_mirage is supported.");
+        if (profile.QuirkControls is null || profile.QuirkControls.Values.Any(c => c is null || !double.IsFinite(c.Value)))
+            throw new InvalidDataException("Invalid quirk control.");
+        if (Quirks.JumpsPerMinute(profile) is < 0 or > Quirks.MaxJumpsPerMinute)
+            throw new InvalidDataException("jumps_per_min must be between 0 and 60.");
         foreach (var (side, plans) in profile.BuyPlan)
         {
             CheckSide(side);

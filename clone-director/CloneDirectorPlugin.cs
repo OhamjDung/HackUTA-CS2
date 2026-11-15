@@ -37,6 +37,8 @@ public sealed class CloneDirectorPlugin : BasePlugin
         public BotSession Session { get; } = session;
         public Dictionary<string, MotionRecording> Recordings { get; } = recordings;
         public nint Pawn { get; set; }
+        // Server time before which the jump quirk stays off (the bot is in or near a fight).
+        public float QuietUntil { get; set; }
     }
 
     public override void Load(bool hotReload)
@@ -169,7 +171,21 @@ public sealed class CloneDirectorPlugin : BasePlugin
             if (binding.Session.Playing && (pawn is null || !pawn.IsValid || pawn.Handle != binding.Pawn || !binding.Player.PawnIsAlive))
                 binding.Session.Stop("pawn changed or dead");
             binding.Session.Poll();
+            ApplyJumpQuirk(binding, pawn);
         }
+    }
+
+    // Learned quirk: press jump at the player's measured rate, only while the bot runs outside a fight
+    // and no recorded route is playing. IN_JUMP is engine button bit 2.
+    private void ApplyJumpQuirk(Binding b, CCSPlayerPawn? pawn)
+    {
+        double rate = Quirks.JumpsPerMinute(b.Session.Profile);
+        if (rate <= 0 || !_live || b.Session.Playing || pawn is null || !pawn.IsValid || !b.Player.PawnIsAlive) return;
+        if (Server.CurrentTime < b.QuietUntil) return;
+        var v = pawn.AbsVelocity;
+        if (v is null || v.X * v.X + v.Y * v.Y < Quirks.MinRunSpeed * Quirks.MinRunSpeed) return;
+        if (Quirks.JumpNow(rate, 1.0 / 64, Random.Shared.NextDouble()))
+            _api!.InjectUsercmd(b.Session.Slot, 2UL, 0);
     }
 
     private HookResult RoundStart(EventRoundStart e, GameEventInfo info)
@@ -228,7 +244,11 @@ public sealed class CloneDirectorPlugin : BasePlugin
     private HookResult Death(EventPlayerDeath e, GameEventInfo info) { StopFor(e.Userid, "death"); return HookResult.Continue; }
     private void StopFor(CCSPlayerController? p, string reason)
     {
-        if (p is not null && _bots.TryGetValue(p.Slot, out var b)) b.Session.Stop(reason);
+        if (p is not null && _bots.TryGetValue(p.Slot, out var b))
+        {
+            b.Session.Stop(reason);
+            b.QuietUntil = Server.CurrentTime + Quirks.QuietSecondsAfterFight;
+        }
     }
 
     private HookResult WeaponFire(EventWeaponFire e, GameEventInfo info)
@@ -238,10 +258,11 @@ public sealed class CloneDirectorPlugin : BasePlugin
         if (shooter is null || !shooter.IsValid || shooter.TeamNum is not (2 or 3) || shot is null) return HookResult.Continue;
         foreach (var b in _bots.Values)
         {
-            if (!b.Session.Playing || !b.Player.IsValid || b.Player.TeamNum == shooter.TeamNum) continue;
+            if (!b.Player.IsValid || b.Player.TeamNum == shooter.TeamNum) continue;
             var pos = b.Player.PlayerPawn.Value?.AbsOrigin;
-            if (pos is not null && Combat.Nearby(shot.X, shot.Y, shot.Z, pos.X, pos.Y, pos.Z))
-                b.Session.Stop("enemy fired nearby");
+            if (pos is null || !Combat.Nearby(shot.X, shot.Y, shot.Z, pos.X, pos.Y, pos.Z)) continue;
+            b.QuietUntil = Server.CurrentTime + Quirks.QuietSecondsAfterFight;
+            if (b.Session.Playing) b.Session.Stop("enemy fired nearby");
         }
         return HookResult.Continue;
     }

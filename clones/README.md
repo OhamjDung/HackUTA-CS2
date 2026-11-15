@@ -78,3 +78,38 @@ web replay page, which has not been built.
 
 Data credit: Julien Blanchon / [OpenCS2](https://huggingface.co/datasets/blanchon/opencs2_dataset_demo),
 CC BY 4.0. Original match recordings remain subject to their organizers' terms and are not included.
+
+## Learned-quirk clones: `donkL` and `brokyL`
+
+**Request to teammates: please add `donkL` and `brokyL` wherever `donk_v1` and `broky_v1` are
+offered** (the lobby, the clone list, the demo pages). The "L" stands for "learned". Having both
+lets us compare the learned version with what we have now.
+
+What an L clone is: the same routes and purchases as the `_v1` clone, plus per-player quirk rules
+fitted from the recordings by `clone-pipeline/clone_pipeline/quirks.py`. It is **not** the neural
+model. The neural identity adapters failed their test and are not used
+(`clone-model/results/diagnosis-2026-11-14.md`).
+
+| Clone | Built on | Distinctive quirks | Applied in the game today | Measured only |
+|---|---|---:|---|---|
+| `donkL` | `donk_v1` | 10 | jump rate 4.1 per minute (CloneDirector), Teamwork 100 | standing-still share, turning speed |
+| `brokyL` | `broky_v1` | 10 | jump rate 6.2 per minute (CloneDirector), Teamwork 90 | shots per burst |
+
+Checked by running: 23 pipeline tests and 28 CloneDirector tests pass; both L profiles load in the
+C# loader; the plugin compiles. **Not run in CS2.** The Teamwork number only takes effect if the
+personality file is edited by hand.
+
+Three things to know before a comparison:
+1. An L clone uses the same installed bot name as its `_v1` clone (`stand_in_bot`). Two bots with the
+   same name cannot join one match, so compare them in separate matches.
+2. The L clone needs the CloneDirector build from this commit or later. An older build ignores the
+   quirks and behaves exactly like `_v1`.
+3. To score a recorded bot match against the real player:
+
+```
+cd clone-pipeline
+uv run python -m clone_pipeline.quirks score --profile ../clones/donkL.json --demo <recording.dem> --name donk
+```
+
+The real players pass this test on their own held-back matches: donk 1st of 5 with 8 of 10 quirks,
+broky 1st of 5 with 9 of 10. That is the ceiling for any clone.
