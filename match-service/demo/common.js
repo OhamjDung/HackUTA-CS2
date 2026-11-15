@@ -112,7 +112,8 @@ class Radar {
     if (this.canvas.width !== w) { this.canvas.width = w; this.canvas.height = w; }
   }
 
-  // paths: [{name, team, path, focus, diedAt, dash}]; t: seconds into the round.
+  // paths: [{name, team, path, focus, diedAt, dash, color}]; t: seconds into the round.
+  // `color` overrides the team color (the replay page's generated paths use it).
   draw(paths, t = Infinity) {
     this.resize();
     const ctx = this.ctx, W = this.canvas.width, s = W / 900;
@@ -129,7 +130,7 @@ class Radar {
     const anyFocus = paths.some(p => p.focus);
     for (const p of paths) {
       if (!p.path || !p.path.length) continue;
-      const color = COLORS[p.team] || "#c792ea";
+      const color = p.color || COLORS[p.team] || "#c792ea";
       const dim = anyFocus && !p.focus;
       ctx.lineCap = ctx.lineJoin = "round";
 

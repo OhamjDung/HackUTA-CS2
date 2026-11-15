@@ -40,6 +40,8 @@ Interactive docs: http://localhost:8000/docs
 | `GET /matches/{id}/score?player=` | How close one bot's rounds are to the real player's held-back match, with the ceiling (SPEC 10.2; not in the spec's API) |
 | `GET /replay/clones`, `/replay/clones/{id}`, `/replay/clones/{id}/routes[/{recording}]` | Real recorded rounds from `../clones` (not in the spec) |
 | `GET /replay/outline` | Map cells any recorded route crossed, for drawing (not in the spec) |
+| `GET /replay/generated` | The model's generated-path review files in `REVIEW_DIR` and their cases (player, match, round, side, time, selected step, `identity_quality`), plus files not shown and why (not in the spec) |
+| `GET /replay/generated/{file}/{case}` | One case: real, own-identity, other-identity and base paths as `[[seconds after the start, x, y], ...]` from the shared start, with the automated geometry check per path when a matching check file exists (not in the spec) |
 | `GET /demo/` | The demo pages (see below); `/` redirects here |
 
 Example:
@@ -92,13 +94,43 @@ teammates' lobby, match page and clone dashboard, and show what each feature doe
 - **Play vs a bot**: pick a side, mode, map and opponents; follow status and score.
 - **Bot vs bot**: start donk vs broky; one live map panel per bot, plus score and events.
 - **Replay**: a bot's round next to the real player's closest recorded round, on one clock; both
-  bots in one round; every recorded round of the real players.
+  bots in one round; every recorded round of the real players; and the model's generated paths
+  (below). `replay.html?tab=gen` opens that tab.
 - **Proof**: the clone files' "player vs himself" numbers and habits, and the in-game score of a
   match: one played with `CS2_BOTS=clone` for the clone column, one with `stand_in` for the
   default-bot column. Each trace records which (`bots`).
 
-Disabled buttons with dashed borders mark features that need other pieces (video, generated path,
-caster voice, recording, the clone dashboard). On a Mac, run the mock and open the pages: each
+Disabled buttons with dashed borders mark features that need other pieces (video, caster voice,
+recording, the clone dashboard).
+
+**Generated paths (Replay page, last tab).** Shows the offline review files that
+`clone-model/review.py` writes (`cs2.clone.review.v1`): from one moment in a development round, the
+real path next to the model's paths with the player's own identity, the other player's identity and
+no identity (the generic base), all from the same start. These come from a model whose held-out
+identity test **failed** (SPEC.md 8.6). The page says so; they are diagnostics, not the player's
+style, and not used in the game. To get the file, download `Generated-path-review-dev.json` from
+the GitHub prerelease `learned-clones-a100-v1` into `data/reviews/` at the repository root (ignored
+by git), or set `REVIEW_DIR` to its folder. The service reads the folder on each request.
+- Shown only if `format` is `cs2.clone.review.v1`, `split` is `dev`, `deployed` is `false`, and no
+  case comes from a held-out match (donk 2393242, broky 2393024). Other files are listed under
+  `ignored` with the reason. File names must be plain (`[A-Za-z0-9][A-Za-z0-9._-]*.json`) and inside
+  the folder; symbolic links that lead out of it are refused.
+- Optional: a `cs2.clone.review-check.v1` file in the same folder adds an automated geometry check
+  per path. It is used only when its `review_sha256` is the SHA-256 of the review file's bytes and
+  its entries name the same player, match and round as the review's cases.
+- Each path says which other paths it equals exactly (`same_path_as`) and its x/y distance from the
+  real path at the same times (`distance_to_actual`, mean and last step). That distance is for one
+  example, not a test result.
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| `REVIEW_DIR` | `../data/reviews/` | Folder with generated-path review files (and check files) |
+
+Checked against the mock with the real eight-case review file in a browser (2026-11-14): all
+cases list and draw, a hand-written check file with the matching SHA-256 shows its results (no
+real geometry check file existed yet), and an empty folder shows the download steps. The `gh release download` example on the page was not run.
+
+On a Mac, run the mock and open the pages: each
 simulated bot walks a real recorded route for its side, so everything has data. With CS2, bot
 positions come from game state (`allplayers_*` in the config; restart CS2 after installing it),
 which CS2 sends only while the person at the PC spectates. Not yet seen in CS2. Set `TRACE_DIR`

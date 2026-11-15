@@ -18,6 +18,7 @@
     <button data-tab="vs" class="on">Real player vs bot</button>
     <button data-tab="clones">Clone vs clone</button>
     <button data-tab="real">Recorded rounds</button>
+    <button data-tab="gen">Generated paths (model)</button>
   </div>
 
   <!-- Real vs bot -->
@@ -91,17 +92,57 @@
     </div>
   </section>
 
+  <!-- Generated paths: the model's offline development examples (cs2.clone.review.v1) -->
+  <section data-pane="gen" hidden>
+    <div class="notice">
+      <span class="pill bad">identity test failed</span>
+      <b>Development examples, not the player's style.</b> These paths come from a model whose held-out identity
+      test failed (SPEC.md 8.6). They are offline diagnostics from development rounds, not collision-approved, and
+      <b>not used in the game</b>: the clones play recorded routes.
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="row">
+        <label>Review file<select id="g-file"></select></label>
+        <label style="flex:1;min-width:260px">Case<select id="g-case"></select></label>
+        <label>View<select id="g-view"><option value="close">close up</option><option value="map">whole map</option></select></label>
+        <span class="spacer"></span>
+        <span id="g-badges"></span>
+      </div>
+      <p class="muted small" id="g-hint" style="margin:10px 0 0"></p>
+    </div>
+    <div class="grid two" style="margin-top:14px" id="g-main">
+      <div class="card">
+        <h2>From one moment, the next few seconds <span class="muted small" id="g-title"></span></h2>
+        <div class="radar-wrap"><canvas class="radar" id="g-radar"></canvas><div class="empty" id="g-empty">Loading…</div></div>
+        <div style="margin-top:10px" id="g-player-ctl"></div>
+      </div>
+      <div class="card">
+        <h2>Paths</h2>
+        <table id="g-table"></table>
+        <p class="small muted" id="g-check" style="margin:10px 0 0"></p>
+        <h2 style="margin-top:16px">This case</h2>
+        <table id="g-case-table"></table>
+        <p class="muted small">All four paths start at the same recorded position. "Distance to real" is the x/y
+          distance from the real path at the same times, for this one example only: it is not a test result. The
+          identity test itself is on the Proof page.</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px" id="g-ignored" hidden>
+      <h2>Files not shown</h2>
+      <table id="g-ignored-table"></table>
+    </div>
+  </section>
+
   <div class="card" style="margin-top:14px">
     <h2>Coming with the other pieces</h2>
     <div class="row">
       <button class="todo" disabled>First-person video (OpenCS2)</button>
-      <button class="todo" disabled>Generated path overlay</button>
       <button class="todo" disabled>Caster commentary</button>
       <button class="todo" disabled>Download match recording (.dem)</button>
       <button class="todo" disabled>Run CloneDirector until the same route</button>
     </div>
-    <p class="todo-note">Video: the real player's first-person clip from OpenCS2, next to the map. Generated path: Arjun's
-      identity model. Caster: Gemini script, ElevenLabs voice. Recording: needs a way to record that doesn't freeze CS2
+    <p class="todo-note">Video: the real player's first-person clip from OpenCS2, next to the map. Caster: Gemini
+      script, ElevenLabs voice. Recording: needs a way to record that doesn't freeze CS2
       (try <code>-Record tv</code>). Same route: SPEC.md 10.1 runs the clone until it picks the real round's route label; needs
       CloneDirector in CS2.</p>
   </div>
@@ -111,7 +152,7 @@ const $ = id => document.getElementById(id);
 let OUT, matches = [], traces = {};
 
 // A canvas in a hidden tab has no size, so redraw whenever a tab opens or the window resizes.
-function redraw() { [vsPlayer, ccPlayer, rPlayer].forEach(p => p.set(p.t)); }
+function redraw() { [vsPlayer, ccPlayer, rPlayer, gPlayer].forEach(p => p.set(p.t)); }
 document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => {
   document.querySelectorAll("[data-tab]").forEach(x => x.classList.toggle("on", x === b));
   document.querySelectorAll("[data-pane]").forEach(p => p.hidden = p.dataset.pane !== b.dataset.tab);
@@ -242,6 +283,140 @@ async function rRouteChanged() {
   rPlayer.setMax(pathEnd(r)); rPlayer.set(0);
 }
 
+// --- Generated paths (the model's offline review files) ---------------------------------------
+const GEN_STYLE = {  // drawn in this order, so the real path ends up on top
+  base:   { color: "#8b95a3", dash: true,  name: "Generic base (no identity)" },
+  other:  { color: "#2ec4b6", dash: true,  name: "Other player's identity" },
+  own:    { color: "#c792ea", dash: false, name: "Own identity" },
+  actual: { color: "#e6e9ee", dash: false, name: "Real path (recorded)" },
+};
+let gen = { list: null, data: null, radar: null };
+const gPlayer = new Player($("g-player-ctl"), t => drawGen(t));
+
+function genPaths() {
+  const d = gen.data;
+  if (!d) return [];
+  // Paths often end on top of each other: label only the first (real, own, other, base) at each end.
+  const labels = {}, ends = [];
+  for (const k of ["actual", "own", "other", "base"].filter(k => d.traces[k])) {
+    const end = d.traces[k].path[d.traces[k].path.length - 1];
+    const crowded = ends.some(e => Math.hypot(e[1] - end[1], e[2] - end[2]) < 40);
+    ends.push(end);
+    labels[k] = crowded ? "" : (k === "actual" ? "real" : k);
+  }
+  return Object.keys(GEN_STYLE).filter(k => d.traces[k]).map(k => ({
+    name: labels[k], path: d.traces[k].path, color: GEN_STYLE[k].color, dash: GEN_STYLE[k].dash }));
+}
+
+function drawGen(t) { if (gen.radar && gen.data) gen.radar.draw(genPaths(), t); }
+
+// Zoom the radar onto this case's paths (they cover a few seconds), or show the whole map.
+function genView() {
+  gen.radar = gen.radar || new Radar($("g-radar"), OUT);
+  if (!gen.mapView) gen.mapView = { ...gen.radar.view };
+  if ($("g-view").value === "map" || !gen.data) { gen.radar.view = { ...gen.mapView }; return; }
+  const pts = Object.values(gen.data.traces).filter(Boolean).flatMap(tr => tr.path);
+  const xs = pts.map(p => p[1]), ys = pts.map(p => p[2]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const span = Math.max(500, x1 - x0, y1 - y0) * 1.4;
+  gen.radar.view = { x: (x0 + x1) / 2 - span / 2, y: (y0 + y1) / 2 - span / 2, span };
+}
+
+function otherName(file, player) {
+  const names = [...new Set(file.cases.map(c => c.player))].filter(n => n !== player);
+  return names.length === 1 ? names[0] : null;
+}
+
+function checkCell(d, tr) {
+  if (!d.check) return `<span class="muted">no check file</span>`;
+  const r = tr.auto_check;
+  if (!r) return `<span class="muted">not checked</span>`;
+  if (r.auto_check_passed) return `<span class="pill good">auto check passed</span>`;
+  return `<span class="pill bad">auto check failed</span>` +
+    (r.reasons.length ? `<div class="small muted">${r.reasons.map(esc).join("<br>")}</div>` : "");
+}
+
+async function genLoad() {
+  try {
+    gen.list = await api("/replay/generated");
+  } catch (e) {
+    $("g-main").style.display = "none";  // .grid sets display, which beats [hidden]
+    $("g-hint").innerHTML = `<span class="error">Could not list review files: ${esc(e.message)}</span>`;
+    return;
+  }
+  const L = gen.list;
+  $("g-ignored").hidden = !L.ignored.length;
+  $("g-ignored-table").innerHTML = `<tr><th>File</th><th>Why it is not shown</th></tr>` +
+    L.ignored.map(i => `<tr><td>${esc(i.file)}</td><td>${esc(i.reason)}</td></tr>`).join("");
+  if (!L.files.length) {
+    $("g-main").style.display = "none";  // .grid sets display, which beats [hidden]
+    $("g-file").innerHTML = `<option value="">no review files</option>`;
+    $("g-case").innerHTML = "";
+    $("g-hint").innerHTML = `No generated-path review file in <code>${esc(L.folder)}</code>. To get one, download
+      <code>Generated-path-review-dev.json</code> from the GitHub prerelease <code>learned-clones-a100-v1</code> into
+      <code>data/reviews/</code> at the repository root (for example
+      <code>gh release download learned-clones-a100-v1 --pattern Generated-path-review-dev.json --dir data/reviews</code>),
+      or point <code>REVIEW_DIR</code> at the folder that has it, then reload this page.
+      An automated geometry check file (<code>cs2.clone.review-check.v1</code>) next to it is shown too, when it matches.`;
+    return;
+  }
+  $("g-main").style.display = "";
+  $("g-file").innerHTML = L.files.map(f => `<option value="${esc(f.file)}">${esc(f.file)}</option>`).join("");
+  genFileChanged();
+}
+
+function genFileChanged() {
+  const f = gen.list.files.find(f => f.file === $("g-file").value);
+  if (!f) return;
+  $("g-case").innerHTML = f.cases.map(c => `<option value="${c.case}">${esc(c.player)} · ${esc(c.side)} · match ${esc(c.match_id)}
+    round ${c.round_id + 1} · ${c.seconds_into_round != null ? c.seconds_into_round.toFixed(1) + " s in" : ""}</option>`).join("");
+  $("g-badges").innerHTML = `<span class="pill warn">split: ${esc(f.split)}</span>
+    <span class="pill bad">identity: ${esc(f.identity_quality || "unknown")}</span>
+    <span class="pill">step ${esc(f.selected_step)}</span>
+    <span class="pill ${f.check_file ? "good" : ""}">${f.check_file ? "geometry check: " + esc(f.check_file) : "no geometry check file"}</span>`;
+  $("g-hint").textContent = f.interpretation || "";
+  genCaseChanged();
+}
+
+async function genCaseChanged() {
+  const file = $("g-file").value, i = $("g-case").value;
+  if (!file || i === "") return;
+  const f = gen.list.files.find(f => f.file === file);
+  try {
+    gen.data = await api(`/replay/generated/${encodeURIComponent(file)}/${i}`);
+  } catch (e) {
+    gen.data = null; drawGen(0);
+    $("g-empty").textContent = e.message;
+    return;
+  }
+  const d = gen.data, other = otherName(f, d.player);
+  $("g-empty").textContent = "";
+  $("g-title").textContent = `${d.player} · ${d.side} · match ${d.match_id}`;
+  const label = k => k === "own" ? `Own identity (${esc(d.player)})`
+    : k === "other" ? `Other player's identity${other ? ` (${esc(other)})` : ""}` : esc(GEN_STYLE[k].name);
+  const rows = ["actual", "own", "other", "base"].map(k => {
+    const tr = d.traces[k], st = GEN_STYLE[k];
+    const swatch = `<span style="display:inline-block;width:22px;border-top:3px ${st.dash ? "dashed" : "solid"} ${st.color};vertical-align:middle;margin-right:6px"></span>`;
+    if (!tr) return `<tr><td>${swatch}${label(k)}</td><td colspan="2" class="muted">not in this file</td></tr>`;
+    const dist = tr.distance_to_actual ? `${tr.distance_to_actual.mean} / ${tr.distance_to_actual.final}` : "—";
+    const same = tr.same_path_as.length ? `same path as ${tr.same_path_as.map(o => o === "actual" ? "real" : o).join(", ")}` : "";
+    return `<tr><td>${swatch}${label(k)}${same ? `<div class="small muted">${esc(same)}</div>` : ""}</td>
+      <td class="num">${k === "actual" ? "—" : dist}</td><td>${checkCell(d, tr)}</td></tr>`;
+  });
+  $("g-table").innerHTML = `<tr><th>Path</th><th title="x/y game units, mean over the steps / at the last step">Distance to real (mean / end)</th><th>Geometry check</th></tr>` + rows.join("");
+  $("g-check").innerHTML = d.check
+    ? `Automated geometry check from <code>${esc(d.check.file)}</code>${d.check.note ? `: ${esc(d.check.note)}` : ""}`
+    : `No automated geometry check matches this file. A person must still look for paths that cross walls.`;
+  $("g-case-table").innerHTML = [["Player", d.player], ["Steam ID", d.steam_id], ["Pro match", d.match_id],
+    ["Round", `${d.round_id + 1} (round_id ${d.round_id}, zero-based)`], ["Side", d.side],
+    ["Starts at", d.seconds_into_round != null ? `${d.seconds_into_round.toFixed(2)} s into the round (tick ${d.context_tick})` : "—"],
+    ["Model", `selected step ${d.selected_step}; identity ${d.identity_quality}`], ["File split", `${d.split}, deployed ${d.deployed}`]]
+    .map(([k, v]) => `<tr><th>${k}</th><td>${esc(v)}</td></tr>`).join("");
+  genView();
+  gPlayer.setMax(Math.max(...Object.values(d.traces).filter(Boolean).map(tr => tr.seconds)));
+  gPlayer.set(gPlayer.max);
+}
+
 // --- Setup ------------------------------------------------------------------------------------
 async function setup() {
   OUT = await outline();
@@ -261,7 +436,14 @@ async function setup() {
   $("r-clone").innerHTML = real.map(c => `<option value="${esc(c.clone_id)}">${esc(c.display_name)} (${c.routes} rounds)</option>`).join("");
   $("r-clone").onchange = rCloneChanged; $("r-side").onchange = rSideChanged; $("r-route").onchange = rRouteChanged;
   if (real.length) rCloneChanged();
-  if (!matches.length) document.querySelector('[data-tab="real"]').click();
+
+  $("g-file").onchange = genFileChanged; $("g-case").onchange = genCaseChanged;
+  $("g-view").onchange = () => { genView(); drawGen(gPlayer.t); };
+  genLoad();
+
+  const tab = param("tab");
+  if (tab && document.querySelector(`[data-tab="${CSS.escape(tab)}"]`)) document.querySelector(`[data-tab="${CSS.escape(tab)}"]`).click();
+  else if (!matches.length) document.querySelector('[data-tab="real"]').click();
 }
 setup();
 </script>

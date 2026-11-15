@@ -23,11 +23,14 @@ from .backends.mock import MockBackend
 from .console import ConsoleChannel, NetconChannel, PluginChannel, RconChannel
 from .core import MatchRecord, Settings, load_clones, now
 from .drivers import describe
+from .generated import ReviewInvalid, ReviewLibrary, ReviewNotFound
 from .models import TEAM_SIZE, Clone, CloneInfo, Event, Match, MatchCreate, MatchPlayer
 from .replay import RouteLibrary
 from .scoring import ScoringUnavailable, score_player
 
 DEMO_DIR = Path(__file__).resolve().parent.parent / "demo"
+GENERATED_NOTE = ("Development examples from a model whose held-out identity test failed (SPEC.md 8.6). "
+                  "Not the player's style, not collision-approved, and not used in the game.")
 
 log = logging.getLogger("match_service")
 
@@ -68,6 +71,7 @@ def create_app(settings: Settings | None = None, channel: ConsoleChannel | None 
             log.warning("callback to %s failed: %s", record.callback_url, exc)
 
     library = RouteLibrary(settings.clone_data_dir)
+    reviews = ReviewLibrary(settings.review_dir)
     if settings.backend == "mock":
         backend = MockBackend(settings, emit, library)
     elif settings.backend == "cs2":
@@ -290,6 +294,26 @@ def create_app(settings: Settings | None = None, channel: ConsoleChannel | None 
     async def replay_outline():
         """Grid cells covered by any recorded route: a rough map shape for drawing."""
         return library.outline()
+
+    @app.get("/replay/generated")
+    async def generated_list():
+        """The model's offline generated-path review files in REVIEW_DIR, and their cases.
+
+        Development examples only, from a model whose identity test failed (SPEC 8.6). Files that
+        are not a dev, undeployed cs2.clone.review.v1 file, or that include a held-out match, are
+        listed under `ignored` with the reason.
+        """
+        return {**reviews.listing(), "identity_test": "failed", "note": GENERATED_NOTE}
+
+    @app.get("/replay/generated/{file}/{case}")
+    async def generated_case(file: str, case: int):
+        """One case: the real path and the own / other / base generated paths from a shared start."""
+        try:
+            return {**reviews.case(file, case), "identity_test": "failed", "note": GENERATED_NOTE}
+        except ReviewNotFound as exc:
+            raise HTTPException(404, str(exc))
+        except ReviewInvalid as exc:
+            raise HTTPException(422, str(exc))
 
     @app.get("/", include_in_schema=False)
     async def root():

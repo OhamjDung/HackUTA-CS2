@@ -55,9 +55,9 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Offline weapon-role and habit audit handoff | Arjun's friend (handoff prepared) | Not started. CPU-only audit/fix handoff ready; recipient must remove consumed handoff docs on task branch after reading. | `handoffs/friend/01-HABIT-AUDIT-AND-FIX.md` | 2026-11-14 |
 | Independent mock replay QA handoff | Arjun's friend (optional second task) | Not started. Existing Ashirwad replay implementation remains with its owner; QA/report only. | `handoffs/friend/02-MOCK-REPLAY-QA.md` | 2026-11-14 |
 | Claude continuation handoff | Arjun (Codex) | Done and consumed. Claude read it on 2026-11-14 and removed the folder, as its own instructions said. | removed (`handoffs/claude-continuation/`) | 2026-11-14 |
-| Continuation handoff (Arjun's remaining model and game work) | Ashirwad | In progress. Handoff read and its context saved outside the repo; folder removed. Tasks: map-geometry review of generated paths, generated-path viewer, generated-route converter (candidates only), adapter diagnosis, CS2 checklist for Tom. | Removed from the repo | 2026-11-14 |
+| Continuation handoff (Arjun's remaining model and game work) | Ashirwad | In progress. Handoff read and its context saved outside the repo; folder removed. Tasks: map-geometry review of generated paths, generated-path viewer (done: replay page tab), generated-route converter (candidates only), adapter diagnosis, CS2 checklist for Tom. | Removed from the repo | 2026-11-14 |
 | Offline generated-path review export | Arjun (Codex) | Done. Eight development cases exported on A100 (24 generated paths plus real paths), JSON checked and plots inspected; 12 CPU tests pass. No route promotion. | `clone-model/review.py` | 2026-11-14 |
-| Replay page: real player next to clone | Unassigned | In progress (demo version by Ashirwad: 2D map from positions, no video, no generated path) | `match-service/demo/replay.html` | 2026-11-14 |
+| Replay page: real player next to clone | Unassigned | In progress (demo version by Ashirwad: 2D map from positions, no video; a generated-path tab shows the model's offline development review files, run against the mock in a browser) | `match-service/demo/replay.html`, `match-service/match_service/generated.py` | 2026-11-14 |
 | Clone profile page | Unassigned | Not started | Not decided | 2026-11-14 |
 | Caster voice (Gemini script, ElevenLabs audio) | Unassigned | Not started | Not decided | 2026-11-14 |
 | Pro bot voices: donk and broky (ElevenLabs) | Unassigned (research by Codex) | In progress. MVP targets verified voice packs for `donk_v1` and `broky_v1`. Player authorization, verified voices, and playback tests pending. | Section 9.5 | 2026-11-14 |
@@ -202,6 +202,16 @@ Checked on 2026-11-14.
   9.9 s), Proof (in-game scores from this match, placed under Default bot) and Play (match went live,
   player put on CT). The older trace of match `09a357d5a255` is gone: the service restarted and
   `GET /matches/09a357d5a255/trace` returns 404.
+- Generated-path viewer (Ashirwad, 2026-11-14). `GET /replay/generated` and
+  `/replay/generated/{file}/{case}` read `cs2.clone.review.v1` files from `REVIEW_DIR` (default
+  `data/reviews/`). In a browser against the mock, with the real eight-case review file from
+  `learned-clones-a100-v1`: every case lists and draws (real, own, other, base from the shared
+  start), and the same-path flags match the export notes (own equals base in 6 of 8 cases, equals
+  other in 7 of 8). A hand-written check file with the matching SHA-256 showed per-path results; an
+  empty folder showed the download steps; a `split: "test"` file was listed as not shown. 16
+  synthetic tests cover wrong format, split, `deployed`, held-out matches, path traversal, symlinks
+  and a check file with the wrong SHA-256; 67 match service tests pass. No real geometry check file
+  was used.
 - Every GitHub repository in section 4 exists. Stars, licenses, and update dates come from GitHub.
 - The OpenCS2 counts in section 7 come from queries against its index tables.
 - The match service's cs2 backend, against a fake console and hand-written game state updates
@@ -322,6 +332,7 @@ One install of CS2-Bot-Improver gives the first four rows.
 | Match control API | This repository's `match-service/` |
 | Match service: events from the game | CS2's Game State Integration (Valve). Field names from the [CounterStrike2GSI](https://github.com/antonpup/CounterStrike2GSI) README; read only, no code copied |
 | Match service: commands to the game | CS2's network console (`-netconport`). Idea from [csctl](https://github.com/403-Fruit/csctl) (CS:GO); read only. The client is written from zero: about 40 lines, no CS2 client found |
+| Generated-path viewer (replay page) | Written from zero on the demo pages' own map drawing (`common.js`). It reads `clone-model/review.py`'s `cs2.clone.review.v1` export directly; no existing viewer reads that file |
 | In-game similarity score | The pipeline's own `similarity.compare()` and `build.stats_block()`; area names are CS2's `last_place_name` from OpenCS2 recordings, looked up by position. Scorer written from zero: no tool found that scores game-state traces |
 | Match service: commands to the game, fallback 1 | RCON through the [rcon](https://pypi.org/project/rcon/) Python library (GPL-3.0), used as a dependency |
 | Match service: commands to the game, fallback 2 | MatchBridge, a CounterStrikeSharp plugin (`match-service/plugin/MatchBridge/`). Written from zero: no plugin found that runs console commands sent over a local port (LeaderOS Connect, the closest, runs store purchases). Project settings copied from CS2-Bot-Improver's own plugins; calls from the CounterStrikeSharp docs |
@@ -860,12 +871,17 @@ of the replay.
   - *Play vs a bot*: a minimal lobby form (side, mode, map, opponents, teammates), status, score.
   - *Bot vs bot*: starts donk vs broky and shows one live map panel per bot, plus score and events.
   - *Replay*: a bot's round from a match next to the real player's closest recorded round on the
-    same side, on one clock; both bots in one round (10.4); and every recorded round.
+    same side, on one clock; both bots in one round (10.4); every recorded round; and the model's
+    generated paths: one development moment with the real path, own identity, other identity and
+    generic base from the same start, with an automated geometry check per path when a check file's
+    `review_sha256` matches. The page labels them as development examples from a model whose identity
+    test failed (8.6), not the player's style and not used in the game. Files must be `dev`, not
+    deployed, and free of held-out matches.
   - *Proof*: the clone files' ceiling numbers (player vs himself) and habits. The in-game and
     baseline columns score a match picked from the list (or a saved match id) through
     `GET /matches/{id}/score`; a match played with `CS2_BOTS=clone` belongs in the clone column and
     `stand_in` in the baseline. The swap-test card shows Arjun's first run, which failed.
-  - Disabled placeholder buttons mark what needs other pieces: first-person video, generated path,
+  - Disabled placeholder buttons mark what needs other pieces: first-person video,
     caster voice, match recording, the clone dashboard, CloneDirector's same-route run, swap test.
 - **Replay data behind them (`match_service/replay.py`).** Real rounds: the clone pipeline's route
   files in `clones/` (Brotli JSON, 64 ticks a second), cut to 8 points a second. Bot rounds: the
@@ -874,7 +890,9 @@ of the replay.
   marked `simulated`. "Closest real round": the average distance between the two paths, first 20 s
   of the bot's round. New endpoints (additions; nothing existing changed): `GET /matches`,
   `GET /matches/{id}/trace`, `GET /matches/{id}/compare`, `GET /replay/clones[/{id}[/routes[/{rec}]]]`,
-  `GET /replay/outline`. Traces are saved to `TRACE_DIR` when set.
+  `GET /replay/outline`, `GET /replay/generated`, `GET /replay/generated/{file}/{case}`. Traces are
+  saved to `TRACE_DIR` when set. Generated review files are read from `REVIEW_DIR` (default
+  `data/reviews/`, git-ignored).
 - **Replay page.** Starts from CS-NET v4's viewer, which already draws a generated path over the real
   path. Add: the clone's recorded round next to the real player's round, the real first-person video
   from OpenCS2, and the caster audio.
@@ -1248,6 +1266,8 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-14, Ashirwad: added the replay page's generated-path tab and `GET /replay/generated[/{file}/{case}]` (`REVIEW_DIR`, default `data/reviews/`), reading `cs2.clone.review.v1` development files and optional matching review-check files, labelled as failed-identity development examples not used in the game. Run against the mock with the real review file; 67 match service tests pass.
 
 - 2026-11-14, Ashirwad: read and removed the consumed continuation handoff; its context is kept outside the repo. Started its remaining tasks.
 
