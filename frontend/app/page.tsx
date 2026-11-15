@@ -1,97 +1,191 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import CharacterCanvas from '@/components/canvas/CharacterCanvas';
-import GlitchOverlay from '@/components/ui/GlitchOverlay';
-import NavigationDeck from '@/components/ui/NavigationDeck';
+import HeroStageOverlay from '@/components/ui/HeroStageOverlay';
+import RightScaleRuler from '@/components/ui/RightScaleRuler';
+import ThermalScopeReticle from '@/components/ui/ThermalScopeReticle';
+import TopNav from '@/components/ui/TopNav';
 import {
   AUTO_SWAP_ENABLED_DEFAULT,
   AUTO_SWAP_INTERVAL_MS,
   CHARACTERS,
-  GLITCH_SWAP_DELAY_MS,
-  GLITCH_TOTAL_MS,
+  GLITCH_DURATION_MS,
+  GLITCH_SWAP_AT_MS,
   INITIAL_CHARACTER_ID,
+  stageXFraction,
 } from '@/lib/constants';
+import { stageInput } from '@/lib/stageInput';
 import type { CharacterId } from '@/types';
 
 export default function HomePage() {
   const [activeId, setActiveId] = useState<CharacterId>(INITIAL_CHARACTER_ID);
   const [pendingId, setPendingId] = useState<CharacterId | null>(null);
-  const [glitchIntensity, setGlitchIntensity] = useState(0);
-  const [backend, setBackend] = useState<'webgpu' | 'webgl2' | null>(null);
   const [autoPlay, setAutoPlay] = useState(AUTO_SWAP_ENABLED_DEFAULT);
-  // Bumped on every completed swap trigger so the auto-cycle timer restarts
-  // after manual selections too — auto and manual can never collide mid-glitch.
+  const [thermalActive, setThermalActive] = useState(false);
+  // Bumped when a glitch completes so the 6 s hold always starts from a clean frame.
   const [cycleKey, setCycleKey] = useState(0);
-  const timers = useRef<number[]>([]);
 
-  // Refs mirror state for use inside timers without stale closures.
+  const canvasWrapRef = useRef<HTMLDivElement>(null);
+  const timers = useRef<number[]>([]);
   const activeIdRef = useRef(activeId);
   activeIdRef.current = activeId;
   const pendingRef = useRef(pendingId);
   pendingRef.current = pendingId;
 
-  useEffect(() => () => {
-    timers.current.forEach((t) => window.clearTimeout(t));
-    timers.current = [];
-  }, []);
+  useEffect(
+    () => () => {
+      timers.current.forEach((t) => window.clearTimeout(t));
+      timers.current = [];
+    },
+    [],
+  );
 
+  // ---- glitch swap ----------------------------------------------------------
   const triggerSwap = useCallback((id: CharacterId) => {
     if (id === activeIdRef.current || pendingRef.current !== null) return;
     setPendingId(id);
-    setGlitchIntensity(1);
-    // Swap the scene-graph model reference mid-glitch (HLD stage 4).
-    timers.current.push(
-      window.setTimeout(() => setActiveId(id), GLITCH_SWAP_DELAY_MS),
-    );
+    // The render loop reads this timestamp and drives the 0.6 s GPU envelope.
+    stageInput.glitchStartedAt = performance.now();
+    timers.current.push(window.setTimeout(() => setActiveId(id), GLITCH_SWAP_AT_MS));
     timers.current.push(
       window.setTimeout(() => {
-        setGlitchIntensity(0);
         setPendingId(null);
-      }, GLITCH_TOTAL_MS),
+        setCycleKey((k) => k + 1);
+      }, GLITCH_DURATION_MS),
     );
-    setCycleKey((k) => k + 1);
   }, []);
-
-  const handleSelect = useCallback(
-    (id: CharacterId) => {
-      triggerSwap(id);
-    },
-    [triggerSwap],
-  );
 
   const goToNext = useCallback(() => {
     const order = CHARACTERS.map((c) => c.id);
-    const next = order[(order.indexOf(activeIdRef.current) + 1) % order.length];
-    triggerSwap(next);
+    triggerSwap(order[(order.indexOf(activeIdRef.current) + 1) % order.length]);
   }, [triggerSwap]);
 
-  // Autonomous showcase loop (Node B4): advance every AUTO_SWAP_INTERVAL_MS.
-  // Any swap (auto or manual) bumps cycleKey and restarts this timer, so a
-  // manual click can never land inside an auto-swap glitch. Mid-glitch ticks
-  // are skipped by triggerSwap's pending guard.
+  // Auto-cycle: 6 s clean hold, paused while the thermal scope is open.
   useEffect(() => {
-    if (!autoPlay) return;
+    if (!autoPlay || thermalActive) return;
     const t = window.setTimeout(goToNext, AUTO_SWAP_INTERVAL_MS);
     return () => window.clearTimeout(t);
-  }, [autoPlay, cycleKey, goToNext]);
+  }, [autoPlay, thermalActive, cycleKey, goToNext]);
+
+  // ---- thermal scope --------------------------------------------------------
+  useEffect(() => {
+    stageInput.scopeActive = thermalActive;
+  }, [thermalActive]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setThermalActive(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const toggleThermalFromNav = useCallback(() => {
+    stageInput.scopeAnchored = false;
+    setThermalActive((v) => !v);
+  }, []);
+
+  const onStageClick = useCallback(
+    (e: React.MouseEvent<HTMLElement>) => {
+      if ((e.target as HTMLElement).closest('a,button,[role="menu"]')) return;
+      const el = canvasWrapRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width;
+      const y = (e.clientY - r.top) / r.height;
+      if (x < 0 || x > 1 || y < 0 || y > 1) return;
+      if (thermalActive) {
+        setThermalActive(false);
+        return;
+      }
+      stageInput.scopeX = x;
+      stageInput.scopeY = y;
+      stageInput.scopeAnchored = true;
+      setThermalActive(true);
+    },
+    [thermalActive],
+  );
+
+  // ---- stage anchor: centre the character in the gap between headline and HUD
+  const sectionRef = useRef<HTMLElement>(null);
+  useLayoutEffect(() => {
+    const section = sectionRef.current;
+    const wrap = canvasWrapRef.current;
+    if (!section || !wrap) return;
+    const measure = () => {
+      const w = wrap.clientWidth;
+      if (w < 900) {
+        stageInput.anchorX = 0.5;
+        stageInput.anchorScale = 1;
+        return;
+      }
+      const base = wrap.getBoundingClientRect().left;
+      const h1 = section.querySelector<HTMLElement>('[data-headline]');
+      const hud = section.querySelector<HTMLElement>('[data-hud]');
+      if (!h1 || !hud) {
+        stageInput.anchorX = stageXFraction(w);
+        return;
+      }
+      // The absolutely positioned headline shrink-wraps its longest line.
+      const left = h1.getBoundingClientRect().right - base;
+      const right = hud.getBoundingClientRect().left - base;
+      stageInput.anchorX = Math.min(0.68, Math.max(0.5, (left + (right - left) * 0.42) / w));
+      // At the 1536×1024 reference the gap is ~0.48× the stage height; shrink below that.
+      const gap = right - left;
+      stageInput.anchorScale = Math.min(1, Math.max(0.72, gap / (0.48 * wrap.clientHeight)));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(wrap);
+    document.fonts?.ready.then(measure);
+    return () => ro.disconnect();
+  }, []);
+
+  const scopeRest = useCallback(() => ({ x: stageInput.anchorX, y: 0.2 }), []);
+
+  const activeIndex = CHARACTERS.findIndex((c) => c.id === (pendingId ?? activeId));
 
   return (
-    <main className="relative h-screen w-full overflow-hidden bg-black">
-      <CharacterCanvas activeId={activeId} glitchIntensity={glitchIntensity} onBackendReady={setBackend} />
-      <GlitchOverlay
-        activeCharacter={CHARACTERS.find((c) => c.id === activeId)!}
-        intensity={glitchIntensity}
-        backend={backend}
-      />
-      <NavigationDeck
-        characters={CHARACTERS}
-        activeId={pendingId ?? activeId}
-        onSelect={handleSelect}
-        disabled={pendingId !== null}
-        autoPlay={autoPlay}
-        onToggleAutoPlay={() => setAutoPlay((v) => !v)}
-      />
+    <main className="relative min-h-screen w-full overflow-x-hidden bg-studio">
+      <section
+        ref={sectionRef}
+        className="relative w-full pt-[64px] min-[900px]:pt-0 stage-h-full"
+        onClick={onStageClick}
+        aria-label="Character stage"
+      >
+        <div
+          ref={canvasWrapRef}
+          className={`relative h-[60svh] min-h-[420px] w-full overflow-hidden min-[900px]:absolute min-[900px]:inset-0 min-[900px]:h-auto ${
+            thermalActive ? 'cursor-none' : 'cursor-crosshair'
+          }`}
+        >
+          <CharacterCanvas activeId={activeId} />
+          <ThermalScopeReticle containerRef={canvasWrapRef} active={thermalActive} restPosition={scopeRest} />
+        </div>
+
+        <TopNav
+          thermalActive={thermalActive}
+          onToggleThermal={toggleThermalFromNav}
+          characters={CHARACTERS}
+          activeId={pendingId ?? activeId}
+          onSelect={triggerSwap}
+          autoPlay={autoPlay}
+          onToggleAutoPlay={() => setAutoPlay((v) => !v)}
+        />
+
+        <HeroStageOverlay
+          characters={CHARACTERS}
+          shownId={activeId}
+          targetId={pendingId ?? activeId}
+          glitching={pendingId !== null}
+          thermalActive={thermalActive}
+          onSelect={triggerSwap}
+        />
+
+        <RightScaleRuler activeIndex={activeIndex} count={CHARACTERS.length} />
+      </section>
+
     </main>
   );
 }

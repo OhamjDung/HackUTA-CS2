@@ -55,7 +55,9 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Diagnosis of the failed neural identity model | Arjun (Claude) | Done. Adapters judged not usable: no change in 64% to 72% of test windows. Not offered as bots. | `clone-model/results/diagnosis-2026-11-14.md` | 2026-11-14 |
 | Second learned-identity experiment (`v2.py`): many identities, identity at every step, likelihood "who is it?" test | Arjun (Claude) | Done. **Held-back test passed once**: 8 of 10 players had the true identity in their team's top 2 (rule: 6), 6 of 10 ranked first; donk 1st, broky 3rd (fails individually). Caveat: for 6 of 10 players, no identity fits the real moves slightly better than their own. Scores recorded moves only; generates no play. Weights saved on Arjun's PC (checksum matched); not committed. | `clone-model/v2.py`, `clone-model/results/second-a100.md` | 2026-11-14 |
 | Human limits measured from elite pros (`limits.py`) | Arjun (Claude) | Done. 80 player-matches, 50 pros, 8 non-held-back Mirage matches: turn speed, acceleration, flick time, backwards walking, per-step limits at 4 Hz. 5 tests pass. Also measures any recorded bot match. | `clone-pipeline/clone_pipeline/limits.py`, `clone-model/results/human-limits.csv` | 2026-11-15 |
-| Round 3 design: human limits and perception-first evaluation | Arjun (Claude) | Design only; nothing built. Diagnoses the aimbot flicks (the copied `donk` bot entry has no turn-acceleration limit and zero reaction time) and the backwards walking (not the routes: 5.3% in route files vs donk's 9.2%; suspected restlessness rule). 12 hard limits, a donk envelope, a blind people panel as the main test, then `v3` training. Step 1 (fix the live bot's aim settings) needs Tom's PC. | `clone-model/ROUND3_DESIGN.md`, section 8.10 | 2026-11-15 |
+| Round 3 design: human limits and perception-first evaluation | Arjun (Claude) | Step 1 built, **not run in CS2**: clone bot entries get human aim settings (simulated 45° flick 0.34 s, peak under 1,200 °/s); `donkL`/`brokyL` no longer use the restlessness and crouch-at-burst rules; `limits check` tests a bot in a recording against 9 limits that all 80 real pro player-matches pass. Tests: 55 pipeline, 3 tool, 30 C#. Tom's test steps in `handoffs/tom-human-aim-test.md`. Steps 2 to 4 design only. | `clone-model/ROUND3_DESIGN.md`, `clone-director/tools/add_clone_bot_entries.py`, `clone-pipeline/references/human_limits.json` | 2026-11-15 |
+| Donk-only model (`donk.py`): CS-NET specialised to donk with LoRA and a KL anchor to the base | Arjun (Claude) | Done, **failed its pass rule** (run once on a Colab A100). Teacher-forced loss 0.44% better than the base on dev-A, but free-running paths on dev-B were worse (mean error 180.4 vs 172.7; 95% range of the difference 2.8 to 12.6) and broke human limits slightly more (0.64% vs 0.46% of steps). Backwards walking and turning moved towards donk. Overfit after 100 steps. Weights not saved. | `clone-model/donk.py`, `clone-model/results/donk-a100.md` | 2026-11-15 |
+| Donk model self-trained on imagined play (`imagine.py`): expert iteration with a best-of-8 judge against donk's real path and the human limits | Arjun (Claude) | Done, **passed its rule** on test-C (run once, Colab A100, 47.5 min). Generated paths 11.3% closer to donk's than the generic model's (147.6 vs 166.4; 95% range of the difference -27.3 to -10.2); human-limit breaks 0.05% vs 0.55%; backwards share 5.4% (donk 5.0%, generic 9.6%). View turning moved further from donk's. Not in CS2 yet. Adapter in the GitHub release `donk-imagined-v1` (https://github.com/OhamjDung/HackUTA-CS2/releases/tag/donk-imagined-v1; zip sha256 b6838e89…5f5d93585b), not in git. | `clone-model/imagine.py`, `clone-model/results/imagine-a100.md` | 2026-11-15 |
 | Claude continuation handoff | Arjun (Codex) | Done and consumed. Claude read it on 2026-11-14 and removed the folder, as its own instructions said. | removed (`handoffs/claude-continuation/`) | 2026-11-14 |
 | Handoff of the remaining work (`handoffs/remaining-work.md`) | Arjun (Claude) | Done. Lists what is left to finish the spec, the critical path to the MVP (tasks 1 to 4 need Tom's PC), and a paste-in prompt per task. The recipient deletes the file when their tasks are done. | `handoffs/remaining-work.md` | 2026-11-14 |
 | Tom's MVP viability test (`handoffs/tom-mvp-test.md`) | Tom | Not started. Four steps on Tom's PC: route playback from the correct side, sending the real recording if it fails, installing CloneDirector with `clone_add`, and recording and scoring a clone match. Tom deletes the file after recording results here. | `handoffs/tom-mvp-test.md` | 2026-11-14 |
@@ -995,6 +997,33 @@ Full design: `clone-model/ROUND3_DESIGN.md`. Summary:
   generate routes; step 3 trains `v3`; step 4 tests. No unused donk Mirage match is left for a final
   test; the design recommends the people panel as the final test.
 
+### 8.11 Donk-only model (added 2026-11-15)
+
+Design: `clone-model/ROUND3_DESIGN.md` section 8. Code: `clone-model/donk.py`. CS-NET is specialised to
+donk with small adapters (LoRA) in its decoder and a penalty that keeps its move probabilities close to
+CS-NET's (the AlphaStar KL anchor). The adapters fold back into a normal CS-NET file, so CS-NET's own
+engine generates donk play, which round 2 could not do. Judged on free-running sampled futures on donk's
+odd development rounds against the base model, by a rule fixed before the run.
+
+**Result (2026-11-15): fail.** Paths generated by the donk model were further from donk's real paths than the
+base model's (mean error 180.4 vs 172.7) and broke human limits slightly more often. Its backwards walking
+(10.5% of moving steps, base 12.4%, real donk 7.2%) and its turning moved towards donk. Better teacher-forced
+loss did not carry over to generated play. Details: `clone-model/results/donk-a100.md`. dev-B is now used.
+
+### 8.12 Donk model self-trained on imagined play (added 2026-11-15)
+
+Design: `clone-model/ROUND3_DESIGN.md` 8.5. Code: `clone-model/imagine.py`. Fixes the failure in 8.11:
+the model learns inside the situations its own generated play creates. Four rounds of: imagine 8
+futures per moment with CS-NET's engine, keep the one closest to donk's real path among those within
+human limits, train on it with donk's real windows and the KL anchor.
+
+**Result (2026-11-15): pass**, on test-C (7 of donk's training rounds cut out before the run, used
+once). Generated paths 11.3% closer to donk's than the generic model's; human-limit breaks 0.05%
+against 0.55%; backwards share 5.4% against donk's 5.0% and the generic model's 9.6%. **Caveat:** its
+view-turn distribution moved further from donk's, because the judge scored position only. Not yet in
+CS2, no combat, no people panel. Details: `clone-model/results/imagine-a100.md`. Weights: GitHub
+release `donk-imagined-v1` (https://github.com/OhamjDung/HackUTA-CS2/releases/tag/donk-imagined-v1), with loading steps in its notes.
+
 ## 9. Architecture
 
 ```
@@ -1578,6 +1607,18 @@ demo. A released product would need each player's or team's permission.
 - 2026-11-14, Arjun (Codex): corrected canonical donk identity and excluded one ambiguous-account match before optimization; added empty-match cache rejection. Ten parsed public matches transferred to A100, nine selected for learning. CS2 base download completed successfully on Arjun's PC.
 
 Newest first. One line per change: date, who, what changed.
+
+- 2026-11-15, Arjun (with Claude): published the passing donk adapter as the GitHub pre-release `donk-imagined-v1` (zip sha256 b6838e89…5f5d93585b); weights stay out of git.
+
+- 2026-11-15, Arjun (with Claude): ran self-training on imagined play once (Colab A100, 47.5 min). Passed on test-C: generated paths 11.3% closer to donk's than the generic model's, limit breaks 0.05% vs 0.55%, backwards share near donk's; view turning further from donk's. Results in `clone-model/results/imagine-a100.md`. test-C is now used.
+
+- 2026-11-15, Arjun (with Claude): added self-training on imagined play (`clone-model/imagine.py`, `ROUND3_DESIGN.md` 8.5): the donk model learns from its own best human-limited futures, in the situations its own play creates, with the KL anchor. New final test test-C fixed before the run. Not yet run.
+
+- 2026-11-15, Arjun (with Claude): ran the donk-only model once on a Colab A100. Failed its pass rule: generated paths worse than the base model's on dev-B and limit breaks slightly higher; backwards walking and turning closer to donk. Results in `clone-model/results/donk-a100.md`. dev-B is now used.
+
+- 2026-11-15, Arjun (with Claude): added the donk-only model (`clone-model/donk.py`, design section 8 of `ROUND3_DESIGN.md`, SPEC 8.11): LoRA plus KL anchor to CS-NET, merged into a normal checkpoint so the engine generates donk play; pass rule fixed before the run. 5 CPU tests pass. Not yet trained.
+
+- 2026-11-15, Arjun (with Claude): round 3 step 1. `add_clone_bot_entries.py` now writes human aim settings into the four clone bot entries and can update entries that exist. `donkL`/`brokyL` stop applying the restlessness and crouch-at-burst rules. Added `limits calibrate` and `limits check` with thresholds in `clone-pipeline/references/human_limits.json`. Corrected design limit H3 (25,000 failed real pros). Fixed a C# test that still expected the bot name `donk` after Tom's rename. Added `handoffs/tom-human-aim-test.md`. Ran: 55 pipeline, 3 tool and 30 C# tests; the check passes real donk on his held-back match. Not run: anything in CS2; the vpk repacking path was not run here.
 
 - 2026-11-15, Arjun (with Claude): added `clone_pipeline/limits.py` and measured human limits on 80 player-matches; diagnosed `donkL`'s aimbot flicks (copied `donk` bot entry: no acceleration limit, zero reaction time) and backwards walking (not the routes); wrote `clone-model/ROUND3_DESIGN.md` (hard limits, perception-first evaluation, round 3 plan) and section 8.10. Removed Tom's consumed report `handoffs/arjun-donkL-report.md`; its findings are in the design's section 1. Ran: limits measurement, 52 pipeline tests. Not run: anything in CS2.
 

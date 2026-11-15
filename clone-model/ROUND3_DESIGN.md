@@ -1,7 +1,7 @@
 # Round 3: a donk clone that stays inside human limits and feels like donk
 
-Written 2026-11-15 by Arjun (with Claude). Status: **design. Nothing in sections 4 to 7 has been built
-or run yet.** The measurements in section 3 were run.
+Written 2026-11-15 by Arjun (with Claude). Status: **step 1 (section 6) is built and tested off the game;
+it waits for Tom's PC. Steps 2 to 4 are design only.** The measurements in section 3 were run.
 
 Inputs: Arjun watched `donk_v1` against `donkL` in CS2 (Tom's PC). Tom's report on the same run
 (`handoffs/arjun-donkL-report.md`, now consumed; its findings are summarised in section 1).
@@ -130,7 +130,7 @@ Two kinds:
 |---|---|---|---|
 | H1 | View turn speed, sustained over 4 ticks | ≤ 1,600 °/s | highest player p99.9: 1,565 |
 | H2 | View turn speed, any single tick | ≤ 2,200 °/s | flick peak max: 2,154 |
-| H3 | View turn acceleration | ≤ 25,000 °/s² | p99.9: 22,556 |
+| H3 | View turn acceleration | ≤ 36,100 °/s² at a player-match's p99.9 | highest player-match p99.9: 34,411 (corrected; 25,000 failed real pros) |
 | H4 | Flick time, flicks of 15° or more | ≥ 0.08 s | p1 |
 | H5 | First shot at a newly seen enemy | ≥ 0.15 s after it becomes visible | below the 0.20 s median response; to be checked in game |
 | H6 | Unbroken backwards walking | ≤ 6.3 s | p99.9 |
@@ -155,6 +155,30 @@ Each is compared with donk's own value; the tolerance is how much donk varies be
 | Jumps per minute | 4.1 | donk's quirk |
 | Standing-still share | 11% | donk's quirk |
 | Distance from teammates | 694 units | donk plays apart from the team |
+
+### 4.2a How the limits are checked in practice (built, 2026-11-15)
+
+`uv run python -m clone_pipeline.limits check --name <bot> [--like donk] <match.dem>` measures one player
+in a recording and checks 9 limits per player-match. The thresholds are in
+`clone-pipeline/references/human_limits.json`, made by `limits calibrate` from the 80 real pro
+player-matches: each sits 5% beyond the most extreme real player-match, so **every measured pro passes**,
+and a bot fails only by doing what no measured elite pro did.
+
+| Check | Limit | Most extreme real player-match |
+|---|---|---|
+| Sustained turn speed, p99.9 | ≤ 1,524 °/s | 1,452 |
+| Turn speed, p99.9 | ≤ 1,643 °/s | 1,565 |
+| Turn acceleration, p99.9 | ≤ 36,131 °/s² | 34,411 |
+| Backwards share of moving time | ≤ 11.4% | 10.8% |
+| Unbroken backwards walking, p99 | ≤ 5.1 s | 4.8 s |
+| Flick time (flicks of 15° or more), p5 | ≥ 0.090 s, needs 5 flicks | 0.095 s |
+| Pitch change per 0.25 s step, p99.9 | ≤ 67.4° | 64.2° |
+| Distance per 0.25 s step, p99.9 | ≤ 77.3 units | 73.6 |
+| Change of step movement, p99.9 | ≤ 81.1 units | 77.3 |
+
+Known weakness: the flick check. Real donk on his held-back match 2393242 made a 15° flick in 0.059 s,
+below the limit; the check skipped it because he made fewer than 5 such flicks. The threshold was not
+changed after seeing this, because that match is held back. Decide on more data.
 
 ### 4.3 Where each limit is enforced
 
@@ -223,7 +247,14 @@ The similarity score from earlier rounds is tier 3, item 3. It no longer decides
 
 ## 6. Next round, step by step
 
-### Step 1. Fix the live bot now (no training; needs Tom's PC)
+### Step 1. Fix the live bot now (no training; needs Tom's PC). Built 2026-11-15; waiting for Tom.
+
+Done off the game: `clone-director/tools/add_clone_bot_entries.py` writes `HUMAN_AIM` into the four clone
+entries (simulated: a 45° flick settles in 0.34 s, peak under 1,200 °/s, acceleration at most 20,000 °/s²;
+the current settings give 0.09 s, 2,109 °/s and 135,000 °/s²). `donkL` and `brokyL` no longer apply the
+restlessness or crouch-at-burst rules (`quirk_controls_disabled` in each profile says why). The test steps
+for Tom are in `handoffs/tom-human-aim-test.md`. The simulation assumes the bot aim model of the earlier
+Counter-Strike bot code; whether CS2 behaves the same is what Tom's recording shows.
 
 1. **Aim:** give the clone entries finite aim settings. Starting values, to be tuned by measurement:
    `LookAngleMaxAccelAttacking` 20,000, `LookAngleStiffnessAttacking` 1,150 (the bot base's `ProSteady`
@@ -273,6 +304,84 @@ generated play rather than held-back data; (b) download newer donk matches if Op
 out a donk match on another map and train on more than Mirage. Recommended: (a), with (b) if available.
 
 ---
+
+## 8. Donk only: a model that generates donk's play (added 2026-11-15)
+
+Arjun's decision: train a donk model only, for now.
+
+### 8.1 Why the earlier models could not show "plays like donk"
+
+- Round 1 (`model.py`): identity changed nothing in 64% to 72% of test cases.
+- Round 2 (`v2.py`): picks out the right player among teammates for 8 of 10 players, but it only scores
+  recorded moves. CS-NET's prediction engine builds its own per-step inputs, so v2 identities cannot
+  generate play. No round 2 model has produced a single donk path.
+
+### 8.2 The design (`clone-model/donk.py`)
+
+| Choice | Source of the idea | Why here |
+|---|---|---|
+| Start from CS-NET, trained on many pros, then specialise to donk | AlphaStar: supervised learning on human replays first | donk has about 47 training rounds; the base supplies everything else |
+| Penalise drift from CS-NET's move probabilities (KL to the base, weight 0.1) | AlphaStar: KL penalty to the supervised human policy | Keeps the model human and stops it memorising 47 rounds |
+| Train only small adapters (LoRA, rank 16, about 1.2 million numbers) in the decoder | LoRA (Hu et al., 2021) | Little data; and the adapters fold back into a normal CS-NET file |
+| Fold the adapters into an ordinary CS-NET checkpoint | | CS-NET's own engine then generates donk play: no new generation code, which removes round 2's blocker |
+| Drop training windows whose real future breaks H8 to H10 | Section 4 of this design | Do not learn spectator or death artefacts as moves |
+| Sample 8 futures per moment and reject those breaking human limits | Imagination: planning by sampling a learned model's futures | Layer L5; also the basis of self-training (8.4) |
+
+### 8.3 How it is judged, fixed before the run
+
+Rounds: donk's development rounds, split by round number. Even rounds (dev-A) choose the checkpoint by
+teacher-forced loss. Odd rounds (dev-B) are used once, for the result. Matches 2393242 and 2393024 are
+not used: they were spent as final tests in round 2.
+
+For each dev-B moment, CS-NET's engine samples 8 free-running 4-second futures from the donk model and
+8 from the unchanged base model. Pass rule (constants at the top of `donk.py`):
+
+- **P1, path:** the donk model's mean path error is lower than the base's, and the 95% paired bootstrap
+  interval of the difference lies entirely below zero.
+- **P2, behaviour:** the donk model is closer than the base to real donk on at least 2 of 3: the
+  distribution of distance per step, the distribution of view turn per step, and backwards share.
+- **P3, human limits:** the donk model breaks H8 to H10 on no larger a share of steps than the base.
+
+A pass means donk's generated movement is measurably closer to donk than the generic model's. It is not
+the people panel (section 5, tier 2), it is not combat, and it is not in CS2.
+
+### 8.4 Next, if it passes: self-training by imagination (design only)
+
+Expert iteration, the loop behind AlphaZero, adapted to imitation:
+1. From training-round moments, sample 8 futures with the donk model.
+2. Keep only futures that pass the human limits and that a judge rates most donk-like. The judge: the
+   round 2 identity model's preference for donk over his teammates (`v2.py`), plus the donk envelope.
+3. Fine-tune on the kept futures together with the real data, with the same KL anchor.
+4. Repeat while dev-A improves.
+
+This lets the model learn from situations donk was never recorded in, which recorded data alone cannot
+give. It is also how a discriminator-style reward (as in GAIL) enters without full reinforcement
+learning, which would be too slow for the time left.
+
+### 8.5 Self-training on imagined play: what was built (added 2026-11-15)
+
+Arjun asked for it after the first donk model failed, within a realistic running time. Code:
+`clone-model/imagine.py`. It differs from the 8.4 sketch in two ways, both for time:
+
+- **Judge.** The kept future is the one closest to what donk really did from that moment, among the
+  8 that break no human per-step limit. The round 2 identity model is not used as a judge: wiring its
+  weights into the loop would not fit the time. So this is best-of-N self-distillation towards donk's
+  real play (expert iteration; reward-ranked fine-tuning), not a learned "donk-likeness" reward.
+- **Start.** A fresh adapter on CS-NET, not the failed first model, so the new final test is clean.
+
+What it fixes: the model learns inside the situations its own generated play creates. CS-NET's engine
+computes the decoder's inputs (view depth, position, angle) along each imagined path; `imagine.py`
+records them by wrapping the engine's functions, and trains on them with the same KL anchor.
+
+Rounds. A new final test, **test-C**, is cut before the run: donk's training rounds with
+`round_id % 6 == 3`. They are left out of learning, imagination and selection. Iterations are chosen
+by free-running path error on 80 dev-A moments, and only if their human-limit breaks are no higher
+than the base's. Pass rule on test-C: P1 to P3 of 8.3, unchanged. If no iteration beats the base on
+dev-A, test-C is not used.
+**Result (2026-11-15): pass** on test-C (`results/imagine-a100.md`). Paths 11.3% closer to donk's
+than the generic model's, limit breaks 0.05% against 0.55%. View turning moved away from donk's, so a
+next judge must score view turning as well as position. test-C is now used.
+
 
 ## 7. What is not known yet
 

@@ -284,6 +284,22 @@ def reference_block(rows: pd.DataFrame, min_matches: int = 2) -> tuple[dict, dic
     return reference, population
 
 
+# Rules switched off until a recorded match shows they stay inside human limits
+# (clone-model/ROUND3_DESIGN.md, section 6, step 1). CloneDirector only applies quirks listed in
+# "quirk_controls", so leaving a quirk out of it switches the rule off.
+DISABLED_CONTROLS = {
+    "still_share": "suspected cause of donkL walking backwards (Arjun watched it, 2026-11-15): the "
+                   "sidestep makes the bot base walk back to its spot while aiming at its angle",
+    "crouched_shot_share": "holding crouch for 0.6 s at the start of a burst may look mechanical",
+}
+
+
+def disabled_controls(rules: dict) -> dict:
+    """The switched-off rules, with the value they would use and why they are off."""
+    return {name: {"value": rules[name]["player"], "why_off": why}
+            for name, why in DISABLED_CONTROLS.items() if name in rules}
+
+
 def controls_from_quirks(rules: dict) -> dict:
     """Turn fitted quirks into bot controls. Each entry says what drives it and whether anything
     applies it yet. The mappings are design choices and are NOT validated in the game."""
@@ -312,7 +328,7 @@ def controls_from_quirks(rules: dict) -> dict:
         "still_share": "CloneDirector: sidesteps when the bot has stood still more than this share",
     }
     for name, how in plugin.items():
-        if name in rules:
+        if name in rules and name not in DISABLED_CONTROLS:
             controls[name] = {"value": rules[name]["player"], "applied_by": how,
                               "status": "implemented in the plugin; not run in CS2"}
     # Distinctive quirks that no bot control can drive today. Stored so the score can still check them.
@@ -352,8 +368,9 @@ def build(args) -> None:
     profile.update({
         "clone_id": args.clone_id,
         "display_name": args.clone_id,
-        # CloneDirector adds the bot by this installed personality name (CS2-Bot-Improver ships it).
-        "stand_in_bot": profile.get("stand_in_bot") or profile["display_name"],
+        # CloneDirector adds the bot by this name. Each clone has its own entry in the bot base's
+        # profile file (clone-director/tools/add_clone_bot_entries.py), named after the clone id.
+        "stand_in_bot": args.clone_id,
         "learned": {
             "kind": "per-quirk rules fitted from recordings (clone_pipeline/quirks.py)",
             "based_on": base_id,
@@ -365,6 +382,7 @@ def build(args) -> None:
         },
         "quirks": rules,
         "quirk_controls": controls,
+        "quirk_controls_disabled": disabled_controls(rules),
         "quirk_reference": {"players": reference, "population": population},
     })
     if "teamwork" in controls:

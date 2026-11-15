@@ -2,61 +2,73 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg-studio: #faf9f6;
+  --ink-primary: #111111;
+  --ink-muted: #555552;
+  --ink-subtle: #8e8e8a;
+  --border-hairline: #e5e4df;
+  --pill-inactive: #dcdcd6;
+  --accent-brand: #ff3b1d;
+
+  /* Layout rhythm (matches the 1536×1024 reference) */
+  --gutter: clamp(20px, 5.2vw, 80px);
+}
+
 html,
 body {
-  background: #000000;
-  color: #ffffff;
+  background: var(--bg-studio);
+  color: var(--ink-primary);
   margin: 0;
   padding: 0;
   overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* RGB-split text glitch used by the HUD overlay during hot-swaps. */
-@keyframes hud-glitch-shift {
-  0% {
-    text-shadow:
-      -2px 0 0 rgba(255, 0, 80, 0.9),
-      2px 0 0 rgba(0, 255, 255, 0.9);
+/* Hero stage fills the screen. */
+.stage-h-full {
+  height: max(560px, 100svh);
+}
+@media (max-width: 899px) {
+  .stage-h-full {
+    height: auto;
+  }
+}
+
+.headline {
+  font-size: clamp(3.5rem, 6.2vw, 5.75rem);
+  line-height: 0.93;
+  letter-spacing: -0.055em;
+  font-weight: 700;
+}
+
+/* HUD label flicker during the 0.6 s glitch swap. */
+@keyframes hud-flicker {
+  0%,
+  100% {
+    opacity: 1;
     transform: translateX(0);
   }
-  25% {
-    text-shadow:
-      3px 0 0 rgba(255, 0, 80, 0.9),
-      -3px 0 0 rgba(0, 255, 255, 0.9);
+  20% {
+    opacity: 0.35;
+    transform: translateX(-2px);
+  }
+  40% {
+    opacity: 1;
+    transform: translateX(2px);
+  }
+  60% {
+    opacity: 0.5;
     transform: translateX(-1px);
   }
-  50% {
-    text-shadow:
-      -3px 0 0 rgba(255, 0, 80, 0.9),
-      3px 0 0 rgba(0, 255, 255, 0.9);
-    transform: translateX(1px);
-  }
-  100% {
-    text-shadow: none;
-    transform: translateX(0);
-  }
+}
+.hud-flicker {
+  animation: hud-flicker 600ms steps(5, end) 1;
 }
 
-@keyframes hud-scan-drift {
-  0% {
-    background-position: 0 0;
+@media (prefers-reduced-motion: reduce) {
+  .hud-flicker {
+    animation: none;
   }
-  100% {
-    background-position: 0 120px;
-  }
-}
-
-.hud-glitching {
-  animation: hud-glitch-shift 180ms steps(2, end) infinite;
-}
-
-.hud-scanlines {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.06) 0px,
-    rgba(255, 255, 255, 0.06) 1px,
-    transparent 1px,
-    transparent 4px
-  );
-  animation: hud-scan-drift 6s linear infinite;
 }

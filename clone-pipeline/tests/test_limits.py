@@ -2,6 +2,7 @@
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from clone_pipeline.limits import _wrap, longest_runs, player_series
 
@@ -48,3 +49,31 @@ def test_runs_are_counted_and_broken_by_gaps():
     assert longest_runs(mask, joined).tolist() == [3, 2, 1]
     joined[1] = False                    # a gap in ticks between tick 0 and tick 1
     assert longest_runs(mask, joined).tolist() == [1, 2, 2, 1]
+
+
+def test_calibrated_limits_pass_every_real_row_and_fail_an_inhuman_one():
+    from clone_pipeline.limits import calibrate, check_row
+    rows = pd.DataFrame([
+        {"player": "a", "turn4_p999": 1000.0, "turn_p999": 1100.0, "turn_accel_p999": 20000.0,
+         "backwards_share_of_moving": 0.07, "backwards_run_p99_s": 2.0, "flick_time_p05_s": 0.12,
+         "flicks_15deg": 8, "step_pitch_p999": 40.0, "step_move_p999": 67.0, "step_dmove_p999": 66.0},
+        {"player": "b", "turn4_p999": 1400.0, "turn_p999": 1500.0, "turn_accel_p999": 30000.0,
+         "backwards_share_of_moving": 0.10, "backwards_run_p99_s": 4.0, "flick_time_p05_s": 0.09,
+         "flicks_15deg": 6, "step_pitch_p999": 60.0, "step_move_p999": 72.0, "step_dmove_p999": 75.0},
+    ])
+    limits = calibrate(rows)
+    assert all(check_row(r, limits)["pass"] for r in rows.to_dict("records"))
+    assert limits["checks"]["turn_p999"]["limit"] == pytest.approx(1500.0 * 1.05)
+    assert limits["checks"]["flick_time_p05_s"]["limit"] == pytest.approx(0.09 * 0.95)
+    aimbot = dict(rows.iloc[0], turn_p999=4219.0, flick_time_p05_s=0.06, backwards_share_of_moving=0.25)
+    result = check_row(aimbot, limits)
+    assert not result["pass"]
+    assert set(result["failed"]) == {"turn_p999", "flick_time_p05_s", "backwards_share_of_moving"}
+
+
+def test_a_check_without_enough_samples_is_reported_not_passed_or_failed():
+    from clone_pipeline.limits import check_row
+    limits = {"checks": {"flick_time_p05_s": {"kind": "min", "limit": 0.09, "needs": ["flicks_15deg", 5]}}}
+    result = check_row({"flick_time_p05_s": 0.01, "flicks_15deg": 2}, limits)
+    assert result["pass"] and result["results"]["flick_time_p05_s"]["status"] == "not enough samples"
+    assert check_row({"flick_time_p05_s": None, "flicks_15deg": 9}, limits)["results"]["flick_time_p05_s"]["status"] == "no data"

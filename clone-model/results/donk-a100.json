@@ -1,0 +1,119 @@
+{
+  "experiment": "donk-only model (clone-model/donk.py)",
+  "run_date": "2026-11-15",
+  "hardware": "NVIDIA A100-SXM4-40GB, Google Colab",
+  "source_revision": "96ff4f0",
+  "settings": {
+    "kl_weight": 0.1,
+    "rank": 16,
+    "lr": 0.0003,
+    "batch_size": 8,
+    "max_steps": 1500,
+    "check_every": 50,
+    "patience": 6
+  },
+  "trainable_parameters": 1179648,
+  "donk_train_windows": 754,
+  "dev_A_windows": 148,
+  "development_checks_dev_A": [
+    {
+      "step": 0,
+      "donk_model": 0.6264271446176477,
+      "base": 0.6264271446176477
+    },
+    {
+      "step": 50,
+      "donk_model": 0.6236850297128832,
+      "base": 0.6264271446176477
+    },
+    {
+      "step": 100,
+      "donk_model": 0.62363624089473,
+      "base": 0.6264271446176477
+    },
+    {
+      "step": 150,
+      "donk_model": 0.6252104414475931,
+      "base": 0.6264271446176477
+    },
+    {
+      "step": 200,
+      "donk_model": 0.625120596305744,
+      "base": 0.6264271446176477
+    },
+    {
+      "step": 250,
+      "donk_model": 0.6294523590319866,
+      "base": 0.6264271446176477
+    },
+    {
+      "step": 300,
+      "donk_model": 0.6325510466420973,
+      "base": 0.6264271446176477
+    },
+    {
+      "step": 350,
+      "donk_model": 0.6343988518457155,
+      "base": 0.6264271446176477
+    },
+    {
+      "step": 400,
+      "donk_model": 0.6349095251109149,
+      "base": 0.6264271446176477
+    }
+  ],
+  "selected_step": 100,
+  "early_stop_step": 400,
+  "evaluation": {
+    "P1_mean_ade": {
+      "donk_minus_base": 7.697280214537786,
+      "ci95": [
+        2.840729861609311,
+        12.647642671698824
+      ],
+      "pass": false
+    },
+    "P2_behaviour": {
+      "closer_on": 2,
+      "of": 3,
+      "pass": true,
+      "detail": {
+        "donk": {
+          "move_w1": 4.651432409294557,
+          "turn_w1": 1.358771396241081,
+          "backwards_gap": 0.03286196722401545,
+          "violation_share": 0.006397591494966601,
+          "backwards_share": 0.10466647850221093
+        },
+        "base": {
+          "move_w1": 3.3362185184920086,
+          "turn_w1": 1.4514568095468046,
+          "backwards_gap": 0.0523103031869164,
+          "violation_share": 0.004626569729015202,
+          "backwards_share": 0.12411481446511188
+        }
+      },
+      "real_donk_backwards_share": 0.07180451127819548
+    },
+    "P3_limits": {
+      "pass": false
+    },
+    "pass": false,
+    "windows": 168,
+    "rounds": 7,
+    "samples_per_window": 8,
+    "temperature": 1.0,
+    "top_p": 0.9,
+    "split": "dev-B (odd development rounds of donk)",
+    "min_ade": {
+      "base": 92.62190009538762,
+      "donk": 96.95185132283711
+    },
+    "mean_ade": {
+      "base": 172.6951640304576,
+      "donk": 180.39244424499543
+    },
+    "interpretation": "Free-running 4-second futures sampled by CS-NET's own engine. Movement and view only; not combat, not in CS2, not a people panel."
+  },
+  "artifacts": "The merged donk_model.pt (about 529 MB) exists only on the Colab machine at /content/run3/out. Not saved: the model failed its rule."
+}

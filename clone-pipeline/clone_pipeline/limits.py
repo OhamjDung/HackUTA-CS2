@@ -6,6 +6,13 @@ recorded bot match to check a clone against them:
 
     uv run python -m clone_pipeline.limits measure --out limits.csv <recording.dem> [more .dem]
     uv run python -m clone_pipeline.limits summary limits_ticks.npz
+    uv run python -m clone_pipeline.limits calibrate --out references/human_limits.json limits.csv
+    uv run python -m clone_pipeline.limits check --name donkL [--like donk] <bot match.dem>
+
+"calibrate" turns the per-player rows of real pros into pass/fail thresholds: each threshold sits 5%
+beyond the most extreme real player-match, so every measured pro passes. "check" measures a recording
+and fails a player who goes beyond what any measured elite pro did. With --like, it also shows the
+real player's own range (the envelope), which is information, not a pass rule.
 
 "measure" writes one row per player per match (rates and percentiles) and, next to it, a .npz file
 with the pooled per-tick and per-event samples, so population percentiles are exact.
@@ -79,8 +86,25 @@ def player_series(t: pd.DataFrame):
     dpitch = np.where(joined, np.diff(pitch, prepend=pitch[0]), np.nan)
     turn = np.hypot(dyaw, dpitch) * TICK                      # degrees per second
     accel = np.where(joined, np.abs(np.diff(np.nan_to_num(turn), prepend=0)) * TICK, np.nan)
-    return dict(tick=tick, speed=speed, rel=rel, turn=turn, turn_accel=accel, yaw=yaw, pitch=pitch,
-                joined=joined)
+    # Turn speed sustained over 4 ticks (mean of the last 4), only where all 4 are consecutive.
+    turn4 = np.where(ok4, pd.Series(turn).rolling(4).mean().to_numpy(), np.nan)
+    # The model's resolution: one sample every 16 ticks (4 per second).
+    on_grid = (tick % 16 == 0)
+    gi = np.flatnonzero(on_grid)
+    step_ok = np.zeros(len(gi), dtype=bool)
+    if len(gi) > 1:
+        step_ok[1:] = (np.diff(tick[gi]) == 16) & np.array(
+            [joined[a + 1:b + 1].all() for a, b in zip(gi[:-1], gi[1:])])
+    gx, gy = x[gi], y[gi]
+    mx, my = np.diff(gx, prepend=np.nan), np.diff(gy, prepend=np.nan)
+    step_yaw = np.where(step_ok, np.abs(_wrap(np.diff(yaw[gi], prepend=np.nan))), np.nan)
+    step_pitch = np.where(step_ok, np.abs(np.diff(pitch[gi], prepend=np.nan)), np.nan)
+    step_move = np.where(step_ok, np.hypot(mx, my), np.nan)
+    ok2 = step_ok & np.roll(step_ok, 1)
+    step_dmove = np.where(ok2, np.hypot(mx - np.roll(mx, 1), my - np.roll(my, 1)), np.nan)
+    return dict(tick=tick, speed=speed, rel=rel, turn=turn, turn4=turn4, turn_accel=accel, yaw=yaw,
+                pitch=pitch, joined=joined, step_yaw=step_yaw, step_pitch=step_pitch,
+                step_move=step_move, step_dmove=step_dmove)
 
 
 def longest_runs(mask: np.ndarray, joined: np.ndarray) -> np.ndarray:
@@ -172,6 +196,10 @@ def measure(path: Path) -> tuple[pd.DataFrame, dict]:
             "speed_p99": q(s["speed"], 99), "speed_max": q(s["speed"], 100),
             "turn_p50": q(turn, 50), "turn_p99": q(turn, 99), "turn_p999": q(turn, 99.9), "turn_max": q(turn, 100),
             "turn_accel_p999": q(s["turn_accel"], 99.9),
+            "turn4_p999": q(s["turn4"], 99.9),
+            "backwards_run_p99_s": q(back_runs, 99),
+            "step_yaw_p999": q(s["step_yaw"], 99.9), "step_pitch_p999": q(s["step_pitch"], 99.9),
+            "step_move_p999": q(s["step_move"], 99.9), "step_dmove_p999": q(s["step_dmove"], 99.9),
             "bursts": len(starts), "flicks_15deg": len(flick_time),
             "flick_deg_p50": q(flick_deg, 50), "flick_deg_p95": q(flick_deg, 95),
             "flick_peak_p99": q(flick_peak, 99),
@@ -187,6 +215,57 @@ def measure(path: Path) -> tuple[pd.DataFrame, dict]:
                             ("response_s", response), ("rifle_shot_speed", rifle_speed)):
             pools[key].append(np.asarray(values, dtype=float))
     return pd.DataFrame(rows), {k: np.concatenate(v) if v else np.array([]) for k, v in pools.items()}
+
+
+# Checked per player per match. "max": the value must not exceed the threshold; "min": must not be below.
+# "needs": a column and the minimum count of samples the check requires.
+CHECKS = {
+    "turn4_p999": ("max", "sustained turn speed over 4 ticks, 99.9th percentile (deg/s)", None),
+    "turn_p999": ("max", "turn speed, 99.9th percentile (deg/s)", None),
+    "turn_accel_p999": ("max", "turn acceleration, 99.9th percentile (deg/s^2)", None),
+    "backwards_share_of_moving": ("max", "share of moving time walking backwards", None),
+    "backwards_run_p99_s": ("max", "unbroken backwards walking, 99th percentile (s)", None),
+    "flick_time_p05_s": ("min", "flick time for flicks of 15 deg or more, 5th percentile (s)", ("flicks_15deg", 5)),
+    "step_pitch_p999": ("max", "pitch change per 0.25 s step, 99.9th percentile (deg)", None),
+    "step_move_p999": ("max", "distance per 0.25 s step, 99.9th percentile (units)", None),
+    "step_dmove_p999": ("max", "change of step movement, 99.9th percentile (units)", None),
+}
+MARGIN = 0.05
+
+
+def calibrate(rows: pd.DataFrame) -> dict:
+    """Thresholds 5% beyond the most extreme real player-match, so that every row passes."""
+    out = {}
+    for column, (kind, meaning, needs) in CHECKS.items():
+        values = rows if not needs else rows[rows[needs[0]] >= needs[1]]
+        values = values[column].dropna()
+        if values.empty:
+            continue
+        extreme = values.max() if kind == "max" else values.min()
+        limit = extreme * (1 + MARGIN) if kind == "max" else extreme * (1 - MARGIN)
+        out[column] = {"kind": kind, "limit": round(float(limit), 4), "meaning": meaning,
+                       "needs": list(needs) if needs else None, "pros_extreme": round(float(extreme), 4)}
+    return {"source": "elite pro player-matches", "player_matches": int(len(rows)),
+            "players": int(rows["player"].nunique()), "margin": MARGIN, "checks": out}
+
+
+def check_row(row: dict, limits: dict) -> dict:
+    """Pass or fail each check for one measured player-match. Missing data is reported, not passed."""
+    results = {}
+    for column, rule in limits["checks"].items():
+        value = row.get(column)
+        needs = rule.get("needs")
+        if needs and (row.get(needs[0]) is None or row.get(needs[0]) < needs[1]):
+            results[column] = {"status": "not enough samples", "value": value, "limit": rule["limit"]}
+            continue
+        if value is None or not np.isfinite(value):
+            results[column] = {"status": "no data", "value": None, "limit": rule["limit"]}
+            continue
+        ok = value <= rule["limit"] if rule["kind"] == "max" else value >= rule["limit"]
+        results[column] = {"status": "pass" if ok else "FAIL", "value": round(float(value), 4),
+                           "limit": rule["limit"], "kind": rule["kind"]}
+    failed = [c for c, r in results.items() if r["status"] == "FAIL"]
+    return {"pass": not failed, "failed": failed, "results": results}
 
 
 def summarise(pools: dict) -> pd.DataFrame:
@@ -209,6 +288,17 @@ def main() -> None:
     m.add_argument("demos", nargs="+", type=Path)
     s = sub.add_parser("summary")
     s.add_argument("pools", type=Path)
+    c = sub.add_parser("calibrate")
+    c.add_argument("--out", type=Path, required=True)
+    c.add_argument("rows", type=Path, help="per-player CSV written by measure, from real pros")
+    k = sub.add_parser("check")
+    k.add_argument("--limits", type=Path,
+                   default=Path(__file__).resolve().parents[1] / "references" / "human_limits.json")
+    k.add_argument("--name", required=True, help="the bot's or player's name in the recording")
+    k.add_argument("--like", help="also show this real player's own range, from --reference")
+    k.add_argument("--reference", type=Path,
+                   default=Path(__file__).resolve().parents[2] / "clone-model" / "results" / "human-limits.csv")
+    k.add_argument("demo", type=Path)
     args = ap.parse_args()
     pd.set_option("display.width", 220)
     if args.command == "measure":
@@ -223,6 +313,37 @@ def main() -> None:
         merged = {k: np.concatenate(v) for k, v in pools.items()}
         np.savez_compressed(args.out.with_name(args.out.stem + "_ticks.npz"), **merged)
         print(summarise(merged).to_string(index=False, float_format=lambda v: f"{v:.3f}"))
+    elif args.command == "calibrate":
+        import json
+        rows = pd.read_csv(args.rows)
+        limits = calibrate(rows)
+        if not all(check_row(r, limits)["pass"] for r in rows.to_dict("records")):
+            raise SystemExit("A real pro fails a limit; the calibration is wrong.")
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(json.dumps(limits, indent=2) + "\n", encoding="utf-8")
+        print(f"wrote {args.out}: {len(limits['checks'])} checks from {limits['player_matches']} player-matches; all pass")
+    elif args.command == "check":
+        import json
+        limits = json.loads(args.limits.read_text(encoding="utf-8"))
+        rows, _ = measure(args.demo)
+        found = rows[rows["player"] == args.name.lower()]
+        if found.empty:
+            raise SystemExit(f"{args.name!r} is not in the recording. Names: {sorted(rows['player'])}")
+        row = found.iloc[0].to_dict()
+        result = check_row(row, limits)
+        like = None
+        if args.like:
+            ref = pd.read_csv(args.reference)
+            like = ref[ref["player"] == args.like.lower()]
+        verdict = "PASS" if result["pass"] else "FAIL"
+        print(f"{args.name} in {args.demo.name}: {row['alive_minutes']} alive minutes, {verdict} "
+              f"({len(result['failed'])} of {len(result['results'])} checks failed)")
+        for column, r in result["results"].items():
+            extra = ""
+            if like is not None and len(like) and column in like:
+                extra = f"   {args.like}: {like[column].min():.3f} to {like[column].max():.3f}"
+            print(f"  {r['status']:>18}  {column:28s} value {r['value']}  limit {r.get('kind', '')} {r['limit']}{extra}")
+        sys.exit(0 if result["pass"] else 1)
     else:
         with np.load(args.pools) as saved:
             print(summarise({k: saved[k] for k in saved.files}).to_string(index=False, float_format=lambda v: f"{v:.3f}"))

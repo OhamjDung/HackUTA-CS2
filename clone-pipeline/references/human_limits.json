@@ -1,0 +1,74 @@
+{
+  "source": "elite pro player-matches",
+  "player_matches": 80,
+  "players": 50,
+  "margin": 0.05,
+  "checks": {
+    "turn4_p999": {
+      "kind": "max",
+      "limit": 1524.4396,
+      "meaning": "sustained turn speed over 4 ticks, 99.9th percentile (deg/s)",
+      "needs": null,
+      "pros_extreme": 1451.8473
+    },
+    "turn_p999": {
+      "kind": "max",
+      "limit": 1642.9549,
+      "meaning": "turn speed, 99.9th percentile (deg/s)",
+      "needs": null,
+      "pros_extreme": 1564.719
+    },
+    "turn_accel_p999": {
+      "kind": "max",
+      "limit": 36131.44,
+      "meaning": "turn acceleration, 99.9th percentile (deg/s^2)",
+      "needs": null,
+      "pros_extreme": 34410.8952
+    },
+    "backwards_share_of_moving": {
+      "kind": "max",
+      "limit": 0.1137,
+      "meaning": "share of moving time walking backwards",
+      "needs": null,
+      "pros_extreme": 0.1083
+    },
+    "backwards_run_p99_s": {
+      "kind": "max",
+      "limit": 5.0644,
+      "meaning": "unbroken backwards walking, 99th percentile (s)",
+      "needs": null,
+      "pros_extreme": 4.8233
+    },
+    "flick_time_p05_s": {
+      "kind": "min",
+      "limit": 0.0898,
+      "meaning": "flick time for flicks of 15 deg or more, 5th percentile (s)",
+      "needs": [
+        "flicks_15deg",
+        5
+      ],
+      "pros_extreme": 0.0945
+    },
+    "step_pitch_p999": {
+      "kind": "max",
+      "limit": 67.4437,
+      "meaning": "pitch change per 0.25 s step, 99.9th percentile (deg)",
+      "needs": null,
+      "pros_extreme": 64.2321
+    },
+    "step_move_p999": {
+      "kind": "max",
+      "limit": 77.2794,
+      "meaning": "distance per 0.25 s step, 99.9th percentile (units)",
+      "needs": null,
+      "pros_extreme": 73.5994
+    },
+    "step_dmove_p999": {
+      "kind": "max",
+      "limit": 81.1348,
+      "meaning": "change of step movement, 99.9th percentile (units)",
+      "needs": null,
+      "pros_extreme": 77.2712
+    }
+  }
+}
