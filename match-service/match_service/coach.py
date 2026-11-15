@@ -297,6 +297,13 @@ class Coach:
         if not self.s.enabled:
             return
         self.seen = {p.name for p in self._files()}  # deaths from before the service started are old
+        log.info("coach on: watching %s (exists: %s); gemini %s (%s); voices %s; default voice %s; chat %s",
+                 self.death_dir, self.death_dir.is_dir(), "on" if self.s.gemini_api_key else "OFF, no key",
+                 self.s.gemini_model, sorted(self.s.voices) or "none",
+                 "set" if self.s.elevenlabs_voice_id else "none",
+                 "on" if self.s.chat and self.say else "off")
+        if self.s.voice and not self.s.elevenlabs_api_key:
+            log.warning("coach voice OFF: no ELEVENLABS_API_KEY")
         self._task = asyncio.create_task(self._watch())
 
     async def stop(self) -> None:
@@ -320,7 +327,9 @@ class Coach:
                 continue
             self.seen.add(path.name)
             if time.time() - path.stat().st_mtime > self.s.max_age_seconds:
+                log.info("coach: skipping old death file %s", path.name)
                 continue
+            log.info("coach: new death file %s", path.name)
             try:
                 puzzle = json.loads(path.read_text(encoding="utf-8"))
             except (OSError, json.JSONDecodeError) as exc:
@@ -350,10 +359,12 @@ class Coach:
             source, text = "rules", fallback_advice(findings)
             if self.s.gemini_api_key:
                 try:
+                    t0 = time.monotonic()
                     if written := await self.ask_gemini(summary):
                         source, text = "gemini", written
+                    log.info("coach: Gemini answered in %.1f s", time.monotonic() - t0)
                 except (httpx.HTTPError, asyncio.TimeoutError, ValueError, KeyError) as exc:
-                    log.warning("Gemini failed, using the rule feedback: %s", exc)
+                    log.warning("coach: Gemini failed (%s), using the rule feedback: %r", self.s.gemini_model, exc)
             text = clean_text(text)
             player = speaker["player"] if speaker else None
             voice_id = self.s.voice_for(player)
@@ -364,8 +375,13 @@ class Coach:
                 jobs.append(self._chat(text, player, result))
             if self.s.voice and self.s.elevenlabs_api_key and voice_id:
                 jobs.append(self._speak(text, voice_id, result))
+            started = time.monotonic()
             await asyncio.gather(*jobs)
             self.last = result
+            log.info("coach: death %s, advice from %s, speaker %s, voice id %s, chat %s, voice %s, %.1f s: %s%s",
+                     result["death_id"], source, player or "none", voice_id or "none",
+                     "sent" if result["chat"] else "not sent", "played" if result["voice"] else "not played",
+                     time.monotonic() - started, text, f" | errors: {result['errors']}" if result["errors"] else "")
             return result
 
     async def ask_gemini(self, summary: dict) -> str:

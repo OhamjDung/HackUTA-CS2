@@ -187,12 +187,15 @@ $env:PUBLIC_URL = "http://localhost:$Port"
 $cloneDirectorDir = Join-Path $csgo "addons\counterstrikesharp\plugins\CloneDirector"
 $env:PUZZLE_DEATH_DIR = Join-Path $cloneDirectorDir "deaths"
 $env:PUZZLE_GAME_DIR = Join-Path $cloneDirectorDir "puzzles"
+# The service's own log lines (coach, CS2 backend, outgoing HTTP) also go to a file, for collect-logs.ps1.
+$env:MATCH_LOG_FILE = Join-Path (Split-Path -Parent $here) ("data\logs\match-service-" + (Get-Date -Format "yyyyMMdd-HHmmss") + ".log")
 
 Write-Host ""
 Write-Host "Starting the match service. Check the connection at  http://localhost:$Port/health" -ForegroundColor Green
 Write-Host "API docs: http://localhost:$Port/docs    Stop with Ctrl+C."
 Write-Host "Recording: $Record"
 Write-Host "Match traces saved to: $env:TRACE_DIR"
+Write-Host "Service log: $env:MATCH_LOG_FILE   (send logs with  .\collect-logs.ps1)"
 Set-Location $here
 uv sync
 if ($Open) {

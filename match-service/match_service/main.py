@@ -38,6 +38,23 @@ GENERATED_NOTE = ("Development examples from a model whose held-out identity tes
 log = logging.getLogger("match_service")
 
 
+def setup_log_file(path: Path) -> None:
+    """Send this service's log lines (and httpx's request lines: URL and status, never keys) to the
+    console and to `path`, at INFO. Uvicorn's own access log is unchanged. Safe to call twice."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fmt = logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s")
+    for name in ("match_service", "httpx"):
+        logger = logging.getLogger(name)
+        logger.setLevel(logging.INFO)
+        if any(getattr(h, "_match_log", False) for h in logger.handlers):
+            continue
+        for handler in (logging.FileHandler(path, encoding="utf-8"), logging.StreamHandler()):
+            handler.setFormatter(fmt)
+            handler._match_log = True
+            logger.addHandler(handler)
+        logger.propagate = False
+
+
 def make_channel(settings: Settings) -> ConsoleChannel:
     host, port, password = settings.cs2_console_host, settings.console_port(), settings.cs2_console_password
     if settings.cs2_console == "netcon":
@@ -60,6 +77,8 @@ def make_clone_channel(settings: Settings) -> ConsoleChannel | None:
 def create_app(settings: Settings | None = None, channel: ConsoleChannel | None = None,
                clone_channel: ConsoleChannel | None = None) -> FastAPI:
     settings = settings or Settings.from_env()
+    if settings.log_file:
+        setup_log_file(settings.log_file)
     matches: dict[str, MatchRecord] = {}
     http: dict[str, httpx.AsyncClient] = {}
 

@@ -361,6 +361,9 @@ CloneDirector plugin folder.
 
 ## Death coach (not part of the Interface specs; added 2026-11-15)
 
+On the CS2 PC, `start-everything.bat` in the repo root sets up and starts everything; `collect-logs.ps1`
+in this folder zips the logs to send back.
+
 After the person at the CS2 PC dies, the service sends one or two sentences of advice to CS2 chat
 (`say [Coach] ...`, through MatchBridge) and speaks them on this PC's speakers in your ElevenLabs voice.
 It reads CloneDirector's death files, so start with `start-cs2.ps1 -Bots clone`. Details: `SPEC.md` section 9.7.
