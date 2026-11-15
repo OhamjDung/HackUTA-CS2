@@ -12,6 +12,12 @@ not prove movement works in the game. The six-hour gate in `SPEC.md` section 11 
 
 ## Build
 
+Odyssey extension: `clones/ODYSSEY.md` documents four authored/native-AI profiles with distinct
+per-entry difficulty and 14 quirks each. `OdysseyMode.cs` adds pawn-scoped pre-damage rules (Poseidon
+immune, Odysseus 1.08x enemy-player damage). Both updated DLLs and the native entries are required;
+bare `bot_add` does not attach the rules. See `handoffs/tom-odyssey-bots.md` for installation and live
+acceptance. No CS2 immunity or difficulty-balance result is claimed by the offline tests.
+
 Needs .NET SDK 10 and `BotControllerApi.dll` from the **same installed controller release** as the
 native plugin and provider on the gaming machine. Do not download/run the bot-base installer as
 part of this build. A person installs that separately.

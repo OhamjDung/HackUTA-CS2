@@ -1,0 +1,223 @@
+{
+  "clone_id": "odysseus",
+  "display_name": "Odysseus",
+  "source": "user",
+  "stand_in_bot": "odysseus",
+  "map": "de_mirage",
+  "model": null,
+  "reaction_ms": 100,
+  "aim_skill": 1.0,
+  "aggression": 0.72,
+  "weapons": [
+    "ak47",
+    "m4a1_silencer"
+  ],
+  "positions": {},
+  "source_games": [],
+  "similarity": null,
+  "authored": true,
+  "buy_plan": {
+    "T": {
+      "pistol": {
+        "aliases": [
+          "glock",
+          "vest"
+        ]
+      },
+      "eco": {
+        "aliases": [
+          "deagle"
+        ]
+      },
+      "force": {
+        "aliases": [
+          "mac10",
+          "vest"
+        ]
+      },
+      "full": {
+        "aliases": [
+          "ak47",
+          "vesthelm",
+          "smokegrenade",
+          "flashbang",
+          "flashbang"
+        ]
+      }
+    },
+    "CT": {
+      "pistol": {
+        "aliases": [
+          "hkp2000",
+          "vest"
+        ]
+      },
+      "eco": {
+        "aliases": [
+          "deagle"
+        ]
+      },
+      "force": {
+        "aliases": [
+          "mp9",
+          "vest"
+        ]
+      },
+      "full": {
+        "aliases": [
+          "m4a1_silencer",
+          "vesthelm",
+          "smokegrenade",
+          "flashbang",
+          "flashbang",
+          "defuser"
+        ]
+      }
+    }
+  },
+  "routes": {
+    "T": [],
+    "CT": []
+  },
+  "route_shares": {
+    "T": {},
+    "CT": {}
+  },
+  "quirk_controls": {
+    "shots_per_burst": {
+      "value": 3.0
+    },
+    "single_shot_burst_share": {
+      "value": 0.58
+    },
+    "crouched_shot_share": {
+      "value": 0.18
+    },
+    "jumps_per_min": {
+      "value": 2.0
+    },
+    "slow_share": {
+      "value": 0.85
+    }
+  },
+  "game_sense": {
+    "enemy_close_handoff": false,
+    "quiet_walk": true,
+    "quiet_walk_share": 0.85,
+    "heard_memory_seconds": 6.0
+  },
+  "odyssey": {
+    "version": 1,
+    "title": "The Strategist",
+    "difficulty": "superhuman",
+    "character_basis": "Patient, resourceful trickster and commander; precise, quiet and adaptable.",
+    "invulnerable": false,
+    "damage_multiplier": 1.08,
+    "bot_profile": {
+      "Skill": "100",
+      "Aggression": "72",
+      "Teamwork": "95",
+      "ReactionTime": "0.1",
+      "AttackDelay": "0.015",
+      "LookAngleMaxAccelNormal": "44000.0",
+      "LookAngleStiffnessNormal": "300.0",
+      "LookAngleDampingNormal": "35.0",
+      "LookAngleMaxAccelAttacking": "44000.0",
+      "LookAngleStiffnessAttacking": "600.0",
+      "LookAngleDampingAttacking": "60.0",
+      "AimFocusInitial": "0.8",
+      "AimFocusDecay": ".2",
+      "AimFocusOffsetScale": "0.06",
+      "AimfocusInterval": ".25"
+    },
+    "behavior_source": "authored persona + native bot AI; not a neural model or pro recording",
+    "live_validated": false,
+    "voice_owner": "Tom; existing ElevenLabs voice mapped by clone_id; no voice IDs embedded",
+    "quirks": [
+      {
+        "id": "odysseus_01",
+        "name": "The calculated opening",
+        "control": "odyssey.bot_profile.Aggression",
+        "effect": "Native aggression 72/100; pressure appetite, not a guaranteed path."
+      },
+      {
+        "id": "odysseus_02",
+        "name": "The allied expedition",
+        "control": "odyssey.bot_profile.Teamwork",
+        "effect": "Native teamwork 95/100; squad preference when teammates exist."
+      },
+      {
+        "id": "odysseus_03",
+        "name": "Quick recognition",
+        "control": "odyssey.bot_profile.ReactionTime",
+        "effect": "Configured reaction 100 ms, subject to the native AI and server tick."
+      },
+      {
+        "id": "odysseus_04",
+        "name": "The precise archer",
+        "control": "odyssey.bot_profile.AimFocusOffsetScale",
+        "effect": "Aim offset scale 0.06; finite acceleration cap 44000. Calibration required."
+      },
+      {
+        "id": "odysseus_05",
+        "name": "Decisive commitment",
+        "control": "odyssey.bot_profile.AttackDelay",
+        "effect": "Configured attack delay 15 ms after the native AI decides to engage."
+      },
+      {
+        "id": "odysseus_06",
+        "name": "Measured taps",
+        "control": "quirk_controls.shots_per_burst.value",
+        "effect": "Burst target 3 shots, single-shot share 58%; existing trigger suppression."
+      },
+      {
+        "id": "odysseus_07",
+        "name": "Flexible stance",
+        "control": "quirk_controls.crouched_shot_share.value",
+        "effect": "Extra crouch at burst start with probability 18%; native crouching can also occur."
+      },
+      {
+        "id": "odysseus_08",
+        "name": "Occasional traversal hop",
+        "control": "quirk_controls.jumps_per_min.value",
+        "effect": "2 extra jumps/min target while running outside combat; zero means no injected jumps."
+      },
+      {
+        "id": "odysseus_09",
+        "name": "The quiet ambush",
+        "control": "game_sense.quiet_walk_share",
+        "effect": "85% walk chance per eligible second near a recent heard step/reload; memory 6s. Not global enemy awareness."
+      },
+      {
+        "id": "odysseus_10",
+        "name": "The versatile rifle",
+        "control": "buy_plan.T.full.aliases",
+        "effect": "Full-buy primary T/CT: ak47/m4a1_silencer; subject to money and alias support."
+      },
+      {
+        "id": "odysseus_11",
+        "name": "The economical precision shot",
+        "control": "buy_plan.T.eco.aliases",
+        "effect": "Eco sidearm T/CT: deagle/deagle; no armor/utility splurge."
+      },
+      {
+        "id": "odysseus_12",
+        "name": "Resourceful close-range force buy",
+        "control": "buy_plan.T.force.aliases",
+        "effect": "Force primary T/CT: mac10/mp9, then vest; subject to affordability."
+      },
+      {
+        "id": "odysseus_13",
+        "name": "Veil and distraction",
+        "control": "buy_plan.CT.full.aliases",
+        "effect": "Utility buy palette: smokegrenade, flashbang, flashbang. Native AI chooses deployment; no authored lineups or fakes."
+      },
+      {
+        "id": "odysseus_14",
+        "name": "A mythic edge",
+        "control": "odyssey.damage_multiplier",
+        "effect": "Multiply outgoing enemy-player damage by 1.08; explicit fantasy advantage, not a learned pro rating."
+      }
+    ]
+  }
+}

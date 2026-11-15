@@ -17,6 +17,7 @@ from .models import Clone, CloneInfo
 
 STAND_IN = "stand_in"
 CLONE_DIRECTOR = "clone_director"
+ODYSSEY = {"poseidon": "impossible", "odysseus": "superhuman", "menelaus": "medium", "telemachus": "easy"}
 
 
 def describe(clone: Clone, settings: Settings) -> CloneInfo:
@@ -26,6 +27,15 @@ def describe(clone: Clone, settings: Settings) -> CloneInfo:
               if clone.stand_in_bot and clone.clone_id.endswith("L") and clone.stand_in_bot != clone.clone_id else "")
     if settings.backend != "cs2":
         return CloneInfo(**base, driver="mock", label="simulated", playable=True)
+    if clone.clone_id in ODYSSEY:
+        label = f"Odyssey {ODYSSEY[clone.clone_id]}, authored native AI"
+        if settings.cs2_bots != "clone":
+            return CloneInfo(**base, driver=STAND_IN, label=label, playable=False,
+                             reason="Odyssey difficulty/damage rules require the updated CloneDirector; stand-in mode cannot enforce them")
+        if settings.cs2_routes == "generated":
+            return CloneInfo(**base, driver=CLONE_DIRECTOR, label=label, playable=False,
+                             reason="Odyssey uses authored native AI, not generated neural routes")
+        return CloneInfo(**base, driver=CLONE_DIRECTOR, label=label, playable=True)
     if settings.cs2_bots == "clone":
         generated = settings.cs2_routes == "generated"
         label = ("CloneDirector, generated routes" if generated else "CloneDirector, recorded routes")

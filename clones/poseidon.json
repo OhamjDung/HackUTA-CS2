@@ -1,0 +1,223 @@
+{
+  "clone_id": "poseidon",
+  "display_name": "Poseidon",
+  "source": "user",
+  "stand_in_bot": "poseidon",
+  "map": "de_mirage",
+  "model": null,
+  "reaction_ms": 0,
+  "aim_skill": 1.0,
+  "aggression": 1.0,
+  "weapons": [
+    "ak47",
+    "m4a1"
+  ],
+  "positions": {},
+  "source_games": [],
+  "similarity": null,
+  "authored": true,
+  "buy_plan": {
+    "T": {
+      "pistol": {
+        "aliases": [
+          "glock",
+          "vest"
+        ]
+      },
+      "eco": {
+        "aliases": [
+          "deagle"
+        ]
+      },
+      "force": {
+        "aliases": [
+          "galilar",
+          "vest"
+        ]
+      },
+      "full": {
+        "aliases": [
+          "ak47",
+          "vesthelm",
+          "hegrenade",
+          "smokegrenade",
+          "flashbang"
+        ]
+      }
+    },
+    "CT": {
+      "pistol": {
+        "aliases": [
+          "hkp2000",
+          "vest"
+        ]
+      },
+      "eco": {
+        "aliases": [
+          "deagle"
+        ]
+      },
+      "force": {
+        "aliases": [
+          "famas",
+          "vest"
+        ]
+      },
+      "full": {
+        "aliases": [
+          "m4a1",
+          "vesthelm",
+          "hegrenade",
+          "smokegrenade",
+          "flashbang",
+          "defuser"
+        ]
+      }
+    }
+  },
+  "routes": {
+    "T": [],
+    "CT": []
+  },
+  "route_shares": {
+    "T": {},
+    "CT": {}
+  },
+  "quirk_controls": {
+    "shots_per_burst": {
+      "value": 12.0
+    },
+    "single_shot_burst_share": {
+      "value": 0.02
+    },
+    "crouched_shot_share": {
+      "value": 0.05
+    },
+    "jumps_per_min": {
+      "value": 0.0
+    },
+    "slow_share": {
+      "value": 0.0
+    }
+  },
+  "game_sense": {
+    "enemy_close_handoff": false,
+    "quiet_walk": false,
+    "quiet_walk_share": 0.0,
+    "heard_memory_seconds": 1.0
+  },
+  "odyssey": {
+    "version": 1,
+    "title": "The Tempest",
+    "difficulty": "impossible",
+    "character_basis": "Wrathful, implacable sea god; overwhelming pressure rather than deception.",
+    "invulnerable": true,
+    "damage_multiplier": 1.0,
+    "bot_profile": {
+      "Skill": "100",
+      "Aggression": "100",
+      "Teamwork": "15",
+      "ReactionTime": "0.0",
+      "AttackDelay": "0.0",
+      "LookAngleMaxAccelNormal": "999999.0",
+      "LookAngleStiffnessNormal": "300.0",
+      "LookAngleDampingNormal": "35.0",
+      "LookAngleMaxAccelAttacking": "999999.0",
+      "LookAngleStiffnessAttacking": "600.0",
+      "LookAngleDampingAttacking": "60.0",
+      "AimFocusInitial": "0.1",
+      "AimFocusDecay": ".2",
+      "AimFocusOffsetScale": "0.01",
+      "AimfocusInterval": ".25"
+    },
+    "behavior_source": "authored persona + native bot AI; not a neural model or pro recording",
+    "live_validated": false,
+    "voice_owner": "Tom; existing ElevenLabs voice mapped by clone_id; no voice IDs embedded",
+    "quirks": [
+      {
+        "id": "poseidon_01",
+        "name": "The advancing tide",
+        "control": "odyssey.bot_profile.Aggression",
+        "effect": "Native aggression 100/100; pressure appetite, not a guaranteed path."
+      },
+      {
+        "id": "poseidon_02",
+        "name": "The solitary god",
+        "control": "odyssey.bot_profile.Teamwork",
+        "effect": "Native teamwork 15/100; squad preference when teammates exist."
+      },
+      {
+        "id": "poseidon_03",
+        "name": "Instant wrath",
+        "control": "odyssey.bot_profile.ReactionTime",
+        "effect": "Configured reaction 0 ms, subject to the native AI and server tick."
+      },
+      {
+        "id": "poseidon_04",
+        "name": "The unwavering trident",
+        "control": "odyssey.bot_profile.AimFocusOffsetScale",
+        "effect": "Aim offset scale 0.01; finite acceleration cap 999999. Calibration required."
+      },
+      {
+        "id": "poseidon_05",
+        "name": "No hesitation",
+        "control": "odyssey.bot_profile.AttackDelay",
+        "effect": "Configured attack delay 0 ms after the native AI decides to engage."
+      },
+      {
+        "id": "poseidon_06",
+        "name": "Rolling thunder",
+        "control": "quirk_controls.shots_per_burst.value",
+        "effect": "Burst target 12 shots, single-shot share 2%; existing trigger suppression."
+      },
+      {
+        "id": "poseidon_07",
+        "name": "Stands above mortals",
+        "control": "quirk_controls.crouched_shot_share.value",
+        "effect": "Extra crouch at burst start with probability 5%; native crouching can also occur."
+      },
+      {
+        "id": "poseidon_08",
+        "name": "No added parkour",
+        "control": "quirk_controls.jumps_per_min.value",
+        "effect": "0 extra jumps/min target while running outside combat; zero means no injected jumps."
+      },
+      {
+        "id": "poseidon_09",
+        "name": "No imposed stealth",
+        "control": "game_sense.quiet_walk_share",
+        "effect": "0% walk chance per eligible second near a recent heard step/reload; memory 1s. Not global enemy awareness."
+      },
+      {
+        "id": "poseidon_10",
+        "name": "Rifle broadside",
+        "control": "buy_plan.T.full.aliases",
+        "effect": "Full-buy primary T/CT: ak47/m4a1; subject to money and alias support."
+      },
+      {
+        "id": "poseidon_11",
+        "name": "A dangerous lean round",
+        "control": "buy_plan.T.eco.aliases",
+        "effect": "Eco sidearm T/CT: deagle/deagle; no armor/utility splurge."
+      },
+      {
+        "id": "poseidon_12",
+        "name": "Relentless force buy",
+        "control": "buy_plan.T.force.aliases",
+        "effect": "Force primary T/CT: galilar/famas, then vest; subject to affordability."
+      },
+      {
+        "id": "poseidon_13",
+        "name": "Storm provisions",
+        "control": "buy_plan.CT.full.aliases",
+        "effect": "Utility buy palette: hegrenade, smokegrenade, flashbang. Native AI chooses deployment; no authored lineups or fakes."
+      },
+      {
+        "id": "poseidon_14",
+        "name": "Divine aegis",
+        "control": "odyssey.invulnerable",
+        "effect": "Block incoming gameplay damage before application, including bullets, grenades, fall and C4. Not a giant health pool."
+      }
+    ]
+  }
+}

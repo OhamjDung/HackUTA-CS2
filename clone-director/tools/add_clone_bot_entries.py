@@ -13,6 +13,9 @@ new versions) get finite settings instead (HUMAN_AIM). donk_v1, donkL, broky_v1 
 copies, so earlier versions keep behaving as they did and versions can be compared. The original donk
 and broky entries are left unchanged.
 
+Odyssey IDs copy the donk template but always apply their own authored difficulty/personality numbers
+from clones/<id>.json, even with --plain. They require the updated CloneDirector for damage rules.
+
     python add_clone_bot_entries.py <game>/csgo/overrides/botprofile.vpk [out.vpk]
     python add_clone_bot_entries.py --plain ...   # every copy without the aim limits
 
@@ -26,10 +29,14 @@ import os
 import re
 import sys
 import tempfile
+import json
+from pathlib import Path
 
 # existing bot entry -> the clone ids that get a copy of it
 COPIES = {"donk": ["donk_v1", "donkL", "donkL2", "donkLF", "donk_v2"],
           "broky": ["broky_v1", "brokyL", "brokyL2", "brokyLF", "broky_v2"]}
+ODYSSEY_IDS = ("poseidon", "odysseus", "menelaus", "telemachus")
+COPIES["donk"] += list(ODYSSEY_IDS)
 # the copies that get human aim settings; the others stay plain copies of the original entry
 HUMAN_AIM_IDS = {"donkL2", "brokyL2", "donkLF", "brokyLF"}
 # v2 entries are plain copies: the original entry's full-strength aim and personality. The originals use
@@ -37,6 +44,26 @@ HUMAN_AIM_IDS = {"donkL2", "brokyL2", "donkLF", "brokyLF"}
 # (0.52, 0.333) would have lowered them, so they are not applied. Add per-clone overrides here only when they
 # are shown not to weaken the bot.
 PERSONALITY: dict[str, dict[str, str]] = {}
+
+
+def odyssey_settings(root=None):
+    """Read the same authored numbers documented in the clone profiles; fail on missing config.
+
+    These overrides apply even with --plain: that option resets human-aim limits for L2/LF only.
+    Never silently create all four difficulties as identical copies of the pro template.
+    """
+    root = Path(root) if root is not None else Path(__file__).resolve().parents[2] / "clones"
+    result = {}
+    for name in ODYSSEY_IDS:
+        profile = json.loads((root / (name + ".json")).read_text(encoding="utf-8"))
+        if profile["clone_id"] != name or profile["stand_in_bot"] != name:
+            raise ValueError("Odyssey bot identity mismatch")
+        settings = profile["odyssey"]["bot_profile"]
+        if not settings or any(not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", k) or
+            not re.fullmatch(r"[0-9]+(?:\.[0-9]+)?|\.[0-9]+", v) for k, v in settings.items()):
+            raise ValueError("Invalid Odyssey native profile settings")
+        result[name] = settings
+    return result
 
 # Starting values chosen by simulating the bot's view as a damped spring with capped acceleration
 # (the model in the original Counter-Strike bot code; assumed, not confirmed, to hold in CS2). With these,
@@ -82,6 +109,7 @@ def with_settings(block: str, settings: dict) -> str:
 
 def patch_db(db: str, settings: dict | None) -> str:
     """Return botprofile.db text with one fresh entry per clone. Existing clone entries are replaced."""
+    personas = odyssey_settings()
     for clone_ids in COPIES.values():
         for clone_id in clone_ids:
             db = entry_pattern(clone_id).sub("", db)
@@ -97,6 +125,8 @@ def patch_db(db: str, settings: dict | None) -> str:
                 copy = with_settings(copy, settings)
             if clone_id in PERSONALITY:
                 copy = with_settings(copy, PERSONALITY[clone_id])
+            if clone_id in personas:
+                copy = with_settings(copy, personas[clone_id])
             added += copy
     note = " (" + ", ".join(sorted(HUMAN_AIM_IDS)) + " with human aim limits)" if settings else ""
     return (db.rstrip("\n") + "\n\n" + MARKER + ": copies of donk and broky under the clone ids"
@@ -119,7 +149,7 @@ def main(src: str, dst: str, plain: bool) -> None:
     check = vpk.open(dst)  # version 2, like the original
     assert check.version == archive.version and all(check[n].read() == files[n] for n in files), "verify failed"
     print(f"wrote {dst}: {len(files)} files, archive version {check.version}, "
-          f"{'plain copies' if plain else 'human aim limits'}")
+          f"{'plain pro copies' if plain else 'pro human aim limits'}; authored Odyssey overrides applied")
 
 
 if __name__ == "__main__":

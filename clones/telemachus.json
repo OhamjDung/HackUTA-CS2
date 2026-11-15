@@ -1,0 +1,218 @@
+{
+  "clone_id": "telemachus",
+  "display_name": "Telemachus",
+  "source": "user",
+  "stand_in_bot": "telemachus",
+  "map": "de_mirage",
+  "model": null,
+  "reaction_ms": 650,
+  "aim_skill": 0.2,
+  "aggression": 0.3,
+  "weapons": [
+    "p90"
+  ],
+  "positions": {},
+  "source_games": [],
+  "similarity": null,
+  "authored": true,
+  "buy_plan": {
+    "T": {
+      "pistol": {
+        "aliases": [
+          "glock",
+          "vest"
+        ]
+      },
+      "eco": {
+        "aliases": [
+          "glock"
+        ]
+      },
+      "force": {
+        "aliases": [
+          "mac10",
+          "vest"
+        ]
+      },
+      "full": {
+        "aliases": [
+          "p90",
+          "vesthelm",
+          "flashbang"
+        ]
+      }
+    },
+    "CT": {
+      "pistol": {
+        "aliases": [
+          "hkp2000",
+          "vest"
+        ]
+      },
+      "eco": {
+        "aliases": [
+          "hkp2000"
+        ]
+      },
+      "force": {
+        "aliases": [
+          "mp9",
+          "vest"
+        ]
+      },
+      "full": {
+        "aliases": [
+          "p90",
+          "vesthelm",
+          "flashbang",
+          "defuser"
+        ]
+      }
+    }
+  },
+  "routes": {
+    "T": [],
+    "CT": []
+  },
+  "route_shares": {
+    "T": {},
+    "CT": {}
+  },
+  "quirk_controls": {
+    "shots_per_burst": {
+      "value": 9.0
+    },
+    "single_shot_burst_share": {
+      "value": 0.08
+    },
+    "crouched_shot_share": {
+      "value": 0.7
+    },
+    "jumps_per_min": {
+      "value": 6.0
+    },
+    "slow_share": {
+      "value": 0.2
+    }
+  },
+  "game_sense": {
+    "enemy_close_handoff": false,
+    "quiet_walk": true,
+    "quiet_walk_share": 0.2,
+    "heard_memory_seconds": 1.0
+  },
+  "odyssey": {
+    "version": 1,
+    "title": "The Heir",
+    "difficulty": "easy",
+    "character_basis": "Earnest young learner seeking confidence; hesitant recognition, enthusiastic overfiring and simple equipment.",
+    "invulnerable": false,
+    "damage_multiplier": 1.0,
+    "bot_profile": {
+      "Skill": "20",
+      "Aggression": "30",
+      "Teamwork": "65",
+      "ReactionTime": "0.65",
+      "AttackDelay": "0.25",
+      "LookAngleMaxAccelNormal": "5000.0",
+      "LookAngleStiffnessNormal": "300.0",
+      "LookAngleDampingNormal": "35.0",
+      "LookAngleMaxAccelAttacking": "5000.0",
+      "LookAngleStiffnessAttacking": "600.0",
+      "LookAngleDampingAttacking": "60.0",
+      "AimFocusInitial": "3.0",
+      "AimFocusDecay": ".2",
+      "AimFocusOffsetScale": "0.9",
+      "AimfocusInterval": ".25"
+    },
+    "behavior_source": "authored persona + native bot AI; not a neural model or pro recording",
+    "live_validated": false,
+    "voice_owner": "Tom; existing ElevenLabs voice mapped by clone_id; no voice IDs embedded",
+    "quirks": [
+      {
+        "id": "telemachus_01",
+        "name": "The hesitant challenger",
+        "control": "odyssey.bot_profile.Aggression",
+        "effect": "Native aggression 30/100; pressure appetite, not a guaranteed path."
+      },
+      {
+        "id": "telemachus_02",
+        "name": "Seeks the company of allies",
+        "control": "odyssey.bot_profile.Teamwork",
+        "effect": "Native teamwork 65/100; squad preference when teammates exist."
+      },
+      {
+        "id": "telemachus_03",
+        "name": "Late recognition",
+        "control": "odyssey.bot_profile.ReactionTime",
+        "effect": "Configured reaction 650 ms, subject to the native AI and server tick."
+      },
+      {
+        "id": "telemachus_04",
+        "name": "The unsteady first aim",
+        "control": "odyssey.bot_profile.AimFocusOffsetScale",
+        "effect": "Aim offset scale 0.9; finite acceleration cap 5000. Calibration required."
+      },
+      {
+        "id": "telemachus_05",
+        "name": "Checks before committing",
+        "control": "odyssey.bot_profile.AttackDelay",
+        "effect": "Configured attack delay 250 ms after the native AI decides to engage."
+      },
+      {
+        "id": "telemachus_06",
+        "name": "The enthusiastic spray",
+        "control": "quirk_controls.shots_per_burst.value",
+        "effect": "Burst target 9 shots, single-shot share 8%; existing trigger suppression."
+      },
+      {
+        "id": "telemachus_07",
+        "name": "The nervous crouch",
+        "control": "quirk_controls.crouched_shot_share.value",
+        "effect": "Extra crouch at burst start with probability 70%; native crouching can also occur."
+      },
+      {
+        "id": "telemachus_08",
+        "name": "Restless travel",
+        "control": "quirk_controls.jumps_per_min.value",
+        "effect": "6 extra jumps/min target while running outside combat; zero means no injected jumps."
+      },
+      {
+        "id": "telemachus_09",
+        "name": "Forgets stealth often",
+        "control": "game_sense.quiet_walk_share",
+        "effect": "20% walk chance per eligible second near a recent heard step/reload; memory 1s. Not global enemy awareness."
+      },
+      {
+        "id": "telemachus_10",
+        "name": "The forgiving SMG",
+        "control": "buy_plan.T.full.aliases",
+        "effect": "Full-buy primary T/CT: p90/p90; subject to money and alias support."
+      },
+      {
+        "id": "telemachus_11",
+        "name": "Keeps the starting pistol",
+        "control": "buy_plan.T.eco.aliases",
+        "effect": "Eco sidearm T/CT: glock/hkp2000; no armor/utility splurge."
+      },
+      {
+        "id": "telemachus_12",
+        "name": "A modest force buy",
+        "control": "buy_plan.T.force.aliases",
+        "effect": "Force primary T/CT: mac10/mp9, then vest; subject to affordability."
+      },
+      {
+        "id": "telemachus_13",
+        "name": "One simple utility lesson",
+        "control": "buy_plan.CT.full.aliases",
+        "effect": "Utility buy palette: flashbang. Native AI chooses deployment; no authored lineups or fakes."
+      },
+      {
+        "id": "telemachus_14",
+        "name": "Slowly finds his focus",
+        "control": "odyssey.bot_profile.AimFocusInitial",
+        "effect": "AimFocusInitial 3.0: deliberately loose initial focus; no live confidence/learning system."
+      }
+    ]
+  }
+}

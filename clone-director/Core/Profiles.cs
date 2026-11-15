@@ -17,6 +17,8 @@ public sealed class CloneProfile
     [JsonPropertyName("quirk_controls")] public Dictionary<string, QuirkControl> QuirkControls { get; init; } = [];
     // Optional. v2 clones: rule-based game sense (Core/GameSense.cs). Absent: every rule off.
     [JsonPropertyName("game_sense")] public GameSenseSettings GameSense { get; init; } = new();
+    // Optional authored fiction; does not load or claim a learned player model.
+    [JsonPropertyName("odyssey")] public OdysseySettings? Odyssey { get; init; }
 
     public string Personality => StandInBot ?? DisplayName;
 }
@@ -150,6 +152,9 @@ public sealed class ProfileStore(string root)
             throw new InvalidDataException("slow_share must be between 0 and 1.");
         if (profile.GameSense is null) throw new InvalidDataException("game_sense cannot be null.");
         profile.GameSense.Validate();
+        if (Odyssey.IsPersona(profile.Id) && profile.Odyssey is null)
+            throw new InvalidDataException("Odyssey persona is missing its difficulty/damage settings.");
+        profile.Odyssey?.Validate(profile.Id);
         foreach (var (side, plans) in profile.BuyPlan)
         {
             CheckSide(side);
