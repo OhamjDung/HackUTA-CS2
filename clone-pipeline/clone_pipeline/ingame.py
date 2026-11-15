@@ -27,8 +27,12 @@ import math
 from collections import Counter
 from pathlib import Path
 
-from .routes import MAX_SECONDS, MIN_SECONDS
 from .similarity import compare
+
+# The same limits as routes.py (a test checks they match). Copied, not imported, because routes.py
+# needs pandas and the match service imports this module without it.
+MAX_SECONDS = 20
+MIN_SECONDS = 3
 
 PACKAGE = Path(__file__).resolve().parent
 PLACES_FILE = PACKAGE / "maps" / "de_mirage_places.json"
@@ -161,6 +165,7 @@ def score(trace: dict, player: str, reference: dict, lookup: PlaceLookup,
         "player": player,
         "match_id": trace.get("match_id"),
         "trace_source": trace.get("source"),  # "gsi" (real CS2) or "simulated" (mock backend)
+        "bots": trace.get("bots"),  # "stand_in" (a default bot: the baseline) or "clone" (CloneDirector)
         "held_back_vs_bot": compare(reference, ingame),
         "bot_stats": ingame,
         "notes": [

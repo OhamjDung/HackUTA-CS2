@@ -1,5 +1,6 @@
 """Replay data: real recorded rounds from ../clones, match traces, and the closest-round match."""
 
+import json
 import time
 from pathlib import Path
 
@@ -109,3 +110,37 @@ def test_replay_endpoints_and_demo_pages(tmp_path):
         for page in ["index.html", "play.html", "watch.html", "replay.html", "proof.html", "common.js"]:
             assert client.get(f"/demo/{page}").status_code == 200
         assert client.get("/", follow_redirects=False).headers["location"] == "/demo/"
+
+
+def test_score_endpoint_on_mock_match():
+    """The proof page's score: a mock match walks real routes, so it scores but says it's simulated."""
+    s = Settings(backend="mock", start_seconds=0.01, warmup_seconds=0.01, round_seconds=0.01)
+    with TestClient(create_app(s)) as client:
+        match_id = client.post("/matches", json=wingman(players=[])).json()["match_id"]
+        wait_for(client, match_id, "ended")
+        r = client.get(f"/matches/{match_id}/score", params={"player": "donk_v1"}).json()
+        assert r["trace_source"] == "simulated" and "NOT a measurement" in r["notes"][0]
+        assert r["reference"]["player"] == "donk" and r["ceiling"]["T"]["position_overlap"] > 0
+        assert any(r["held_back_vs_bot"].get(side) for side in ("T", "CT"))
+        assert client.get(f"/matches/{match_id}/score", params={"player": "nobody"}).status_code == 404
+        assert client.get("/matches/nothere/score", params={"player": "donk"}).status_code == 404
+
+
+def test_score_endpoint_on_saved_cs2_trace(tmp_path):
+    """A saved game-state trace (the kind Tom's PC writes with TRACE_DIR) scores by bot name."""
+    lib = RouteLibrary(REPO_CLONES)
+    rounds = []
+    for i, meta in enumerate(lib.routes("broky_v1")[:6]):
+        path = lib.route("broky_v1", meta["recording"])["path"]
+        rounds.append({"round": i + 1, "players": [
+            {"name": "broky", "team": meta["side"], "clone_id": "broky_v1", "died_at": None, "path": path}]})
+    saved = {"match_id": "abc123", "map": "de_mirage", "source": "gsi", "bots": "stand_in",
+             "live_round": None, "rounds": rounds}
+    (tmp_path / "abc123.json").write_text(json.dumps(saved))
+    with TestClient(create_app(Settings(backend="mock", trace_dir=tmp_path))) as client:
+        r = client.get("/matches/abc123/score", params={"player": "broky"}).json()
+        assert r["trace_source"] == "gsi" and r["bots"] == "stand_in"
+        assert not any("NOT a measurement" in n for n in r["notes"])
+        assert r["reference"]["match_id"] == "2393024"
+        side = next(s for s in ("T", "CT") if r["held_back_vs_bot"].get(s))
+        assert 0 < r["held_back_vs_bot"][side]["position_overlap"] <= 1

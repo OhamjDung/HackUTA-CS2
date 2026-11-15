@@ -92,3 +92,10 @@ def test_own_routes_beat_the_other_players_routes():
         swap = score(routes_trace(other), "bot", reference, lookup)["held_back_vs_bot"]
         for side in ("T", "CT"):
             assert own[side]["route_overlap"] > swap[side]["route_overlap"], (target, side)
+
+
+def test_route_limits_match_routes_py():
+    """ingame.py copies the route limits so the match service can import it without pandas."""
+    from clone_pipeline import ingame, routes
+
+    assert (ingame.MAX_SECONDS, ingame.MIN_SECONDS) == (routes.MAX_SECONDS, routes.MIN_SECONDS)

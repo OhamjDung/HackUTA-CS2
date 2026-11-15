@@ -37,6 +37,7 @@ Interactive docs: http://localhost:8000/docs
 | `GET /matches` | Every match since the service started, newest first (not in the spec) |
 | `GET /matches/{id}/trace` | Each player's path per round, `[[seconds into the round, x, y], ...]` (not in the spec) |
 | `GET /matches/{id}/compare?round=&player=` | A bot's round and the real player's closest recorded round (not in the spec) |
+| `GET /matches/{id}/score?player=` | How close one bot's rounds are to the real player's held-back match, with the ceiling (SPEC 10.2; not in the spec's API) |
 | `GET /replay/clones`, `/replay/clones/{id}`, `/replay/clones/{id}/routes[/{recording}]` | Real recorded rounds from `../clones` (not in the spec) |
 | `GET /replay/outline` | Map cells any recorded route crossed, for drawing (not in the spec) |
 | `GET /demo/` | The demo pages (see below); `/` redirects here |
@@ -92,7 +93,9 @@ teammates' lobby, match page and clone dashboard, and show what each feature doe
 - **Bot vs bot**: start donk vs broky; one live map panel per bot, plus score and events.
 - **Replay**: a bot's round next to the real player's closest recorded round, on one clock; both
   bots in one round; every recorded round of the real players.
-- **Proof**: the clone files' "player vs himself" numbers and habits.
+- **Proof**: the clone files' "player vs himself" numbers and habits, and the in-game score of a
+  match: one played with `CS2_BOTS=clone` for the clone column, one with `stand_in` for the
+  default-bot column. Each trace records which (`bots`).
 
 Disabled buttons with dashed borders mark features that need other pieces (video, generated path,
 caster voice, recording, the clone dashboard). On a Mac, run the mock and open the pages: each

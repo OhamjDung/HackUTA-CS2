@@ -36,7 +36,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Character showcase: chromatic lighting/HUD sync + GLB gatekeeper | Nikesh | Done. Per-character rim/accent verified live (artist FIFA rig renders through mixer path, 0 errors); `verify-models.mjs`: 5/5 PASS (Idle clip, skins, meshopt, 0.31MB/10MB) | `frontend/` | 2026-11-14 |
 | 3D Character Glitch-Swap Showcase (Nodes A1-A5, B1-B4, C1-C2) | Nikesh | COMPLETE & VERIFIED. Artist KTX2+Meshopt rigs integrated (5/5 gatekeeper PASS, 0.31MB); 5-character live sweep: mixer path, 1.85m framing, chromatic rim/HUD, KTX transcode clean, 0 errors, 0 refetches | `frontend/`, `frontend/scripts/chargen/` | 2026-11-14 |
 | Stand-in bots: built-in CS2-Bot-Improver pro bots used in place of clones until CloneDirector works | Ashirwad | In progress. `donk_v1` and `broky_v1` profiles use the `donk` and `broky` bots; not run in CS2 | `match-service/sample_clones/` | 2026-11-14 |
-| In-game similarity score: a bot's rounds in CS2 against the real player's held-back match (section 10.2) | Ashirwad | In progress. Scorer, map-area lookup and both held-back references written and tested (16 pipeline tests); no real CS2 trace scored yet | `clone-pipeline/clone_pipeline/ingame.py`, `clone-pipeline/references/` | 2026-11-14 |
+| In-game similarity score: a bot's rounds in CS2 against the real player's held-back match (section 10.2) | Ashirwad | In progress. Scorer, map-area lookup and both held-back references written and tested; served as `GET /matches/{id}/score` and shown on the proof page (run against the mock in a browser); no real CS2 trace scored yet | `clone-pipeline/clone_pipeline/ingame.py`, `clone-pipeline/references/`, `match-service/match_service/scoring.py` | 2026-11-14 |
 | Side-by-side page, stand-in version (two synced panels; replay page content replaces it) | Ashirwad | In progress. Demo pages served by the match service at `/demo/`: bot vs bot with one live map panel per bot, play vs a bot, replay (real round vs bot round on one clock, clone vs clone, recorded rounds) and proof. Run against the mock in a browser; bot positions from CS2 not yet seen | `match-service/demo/`, `match-service/match_service/replay.py` | 2026-11-14 |
 | Lobby page | Tom (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | Match page | Nikesh (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
@@ -170,6 +170,11 @@ Checked on 2026-11-14.
   clone's routes on route overlap on every side for both players, and on position overlap except
   broky's T side (the same blind spot as the audit). This is a perfect-playback check on the files,
   not a bot in CS2. `clone-pipeline/tests/test_ingame.py`; 16 pipeline tests pass.
+- In-game score endpoint and proof page (Ashirwad, 2026-11-14). `GET /matches/{id}/score?player=`
+  scores a mock match and a saved game-state trace in tests (51 match service and 17 pipeline
+  tests pass). In a browser against the mock, the proof page filled the clone column from a mock match (donk CT:
+  position 59%, route 38%, against a ceiling of 79% / 57%; marked mock) and showed an error for a
+  missing match id. Mock matches walk real routes, so these are not results.
 - Every GitHub repository in section 4 exists. Stars, licenses, and update dates come from GitHub.
 - The OpenCS2 counts in section 7 come from queries against its index tables.
 - The match service's cs2 backend, against a fake console and hand-written game state updates
@@ -791,8 +796,10 @@ of the replay.
   - *Bot vs bot*: starts donk vs broky and shows one live map panel per bot, plus score and events.
   - *Replay*: a bot's round from a match next to the real player's closest recorded round on the
     same side, on one clock; both bots in one round (10.4); and every recorded round.
-  - *Proof*: the clone files' ceiling numbers (player vs himself) and habits; in-game and baseline
-    columns empty until clones run in CS2.
+  - *Proof*: the clone files' ceiling numbers (player vs himself) and habits. The in-game and
+    baseline columns score a match picked from the list (or a saved match id) through
+    `GET /matches/{id}/score`; a match played with `CS2_BOTS=clone` belongs in the clone column and
+    `stand_in` in the baseline. The swap-test card shows Arjun's first run, which failed.
   - Disabled placeholder buttons mark what needs other pieces: first-person video, generated path,
     caster voice, match recording, the clone dashboard, CloneDirector's same-route run, swap test.
 - **Replay data behind them (`match_service/replay.py`).** Real rounds: the clone pipeline's route
@@ -862,7 +869,11 @@ Positions get area names from a lookup built from real Mirage recordings
 (`clone_pipeline/maps/de_mirage_places.json`). It prints the ceiling, the clone and a baseline bot
 side by side, with round counts. Two limits: a bot's route stops at 20 s or death, while a real
 route also stops at first damage; and time to first contact is not measured, since a trace has no
-damage events.
+damage events. The match service serves the same score as `GET /matches/{id}/score?player=<bot name
+or clone_id>` (`match_service/scoring.py` imports `ingame.py` from the repository; it needs only the
+standard library). `start-cs2.ps1` now saves traces to `data/traces/` (`TRACE_DIR`), so a match
+can be scored after the service stops; not yet run on Windows. Each trace now records `bots` (`stand_in` or `clone`), so a score says whether
+it measured a default bot or the clone.
 
 17 held-back rounds is a small sample. Show round counts next to every number.
 
@@ -1089,6 +1100,8 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-14, Ashirwad: added `GET /matches/{id}/score` (in-game similarity from a match trace) and filled the proof page's clone and default-bot columns from it; traces record `bots`; `start-cs2.ps1` saves traces to `data/traces/`; the proof page shows the failed first identity test. Tested against the mock only.
 
 - 2026-11-14, Arjun (Codex): verified the offline path exporter on the real A100 checkpoint (eight development examples / 24 predictions), checked its JSON and Matplotlib review figure, and preserved the artifacts in the experimental release. Updated obsolete not-run model/download statements; live clone gameplay and identity likeness remain unproven.
 

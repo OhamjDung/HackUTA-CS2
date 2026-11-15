@@ -11,8 +11,8 @@
 <main>
   <h1>Proof</h1>
   <p class="lead">SPEC.md section 10. The claim: the clone plays closer to the real player than a default bot
-    does. Today we can show the ceiling (how alike the player is to himself) and the habits each
-    clone carries. The in-game numbers need Arjun's clones running in CS2.</p>
+    does. The ceiling is how alike the player is to himself. The other two columns score a match the
+    service recorded: pick a match where the clone played, and one where a default bot played.</p>
 
   <div class="row" style="margin-bottom:14px">
     <label>Player<select id="clone"></select></label>
@@ -22,11 +22,15 @@
     <h2>Similarity to the real player <span class="muted small" id="held"></span></h2>
     <table id="sim"></table>
     <div class="row" style="margin-top:12px">
-      <button class="todo" disabled>Measure the clone in game (15+ rounds)</button>
-      <button class="todo" disabled>Measure a default bot (baseline)</button>
+      <label>Clone in game<select id="m-clone"></select></label>
+      <label>Default bot<select id="m-base"></select></label>
+      <label>or a saved match id<input id="m-id" placeholder="09a357d5a255" size="14"></label>
+      <button id="m-go">Score it</button>
     </div>
-    <p class="todo-note">Both need recorded bot rounds in CS2: the clone through CloneDirector, the baseline through a
-      default bot. The replay pages already collect bot positions per round; the same three measures run on them.</p>
+    <ul class="small muted" id="notes" style="margin:10px 0 0;padding-left:18px"></ul>
+    <p class="todo-note">A match counts when CS2 sent positions (someone at the PC spectates) for 15+ rounds.
+      Clone column: a match started with CS2_BOTS=clone. Default bot: CS2_BOTS=stand_in. Mock matches walk
+      real recorded routes, so they show how the page reads, not a result.</p>
   </div>
 
   <div class="grid two" style="margin-top:14px">
@@ -44,7 +48,9 @@
       <p class="muted small">SPEC.md 8.6: generate movement with donk's identity, then swap in broky's, and check the
         path changes toward broky's habits.</p>
       <button class="todo" disabled>Run the swap test</button>
-      <p class="todo-note">Needs Arjun's generating model (clone-model/).</p>
+      <p class="todo-note">First run on 2026-11-14 (Arjun, A100, 600 updates): both held-out identity tests
+        failed. Mean path error, own / other identity / no identity: donk 134 / 120 / 134, broky 100 / 106 / 93
+        (Source units, lower is better). No model was promoted, so the clones play from their profiles.</p>
     </div>
   </div>
 </main>
@@ -59,19 +65,68 @@ function bars(obj, n = 6) {
       <span class="small muted" style="text-align:right">${pct(v)}</span></div>`).join("") || `<p class="muted">No data.</p>`;
 }
 
-async function show(id) {
-  const c = await api(`/replay/clones/${id}`);
-  const sim = (c.similarity || {}).player_vs_self || {};
-  $("held").textContent = c.similarity ? `held-back match ${(c.similarity.held_back_matches || []).join(", ")}` : "";
+let clone = null, scores = { clone: null, base: null };
+
+function scoreCell(r, side, key) {
+  if (!r) return `<td class="muted">not measured</td>`;
+  const b = (r.held_back_vs_bot || {})[side];
+  if (!b || b[key] == null) return `<td class="muted">no rounds</td>`;
+  const v = key === "rounds" ? (b.rounds || []).join(" vs ") : pct(b[key]);
+  return `<td class="num">${esc(v)}${r.trace_source === "gsi" ? "" : ` <span class="muted small">(mock)</span>`}</td>`;
+}
+
+function table() {
+  const c = clone, sim = (c.similarity || {}).player_vs_self || {};
   const rows = [
-    ["Position overlap", s => pct(s.position_overlap)],
-    ["Route overlap", s => pct(s.route_overlap)],
-    ["Median seconds to first contact", s => (s.median_seconds_to_first_contact || []).join(" vs ")],
-    ["Rounds (building vs held back)", s => (s.rounds || []).join(" vs ")],
+    ["Position overlap", "position_overlap", s => pct(s.position_overlap)],
+    ["Route overlap", "route_overlap", s => pct(s.route_overlap)],
+    ["Median seconds to first contact", null, s => (s.median_seconds_to_first_contact || []).join(" vs ")],
+    ["Rounds (other vs held back; held back vs bot)", "rounds", s => (s.rounds || []).join(" vs ")],
   ];
   $("sim").innerHTML = `<tr><th>Measure</th><th>Side</th><th>${esc(c.display_name)} vs himself (ceiling)</th><th>Clone in game</th><th>Default bot</th></tr>`
-    + rows.flatMap(([name, f]) => ["T", "CT"].map(side => `<tr><td>${name}</td><td class="${side === "CT" ? "ct" : "t"}">${side}</td>
-        <td class="num">${sim[side] ? esc(f(sim[side])) : "—"}</td><td class="muted">not measured</td><td class="muted">not measured</td></tr>`)).join("");
+    + rows.flatMap(([name, key, f]) => ["T", "CT"].map(side => `<tr><td>${name}</td><td class="${side === "CT" ? "ct" : "t"}">${side}</td>
+        <td class="num">${sim[side] ? esc(f(sim[side])) : "—"}</td>
+        ${key ? scoreCell(scores.clone, side, key) + scoreCell(scores.base, side, key) : `<td class="muted" colspan="2">not measured from game state</td>`}</tr>`)).join("");
+  const notes = [];
+  for (const [col, r, want] of [["Clone in game", scores.clone, "clone"], ["Default bot", scores.base, "stand_in"]]) {
+    if (!r) continue;
+    notes.push(`${col}: match ${r.match_id} (${r.trace_source}${r.bots ? `, bots ${r.bots}` : ""}) vs held-back match ${r.reference.match_id}.`);
+    if (r.bots && r.bots !== want) notes.push(`${col}: this match was played with bots=${r.bots}, not ${want}.`);
+  }
+  const any = scores.clone || scores.base;
+  $("notes").innerHTML = notes.concat(any ? any.notes : []).map(n => `<li>${esc(n)}</li>`).join("");
+}
+
+async function scoreMatch(matchId) {
+  if (!matchId) return null;
+  try { return await api(`/matches/${encodeURIComponent(matchId)}/score?player=${encodeURIComponent(clone.clone_id)}`); }
+  catch (e) { return { error: String(e.message || e), match_id: matchId }; }
+}
+
+async function scoreAll() {
+  const typed = $("m-id").value.trim();
+  const [a, b] = await Promise.all([scoreMatch(typed || $("m-clone").value), scoreMatch($("m-base").value)]);
+  const errors = [a, b].filter(r => r && r.error);
+  scores.clone = a && !a.error ? a : null;
+  scores.base = b && !b.error ? b : null;
+  // A typed match id goes to whichever column its bots belong to.
+  if (typed && scores.clone && scores.clone.bots === "stand_in" && !$("m-base").value) [scores.clone, scores.base] = [null, scores.clone];
+  table();
+  if (errors.length) $("notes").innerHTML += errors.map(e => `<li class="t">Match ${esc(e.match_id)}: ${esc(e.error)}</li>`).join("");
+}
+
+async function fillMatches() {
+  const list = (await api("/matches").catch(() => [])).filter(m => m.has_trace);
+  const opts = list.map(m => `<option value="${esc(m.match_id)}">${esc(m.match_id)} · ${esc(m.players.join(", "))} · ${m.score.CT}-${m.score.T}</option>`).join("");
+  for (const id of ["m-clone", "m-base"]) $(id).innerHTML = `<option value="">none</option>` + opts;
+  if (list.length) $("m-clone").value = list[0].match_id;
+}
+
+async function show(id) {
+  const c = clone = await api(`/replay/clones/${id}`);
+  scores = { clone: null, base: null };
+  $("held").textContent = c.similarity ? `held-back match ${(c.similarity.held_back_matches || []).join(", ")}` : "";
+  table();
   $("routes").innerHTML = ["T", "CT"].map(s => `<h2 class="${s === "CT" ? "ct" : "t"}" style="font-size:14px">${s} · ${(c.rounds || {})[s] ?? "?"} rounds</h2>${bars((c.route_shares || {})[s])}`).join("");
   $("positions").innerHTML = ["T", "CT"].map(s => `<h2 class="${s === "CT" ? "ct" : "t"}" style="font-size:14px">${s}</h2>${bars((c.positions || {})[s])}`).join("");
   $("habits").innerHTML = [
@@ -80,14 +135,17 @@ async function show(id) {
     ["Aggression (0–1)", c.aggression],
     ["Aim skill (0–1)", c.aim_skill],
     ["Reaction time", c.reaction_ms == null ? "not measured" : `${c.reaction_ms} ms`],
-    ["Learned model", c.model || "not yet (Arjun)"],
+    ["Learned model", c.model || "none promoted (first run failed the identity tests)"],
   ].map(([k, v]) => `<tr><th>${k}</th><td>${esc(v)}</td></tr>`).join("");
+  if ($("m-clone").value || $("m-base").value) scoreAll();
 }
 
 (async () => {
   const list = await api("/replay/clones").catch(() => []);
   $("clone").innerHTML = list.map(c => `<option value="${esc(c.clone_id)}">${esc(c.display_name)}</option>`).join("");
   $("clone").onchange = e => show(e.target.value);
+  $("m-go").onclick = scoreAll;
+  await fillMatches();
   if (!list.length) return;
   const first = list.some(c => c.clone_id === "donk_v1") ? "donk_v1" : list[0].clone_id;
   $("clone").value = first;

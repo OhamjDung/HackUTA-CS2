@@ -175,12 +175,15 @@ $env:CS2_CONSOLE_PASSWORD = $ConsolePassword
 $env:GSI_TOKEN = $Token
 $env:CS2_DEMO_DIR = $csgo
 $env:CS2_RECORD = $Record
+# Keep each match's position trace after the service stops (data\ is git-ignored).
+$env:TRACE_DIR = Join-Path (Split-Path -Parent $here) "data\traces"
 $env:PUBLIC_URL = "http://localhost:$Port"
 
 Write-Host ""
 Write-Host "Starting the match service. Check the connection at  http://localhost:$Port/health" -ForegroundColor Green
 Write-Host "API docs: http://localhost:$Port/docs    Stop with Ctrl+C."
 Write-Host "Recording: $Record"
+Write-Host "Match traces saved to: $env:TRACE_DIR"
 Set-Location $here
 uv sync
 if ($Listen -ne "127.0.0.1") {

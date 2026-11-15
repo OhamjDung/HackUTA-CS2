@@ -84,7 +84,7 @@ class Cs2Backend:
     def start(self, record: MatchRecord, clones: dict[str, Clone]) -> None:
         self.current = record
         self.started = False
-        record.trace = Trace(record.match.match_id, record.match.map, "gsi")
+        record.trace = Trace(record.match.match_id, record.match.map, "gsi", self.s.cs2_bots)
         self._round_live: int | None = None
         self._round_t0 = 0.0
         # CloneDirector names the bot after the personality: stand_in_bot, else display_name.

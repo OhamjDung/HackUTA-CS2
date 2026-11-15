@@ -125,8 +125,9 @@ class Trace:
 
     MAX_SECONDS = 120.0
 
-    def __init__(self, match_id: str, map_name: str, source: str):
+    def __init__(self, match_id: str, map_name: str, source: str, bots: str | None = None):
         self.match_id, self.map, self.source = match_id, map_name, source
+        self.bots = bots  # who played the clones: "stand_in" (default bots) or "clone" (CloneDirector)
         self.rounds: dict[int, dict[str, dict]] = {}
         self.reveal: dict[int, tuple[float, float]] = {}  # round -> (wall start, wall seconds), mock only
         self.live_round: int | None = None
@@ -160,7 +161,7 @@ class Trace:
                 players.append({"name": name, "team": p["team"], "clone_id": p["clone_id"],
                                 "died_at": p["died_at"], "path": path})
             rounds.append({"round": n, "players": players})
-        return {"match_id": self.match_id, "map": self.map, "source": self.source,
+        return {"match_id": self.match_id, "map": self.map, "source": self.source, "bots": self.bots,
                 "live_round": self.live_round, "rounds": rounds}
 
     def save(self, folder: Path) -> None:

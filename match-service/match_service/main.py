@@ -24,6 +24,7 @@ from .console import ConsoleChannel, NetconChannel, PluginChannel, RconChannel
 from .core import MatchRecord, Settings, load_clones, now
 from .models import TEAM_SIZE, Clone, Event, Match, MatchCreate, MatchPlayer
 from .replay import RouteLibrary
+from .scoring import ScoringUnavailable, score_player
 
 DEMO_DIR = Path(__file__).resolve().parent.parent / "demo"
 
@@ -231,6 +232,25 @@ def create_app(settings: Settings | None = None, channel: ConsoleChannel | None 
         real = library.closest(bot["clone_id"], bot["team"], bot["path"]) if bot["clone_id"] else None
         return {"match_id": match_id, "round": round, "source": trace["source"], "bot": bot, "real": real,
                 "note": None if real else "No recorded rounds for this player on this side"}
+
+    @app.get("/matches/{match_id}/score")
+    async def score(match_id: str, player: str):
+        """How close one clone's rounds in this match are to the real player (SPEC 10.2).
+
+        `player` is the bot's name or clone_id in the trace. The result compares the trace with
+        the real player's held-back match; `ceiling` is the real player against himself. A trace
+        with `bots: "stand_in"` measures a default bot (the baseline), `"clone"` the clone.
+        """
+        trace = trace_json(match_id)
+        found = next((p for r in trace["rounds"] for p in r["players"]
+                      if player in (p["name"], p.get("clone_id"))), None)
+        if not found:
+            raise HTTPException(404, f"No player {player!r} in match {match_id}")
+        profile = library.profile(found["clone_id"]) if found.get("clone_id") else None
+        try:
+            return score_player(trace, found, profile)
+        except ScoringUnavailable as exc:
+            raise HTTPException(503, str(exc))
 
     @app.get("/replay/clones")
     async def replay_clones():
