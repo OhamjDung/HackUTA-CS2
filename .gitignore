@@ -2,3 +2,16 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Large files and secrets: never commit these (see AGENTS.md section 4)
+*.dem
+*.pt
+*.safetensors
+*.onnx
+*.mp4
+*.parquet
+*.vpk
+.env
+.env.*
+data/
+checkpoints/
