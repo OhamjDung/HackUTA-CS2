@@ -1,0 +1,11 @@
+{
+  "clone_id": "pro_awper_v1",
+  "display_name": "Pro AWPer (sample)",
+  "source": "pro",
+  "reaction_ms": 180,
+  "aim_skill": 0.92,
+  "aggression": 0.35,
+  "weapons": ["awp", "ak47", "m4a1_silencer"],
+  "positions": {},
+  "model": null
+}

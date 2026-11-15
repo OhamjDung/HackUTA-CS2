@@ -1,0 +1,11 @@
+{
+  "clone_id": "ash_v1",
+  "display_name": "Ash",
+  "source": "user",
+  "reaction_ms": 240,
+  "aim_skill": 0.55,
+  "aggression": 0.7,
+  "weapons": ["ak47", "m4a1_silencer", "galilar"],
+  "positions": {},
+  "model": null
+}

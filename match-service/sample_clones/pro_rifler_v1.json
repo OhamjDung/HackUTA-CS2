@@ -1,0 +1,11 @@
+{
+  "clone_id": "pro_rifler_v1",
+  "display_name": "Pro Rifler (sample)",
+  "source": "pro",
+  "reaction_ms": 170,
+  "aim_skill": 0.9,
+  "aggression": 0.6,
+  "weapons": ["ak47", "m4a1_silencer"],
+  "positions": {},
+  "model": null
+}
