@@ -1,0 +1,17 @@
+[project]
+name = "clone-pipeline"
+version = "0.1.0"
+description = "Match recordings in, clone files out: habits, routes, and bot files for one player"
+requires-python = ">=3.11"
+dependencies = [
+    "demoparser2>=0.40",
+    "pandas>=2.2",
+    "numpy>=2.0",
+    "brotli>=1.1",
+]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.uv]
+package = false

@@ -1,0 +1,2462 @@
+[
+ {
+  "match_id": "2393226",
+  "round": 2,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 17.77,
+  "position": [
+   -1180.4,
+   -1405.8,
+   -164.1
+  ],
+  "pitch": -12.51,
+  "yaw": -11.79
+ },
+ {
+  "match_id": "2393226",
+  "round": 2,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "Jungle",
+  "seconds_into_round": 19.86,
+  "position": [
+   -984.3,
+   -1397.6,
+   -167.1
+  ],
+  "pitch": -16.31,
+  "yaw": -37.04
+ },
+ {
+  "match_id": "2393226",
+  "round": 3,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 11.3,
+  "position": [
+   -1091.2,
+   -1527.9,
+   -151.7
+  ],
+  "pitch": 12.98,
+  "yaw": -2.56
+ },
+ {
+  "match_id": "2393226",
+  "round": 3,
+  "side": "CT",
+  "type": "flashbang",
+  "place": "Jungle",
+  "seconds_into_round": 12.83,
+  "position": [
+   -1100.3,
+   -1527.9,
+   -159.9
+  ],
+  "pitch": 12.98,
+  "yaw": -2.56
+ },
+ {
+  "match_id": "2393226",
+  "round": 3,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "SnipersNest",
+  "seconds_into_round": 21.19,
+  "position": [
+   -1194.1,
+   -642.7,
+   -168.0
+  ],
+  "pitch": -22.0,
+  "yaw": -0.14
+ },
+ {
+  "match_id": "2393226",
+  "round": 3,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "SnipersNest",
+  "seconds_into_round": 29.39,
+  "position": [
+   -1193.7,
+   -966.1,
+   -168.0
+  ],
+  "pitch": -0.91,
+  "yaw": 76.48
+ },
+ {
+  "match_id": "2393226",
+  "round": 3,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 34.31,
+  "position": [
+   -1246.2,
+   -1483.9,
+   -154.5
+  ],
+  "pitch": 5.66,
+  "yaw": 18.98
+ },
+ {
+  "match_id": "2393226",
+  "round": 3,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "BombsiteB",
+  "seconds_into_round": 77.45,
+  "position": [
+   -2537.0,
+   296.1,
+   -168.0
+  ],
+  "pitch": -13.45,
+  "yaw": 35.15
+ },
+ {
+  "match_id": "2393226",
+  "round": 4,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "SnipersNest",
+  "seconds_into_round": 10.91,
+  "position": [
+   -1128.9,
+   -693.4,
+   -165.9
+  ],
+  "pitch": 12.65,
+  "yaw": 13.55
+ },
+ {
+  "match_id": "2393226",
+  "round": 4,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 15.33,
+  "position": [
+   -1173.1,
+   -1302.4,
+   -168.0
+  ],
+  "pitch": -15.37,
+  "yaw": -35.4
+ },
+ {
+  "match_id": "2393226",
+  "round": 4,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 16.52,
+  "position": [
+   -1069.5,
+   -1517.9,
+   -161.8
+  ],
+  "pitch": -15.35,
+  "yaw": -2.75
+ },
+ {
+  "match_id": "2393226",
+  "round": 4,
+  "side": "CT",
+  "type": "flashbang",
+  "place": "CTSpawn",
+  "seconds_into_round": 22.67,
+  "position": [
+   -1622.8,
+   -1417.7,
+   -264.5
+  ],
+  "pitch": -56.24,
+  "yaw": -73.02
+ },
+ {
+  "match_id": "2393226",
+  "round": 4,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 26.03,
+  "position": [
+   -1563.3,
+   -2161.7,
+   -253.3
+  ],
+  "pitch": -6.24,
+  "yaw": -21.78
+ },
+ {
+  "match_id": "2393226",
+  "round": 6,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "Shop",
+  "seconds_into_round": 28.38,
+  "position": [
+   -1729.2,
+   -666.5,
+   -168.0
+  ],
+  "pitch": -5.64,
+  "yaw": 117.84
+ },
+ {
+  "match_id": "2393226",
+  "round": 7,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "BombsiteA",
+  "seconds_into_round": 9.28,
+  "position": [
+   -724.9,
+   -1306.0,
+   -168.0
+  ],
+  "pitch": 2.53,
+  "yaw": 84.48
+ },
+ {
+  "match_id": "2393226",
+  "round": 7,
+  "side": "CT",
+  "type": "flashbang",
+  "place": "Jungle",
+  "seconds_into_round": 17.75,
+  "position": [
+   -1098.7,
+   -1527.9,
+   -159.9
+  ],
+  "pitch": 12.98,
+  "yaw": -2.72
+ },
+ {
+  "match_id": "2393226",
+  "round": 9,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "BombsiteA",
+  "seconds_into_round": 9.17,
+  "position": [
+   -717.3,
+   -1306.1,
+   -168.0
+  ],
+  "pitch": 2.67,
+  "yaw": 85.45
+ },
+ {
+  "match_id": "2393226",
+  "round": 10,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "Underpass",
+  "seconds_into_round": 7.58,
+  "position": [
+   -1053.7,
+   -454.9,
+   -264.0
+  ],
+  "pitch": 42.46,
+  "yaw": 82.23
+ },
+ {
+  "match_id": "2393226",
+  "round": 10,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "Underpass",
+  "seconds_into_round": 12.78,
+  "position": [
+   -1072.0,
+   -406.7,
+   -247.2
+  ],
+  "pitch": 6.1,
+  "yaw": -3.27
+ },
+ {
+  "match_id": "2393226",
+  "round": 11,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 3.97,
+  "position": [
+   -870.4,
+   -2323.4,
+   -169.3
+  ],
+  "pitch": -13.01,
+  "yaw": 37.87
+ },
+ {
+  "match_id": "2393226",
+  "round": 11,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "BombsiteA",
+  "seconds_into_round": 16.47,
+  "position": [
+   -608.7,
+   -1309.1,
+   -168.0
+  ],
+  "pitch": 2.89,
+  "yaw": 93.25
+ },
+ {
+  "match_id": "2393226",
+  "round": 12,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "SnipersNest",
+  "seconds_into_round": 9.81,
+  "position": [
+   -1178.5,
+   -628.0,
+   -168.0
+  ],
+  "pitch": -21.92,
+  "yaw": -0.25
+ },
+ {
+  "match_id": "2393226",
+  "round": 12,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "BombsiteA",
+  "seconds_into_round": 22.2,
+  "position": [
+   -736.8,
+   -1353.0,
+   -168.0
+  ],
+  "pitch": 13.71,
+  "yaw": 71.27
+ },
+ {
+  "match_id": "2393226",
+  "round": 12,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 36.98,
+  "position": [
+   -1173.5,
+   -866.8,
+   -168.0
+  ],
+  "pitch": -11.06,
+  "yaw": 70.26
+ },
+ {
+  "match_id": "2393226",
+  "round": 14,
+  "side": "T",
+  "type": "smokegrenade",
+  "place": "TSpawn",
+  "seconds_into_round": 0.31,
+  "position": [
+   1294.3,
+   -352.2,
+   -153.1
+  ],
+  "pitch": -42.57,
+  "yaw": -174.14
+ },
+ {
+  "match_id": "2393226",
+  "round": 14,
+  "side": "T",
+  "type": "smokegrenade",
+  "place": "TSpawn",
+  "seconds_into_round": 3.53,
+  "position": [
+   1423.0,
+   36.5,
+   -154.7
+  ],
+  "pitch": -19.0,
+  "yaw": -157.75
+ },
+ {
+  "match_id": "2393226",
+  "round": 14,
+  "side": "T",
+  "type": "flashbang",
+  "place": "SideAlley",
+  "seconds_into_round": 9.19,
+  "position": [
+   615.4,
+   575.5,
+   -121.0
+  ],
+  "pitch": -4.07,
+  "yaw": -137.87
+ },
+ {
+  "match_id": "2393226",
+  "round": 15,
+  "side": "T",
+  "type": "smokegrenade",
+  "place": "TSpawn",
+  "seconds_into_round": 0.55,
+  "position": [
+   1294.9,
+   31.7,
+   -156.9
+  ],
+  "pitch": -29.12,
+  "yaw": -165.92
+ },
+ {
+  "match_id": "2393226",
+  "round": 17,
+  "side": "T",
+  "type": "molotov",
+  "place": "TopofMid",
+  "seconds_into_round": 6.88,
+  "position": [
+   310.8,
+   -144.0,
+   -165.5
+  ],
+  "pitch": -2.7,
+  "yaw": -145.09
+ },
+ {
+  "match_id": "2393226",
+  "round": 17,
+  "side": "T",
+  "type": "flashbang",
+  "place": "TopofMid",
+  "seconds_into_round": 32.28,
+  "position": [
+   499.7,
+   -680.0,
+   -160.1
+  ],
+  "pitch": -11.19,
+  "yaw": 163.4
+ },
+ {
+  "match_id": "2393226",
+  "round": 17,
+  "side": "T",
+  "type": "smokegrenade",
+  "place": "TopofMid",
+  "seconds_into_round": 58.81,
+  "position": [
+   453.3,
+   -653.3,
+   -160.0
+  ],
+  "pitch": -13.72,
+  "yaw": 178.97
+ },
+ {
+  "match_id": "2393226",
+  "round": 18,
+  "side": "T",
+  "type": "molotov",
+  "place": "TopofMid",
+  "seconds_into_round": 8.42,
+  "position": [
+   322.6,
+   -160.2,
+   -166.5
+  ],
+  "pitch": -3.58,
+  "yaw": -151.57
+ },
+ {
+  "match_id": "2393226",
+  "round": 18,
+  "side": "T",
+  "type": "smokegrenade",
+  "place": "TopofMid",
+  "seconds_into_round": 31.56,
+  "position": [
+   444.3,
+   -639.5,
+   -160.0
+  ],
+  "pitch": -13.78,
+  "yaw": 179.28
+ },
+ {
+  "match_id": "2393232",
+  "round": 3,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "BombsiteA",
+  "seconds_into_round": 11.16,
+  "position": [
+   -721.6,
+   -1306.1,
+   -168.0
+  ],
+  "pitch": 2.67,
+  "yaw": 84.79
+ },
+ {
+  "match_id": "2393232",
+  "round": 3,
+  "side": "CT",
+  "type": "flashbang",
+  "place": "Jungle",
+  "seconds_into_round": 24.41,
+  "position": [
+   -1081.8,
+   -1527.9,
+   -152.7
+  ],
+  "pitch": 12.95,
+  "yaw": -2.33
+ },
+ {
+  "match_id": "2393232",
+  "round": 3,
+  "side": "CT",
+  "type": "flashbang",
+  "place": "Jungle",
+  "seconds_into_round": 33.0,
+  "position": [
+   -1098.7,
+   -1527.9,
+   -159.9
+  ],
+  "pitch": 12.93,
+  "yaw": -2.46
+ },
+ {
+  "match_id": "2393232",
+  "round": 3,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 38.95,
+  "position": [
+   -1247.9,
+   -1020.6,
+   -168.0
+  ],
+  "pitch": -0.83,
+  "yaw": 67.66
+ },
+ {
+  "match_id": "2393232",
+  "round": 6,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "BombsiteA",
+  "seconds_into_round": 26.12,
+  "position": [
+   -738.9,
+   -1360.0,
+   -168.0
+  ],
+  "pitch": 13.23,
+  "yaw": 72.0
+ },
+ {
+  "match_id": "2393232",
+  "round": 7,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "BombsiteB",
+  "seconds_into_round": 41.89,
+  "position": [
+   -1797.3,
+   486.5,
+   -165.7
+  ],
+  "pitch": -18.97,
+  "yaw": 44.41
+ },
+ {
+  "match_id": "2393232",
+  "round": 9,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "SnipersNest",
+  "seconds_into_round": 14.08,
+  "position": [
+   -1184.0,
+   -456.2,
+   -168.0
+  ],
+  "pitch": -89.0,
+  "yaw": -1.01
+ },
+ {
+  "match_id": "2393232",
+  "round": 11,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 3.94,
+  "position": [
+   -878.1,
+   -2317.7,
+   -168.9
+  ],
+  "pitch": -12.87,
+  "yaw": 38.0
+ },
+ {
+  "match_id": "2393232",
+  "round": 11,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "Connector",
+  "seconds_into_round": 16.22,
+  "position": [
+   -538.2,
+   -1035.7,
+   -168.0
+  ],
+  "pitch": 15.56,
+  "yaw": 128.56
+ },
+ {
+  "match_id": "2393232",
+  "round": 11,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "Jungle",
+  "seconds_into_round": 43.62,
+  "position": [
+   -804.6,
+   -1319.2,
+   -168.0
+  ],
+  "pitch": -17.93,
+  "yaw": -44.53
+ },
+ {
+  "match_id": "2393232",
+  "round": 11,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "TRamp",
+  "seconds_into_round": 101.94,
+  "position": [
+   284.0,
+   -1592.4,
+   -176.0
+  ],
+  "pitch": -14.58,
+  "yaw": -178.62
+ },
+ {
+  "match_id": "2393232",
+  "round": 14,
+  "side": "T",
+  "type": "flashbang",
+  "place": "SideAlley",
+  "seconds_into_round": 7.42,
+  "position": [
+   375.2,
+   76.1,
+   -221.1
+  ],
+  "pitch": -1.38,
+  "yaw": -124.87
+ },
+ {
+  "match_id": "2393232",
+  "round": 14,
+  "side": "T",
+  "type": "molotov",
+  "place": "TopofMid",
+  "seconds_into_round": 9.2,
+  "position": [
+   176.1,
+   -230.7,
+   -152.0
+  ],
+  "pitch": -9.3,
+  "yaw": -144.83
+ },
+ {
+  "match_id": "2393232",
+  "round": 14,
+  "side": "T",
+  "type": "smokegrenade",
+  "place": "TopofMid",
+  "seconds_into_round": 51.53,
+  "position": [
+   440.1,
+   -648.2,
+   -160.0
+  ],
+  "pitch": -13.81,
+  "yaw": 179.09
+ },
+ {
+  "match_id": "2393232",
+  "round": 15,
+  "side": "T",
+  "type": "molotov",
+  "place": "TopofMid",
+  "seconds_into_round": 29.3,
+  "position": [
+   445.0,
+   -653.9,
+   -160.0
+  ],
+  "pitch": -13.91,
+  "yaw": 178.84
+ },
+ {
+  "match_id": "2393232",
+  "round": 15,
+  "side": "T",
+  "type": "flashbang",
+  "place": "TopofMid",
+  "seconds_into_round": 35.75,
+  "position": [
+   409.1,
+   -644.5,
+   -166.0
+  ],
+  "pitch": -55.22,
+  "yaw": 60.43
+ },
+ {
+  "match_id": "2393232",
+  "round": 15,
+  "side": "T",
+  "type": "smokegrenade",
+  "place": "TopofMid",
+  "seconds_into_round": 38.03,
+  "position": [
+   26.5,
+   -419.9,
+   -176.0
+  ],
+  "pitch": -7.07,
+  "yaw": -171.01
+ },
+ {
+  "match_id": "2393232",
+  "round": 16,
+  "side": "T",
+  "type": "molotov",
+  "place": "TopofMid",
+  "seconds_into_round": 8.06,
+  "position": [
+   324.4,
+   -139.3,
+   -165.5
+  ],
+  "pitch": -3.11,
+  "yaw": -145.33
+ },
+ {
+  "match_id": "2393232",
+  "round": 16,
+  "side": "T",
+  "type": "flashbang",
+  "place": "TopofMid",
+  "seconds_into_round": 10.23,
+  "position": [
+   334.7,
+   -6.7,
+   -201.5
+  ],
+  "pitch": 1.1,
+  "yaw": -119.01
+ },
+ {
+  "match_id": "2393232",
+  "round": 16,
+  "side": "T",
+  "type": "hegrenade",
+  "place": "TopofMid",
+  "seconds_into_round": 21.97,
+  "position": [
+   473.7,
+   -695.2,
+   -160.2
+  ],
+  "pitch": -7.62,
+  "yaw": 162.1
+ },
+ {
+  "match_id": "2393232",
+  "round": 16,
+  "side": "T",
+  "type": "smokegrenade",
+  "place": "TopofMid",
+  "seconds_into_round": 51.14,
+  "position": [
+   445.6,
+   -648.7,
+   -160.0
+  ],
+  "pitch": -13.81,
+  "yaw": 179.31
+ },
+ {
+  "match_id": "2393232",
+  "round": 17,
+  "side": "T",
+  "type": "molotov",
+  "place": "TopofMid",
+  "seconds_into_round": 7.67,
+  "position": [
+   334.5,
+   -165.0,
+   -167.7
+  ],
+  "pitch": -5.66,
+  "yaw": -152.01
+ },
+ {
+  "match_id": "2393232",
+  "round": 17,
+  "side": "T",
+  "type": "hegrenade",
+  "place": "TopofMid",
+  "seconds_into_round": 8.94,
+  "position": [
+   269.8,
+   -105.7,
+   -170.9
+  ],
+  "pitch": 4.48,
+  "yaw": -125.97
+ },
+ {
+  "match_id": "2393232",
+  "round": 17,
+  "side": "T",
+  "type": "smokegrenade",
+  "place": "TSpawn",
+  "seconds_into_round": 36.91,
+  "position": [
+   1385.4,
+   70.9,
+   -144.9
+  ],
+  "pitch": -29.09,
+  "yaw": -163.97
+ },
+ {
+  "match_id": "2393232",
+  "round": 18,
+  "side": "T",
+  "type": "molotov",
+  "place": "TopofMid",
+  "seconds_into_round": 7.55,
+  "position": [
+   333.9,
+   -139.2,
+   -165.5
+  ],
+  "pitch": -3.38,
+  "yaw": -145.47
+ },
+ {
+  "match_id": "2393232",
+  "round": 18,
+  "side": "T",
+  "type": "flashbang",
+  "place": "TopofMid",
+  "seconds_into_round": 9.31,
+  "position": [
+   275.7,
+   -51.5,
+   -186.6
+  ],
+  "pitch": 2.89,
+  "yaw": -117.14
+ },
+ {
+  "match_id": "2393232",
+  "round": 20,
+  "side": "T",
+  "type": "molotov",
+  "place": "TopofMid",
+  "seconds_into_round": 8.06,
+  "position": [
+   378.9,
+   -99.2,
+   -173.1
+  ],
+  "pitch": -2.2,
+  "yaw": -146.1
+ },
+ {
+  "match_id": "2393232",
+  "round": 20,
+  "side": "T",
+  "type": "smokegrenade",
+  "place": "Middle",
+  "seconds_into_round": 45.47,
+  "position": [
+   -692.2,
+   -876.8,
+   -245.6
+  ],
+  "pitch": 1.4,
+  "yaw": -67.39
+ },
+ {
+  "match_id": "2393232",
+  "round": 21,
+  "side": "T",
+  "type": "smokegrenade",
+  "place": "TSpawn",
+  "seconds_into_round": 0.3,
+  "position": [
+   1214.6,
+   -211.2,
+   -152.1
+  ],
+  "pitch": -46.09,
+  "yaw": -170.21
+ },
+ {
+  "match_id": "2393232",
+  "round": 21,
+  "side": "T",
+  "type": "smokegrenade",
+  "place": "Middle",
+  "seconds_into_round": 41.94,
+  "position": [
+   -457.4,
+   -546.6,
+   -274.0
+  ],
+  "pitch": -9.02,
+  "yaw": -122.64
+ },
+ {
+  "match_id": "2393232",
+  "round": 21,
+  "side": "T",
+  "type": "flashbang",
+  "place": "Middle",
+  "seconds_into_round": 68.72,
+  "position": [
+   -376.9,
+   -574.0,
+   -268.2
+  ],
+  "pitch": -36.33,
+  "yaw": -88.51
+ },
+ {
+  "match_id": "2393232",
+  "round": 21,
+  "side": "T",
+  "type": "molotov",
+  "place": "Middle",
+  "seconds_into_round": 70.52,
+  "position": [
+   -499.4,
+   -783.6,
+   -256.6
+  ],
+  "pitch": -20.19,
+  "yaw": 112.21
+ },
+ {
+  "match_id": "2393232",
+  "round": 21,
+  "side": "T",
+  "type": "hegrenade",
+  "place": "Connector",
+  "seconds_into_round": 84.16,
+  "position": [
+   -768.8,
+   -1306.1,
+   -168.0
+  ],
+  "pitch": -6.19,
+  "yaw": -135.38
+ },
+ {
+  "match_id": "2393237",
+  "round": 1,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "BombsiteB",
+  "seconds_into_round": 51.09,
+  "position": [
+   -1864.5,
+   -43.2,
+   -165.7
+  ],
+  "pitch": -14.38,
+  "yaw": 72.55
+ },
+ {
+  "match_id": "2393237",
+  "round": 3,
+  "side": "CT",
+  "type": "flashbang",
+  "place": "Connector",
+  "seconds_into_round": 10.67,
+  "position": [
+   -622.8,
+   -1220.2,
+   -168.0
+  ],
+  "pitch": 9.93,
+  "yaw": 101.81
+ },
+ {
+  "match_id": "2393237",
+  "round": 3,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "Connector",
+  "seconds_into_round": 12.67,
+  "position": [
+   -708.7,
+   -887.7,
+   -240.1
+  ],
+  "pitch": -8.91,
+  "yaw": 43.89
+ },
+ {
+  "match_id": "2393237",
+  "round": 3,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "Middle",
+  "seconds_into_round": 20.7,
+  "position": [
+   -615.0,
+   -914.7,
+   -226.6
+  ],
+  "pitch": 9.3,
+  "yaw": 131.78
+ },
+ {
+  "match_id": "2393237",
+  "round": 3,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "Middle",
+  "seconds_into_round": 47.75,
+  "position": [
+   -518.7,
+   -692.1,
+   -270.2
+  ],
+  "pitch": 7.32,
+  "yaw": 162.82
+ },
+ {
+  "match_id": "2393237",
+  "round": 4,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "BombsiteA",
+  "seconds_into_round": 16.17,
+  "position": [
+   -742.6,
+   -1377.9,
+   -168.0
+  ],
+  "pitch": 11.36,
+  "yaw": 71.26
+ },
+ {
+  "match_id": "2393237",
+  "round": 4,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 22.53,
+  "position": [
+   -1402.4,
+   -1005.4,
+   -168.0
+  ],
+  "pitch": 11.08,
+  "yaw": 29.24
+ },
+ {
+  "match_id": "2393237",
+  "round": 4,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 44.25,
+  "position": [
+   -1032.2,
+   -2485.8,
+   -168.0
+  ],
+  "pitch": -15.84,
+  "yaw": 47.37
+ },
+ {
+  "match_id": "2393237",
+  "round": 5,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "Jungle",
+  "seconds_into_round": 11.08,
+  "position": [
+   -996.6,
+   -1527.9,
+   -142.8
+  ],
+  "pitch": 12.98,
+  "yaw": -2.53
+ },
+ {
+  "match_id": "2393237",
+  "round": 5,
+  "side": "CT",
+  "type": "flashbang",
+  "place": "Jungle",
+  "seconds_into_round": 14.75,
+  "position": [
+   -1089.7,
+   -1527.9,
+   -160.3
+  ],
+  "pitch": 12.98,
+  "yaw": -2.53
+ },
+ {
+  "match_id": "2393237",
+  "round": 5,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "BombsiteA",
+  "seconds_into_round": 31.91,
+  "position": [
+   -739.5,
+   -1353.0,
+   -168.0
+  ],
+  "pitch": 12.9,
+  "yaw": 70.76
+ },
+ {
+  "match_id": "2393237",
+  "round": 5,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 47.8,
+  "position": [
+   -1077.6,
+   -1515.6,
+   -161.6
+  ],
+  "pitch": -10.48,
+  "yaw": -1.18
+ },
+ {
+  "match_id": "2393237",
+  "round": 6,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "SnipersNest",
+  "seconds_into_round": 16.62,
+  "position": [
+   -1183.9,
+   -456.5,
+   -168.0
+  ],
+  "pitch": -89.0,
+  "yaw": 7.4
+ },
+ {
+  "match_id": "2393237",
+  "round": 7,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "SnipersNest",
+  "seconds_into_round": 11.77,
+  "position": [
+   -1159.7,
+   -640.4,
+   -168.0
+  ],
+  "pitch": -18.23,
+  "yaw": -0.74
+ },
+ {
+  "match_id": "2393237",
+  "round": 7,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "SnipersNest",
+  "seconds_into_round": 13.38,
+  "position": [
+   -1183.9,
+   -805.5,
+   -168.0
+  ],
+  "pitch": -89.0,
+  "yaw": -177.2
+ },
+ {
+  "match_id": "2393237",
+  "round": 7,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 21.67,
+  "position": [
+   -1124.0,
+   -1346.5,
+   -167.3
+  ],
+  "pitch": -16.35,
+  "yaw": -34.89
+ },
+ {
+  "match_id": "2393237",
+  "round": 8,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "SnipersNest",
+  "seconds_into_round": 9.8,
+  "position": [
+   -1184.7,
+   -617.9,
+   -168.0
+  ],
+  "pitch": -21.95,
+  "yaw": -0.11
+ },
+ {
+  "match_id": "2393237",
+  "round": 8,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "SnipersNest",
+  "seconds_into_round": 12.81,
+  "position": [
+   -1184.0,
+   -456.2,
+   -168.0
+  ],
+  "pitch": -89.0,
+  "yaw": -1.04
+ },
+ {
+  "match_id": "2393237",
+  "round": 8,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "Jungle",
+  "seconds_into_round": 22.61,
+  "position": [
+   -791.8,
+   -1333.1,
+   -168.0
+  ],
+  "pitch": -15.93,
+  "yaw": -46.31
+ },
+ {
+  "match_id": "2393237",
+  "round": 8,
+  "side": "CT",
+  "type": "flashbang",
+  "place": "Jungle",
+  "seconds_into_round": 26.06,
+  "position": [
+   -1083.2,
+   -1527.9,
+   -158.0
+  ],
+  "pitch": 13.05,
+  "yaw": -2.61
+ },
+ {
+  "match_id": "2393237",
+  "round": 9,
+  "side": "CT",
+  "type": "molotov",
+  "place": "SnipersNest",
+  "seconds_into_round": 9.5,
+  "position": [
+   -1182.1,
+   -624.5,
+   -168.0
+  ],
+  "pitch": -22.03,
+  "yaw": -0.09
+ },
+ {
+  "match_id": "2393237",
+  "round": 9,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "Jungle",
+  "seconds_into_round": 48.42,
+  "position": [
+   -799.3,
+   -1316.2,
+   -168.0
+  ],
+  "pitch": -16.58,
+  "yaw": -45.3
+ },
+ {
+  "match_id": "2393237",
+  "round": 9,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "Jungle",
+  "seconds_into_round": 57.69,
+  "position": [
+   -1055.8,
+   -1528.0,
+   -157.0
+  ],
+  "pitch": 13.17,
+  "yaw": -2.67
+ },
+ {
+  "match_id": "2393237",
+  "round": 9,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "Jungle",
+  "seconds_into_round": 66.73,
+  "position": [
+   -1039.3,
+   -1328.6,
+   -163.8
+  ],
+  "pitch": -1.48,
+  "yaw": -25.09
+ },
+ {
+  "match_id": "2393237",
+  "round": 9,
+  "side": "CT",
+  "type": "flashbang",
+  "place": "Jungle",
+  "seconds_into_round": 67.94,
+  "position": [
+   -1008.3,
+   -1305.1,
+   -157.8
+  ],
+  "pitch": -46.94,
+  "yaw": -79.32
+ },
+ {
+  "match_id": "2393237",
+  "round": 11,
+  "side": "CT",
+  "type": "flashbang",
+  "place": "BombsiteA",
+  "seconds_into_round": 10.42,
+  "position": [
+   -618.1,
+   -1337.7,
+   -168.0
+  ],
+  "pitch": 5.91,
+  "yaw": 100.74
+ },
+ {
+  "match_id": "2393237",
+  "round": 11,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "Connector",
+  "seconds_into_round": 15.86,
+  "position": [
+   -534.0,
+   -1013.0,
+   -168.0
+  ],
+  "pitch": 15.87,
+  "yaw": 130.61
+ },
+ {
+  "match_id": "2393237",
+  "round": 11,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "Jungle",
+  "seconds_into_round": 31.38,
+  "position": [
+   -783.1,
+   -1312.1,
+   -168.0
+  ],
+  "pitch": -18.29,
+  "yaw": -45.67
+ },
+ {
+  "match_id": "2393237",
+  "round": 11,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "BombsiteA",
+  "seconds_into_round": 67.8,
+  "position": [
+   -744.1,
+   -1346.2,
+   -168.0
+  ],
+  "pitch": -17.11,
+  "yaw": -45.58
+ },
+ {
+  "match_id": "2393237",
+  "round": 12,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "SnipersNest",
+  "seconds_into_round": 9.83,
+  "position": [
+   -1184.0,
+   -811.1,
+   -168.0
+  ],
+  "pitch": -89.0,
+  "yaw": -179.3
+ },
+ {
+  "match_id": "2393237",
+  "round": 12,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 15.45,
+  "position": [
+   -1151.0,
+   -801.8,
+   -168.0
+  ],
+  "pitch": -8.81,
+  "yaw": 73.69
+ },
+ {
+  "match_id": "2393237",
+  "round": 12,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "BombsiteA",
+  "seconds_into_round": 31.44,
+  "position": [
+   -737.3,
+   -1347.0,
+   -168.0
+  ],
+  "pitch": 14.26,
+  "yaw": 70.64
+ },
+ {
+  "match_id": "2393237",
+  "round": 14,
+  "side": "T",
+  "type": "hegrenade",
+  "place": "Apartments",
+  "seconds_into_round": 19.97,
+  "position": [
+   -1430.2,
+   700.8,
+   -48.0
+  ],
+  "pitch": 1.36,
+  "yaw": 174.29
+ },
+ {
+  "match_id": "2393237",
+  "round": 14,
+  "side": "T",
+  "type": "smokegrenade",
+  "place": "Truck",
+  "seconds_into_round": 25.75,
+  "position": [
+   -2325.3,
+   812.5,
+   -119.7
+  ],
+  "pitch": -15.86,
+  "yaw": -94.19
+ },
+ {
+  "match_id": "2393237",
+  "round": 14,
+  "side": "T",
+  "type": "molotov",
+  "place": "Truck",
+  "seconds_into_round": 27.02,
+  "position": [
+   -2322.9,
+   793.9,
+   -124.1
+  ],
+  "pitch": -5.52,
+  "yaw": -21.59
+ },
+ {
+  "match_id": "2393237",
+  "round": 17,
+  "side": "T",
+  "type": "flashbang",
+  "place": "SideAlley",
+  "seconds_into_round": 6.09,
+  "position": [
+   378.9,
+   65.0,
+   -218.0
+  ],
+  "pitch": 0.0,
+  "yaw": -125.76
+ },
+ {
+  "match_id": "2393237",
+  "round": 17,
+  "side": "T",
+  "type": "molotov",
+  "place": "TopofMid",
+  "seconds_into_round": 8.67,
+  "position": [
+   176.1,
+   -240.3,
+   -152.0
+  ],
+  "pitch": -10.28,
+  "yaw": -145.51
+ },
+ {
+  "match_id": "2393237",
+  "round": 17,
+  "side": "T",
+  "type": "smokegrenade",
+  "place": "TopofMid",
+  "seconds_into_round": 34.25,
+  "position": [
+   449.0,
+   -647.0,
+   -160.0
+  ],
+  "pitch": -13.58,
+  "yaw": 179.24
+ },
+ {
+  "match_id": "2393237",
+  "round": 18,
+  "side": "T",
+  "type": "smokegrenade",
+  "place": "TSpawn",
+  "seconds_into_round": 0.34,
+  "position": [
+   1215.2,
+   -115.2,
+   -157.9
+  ],
+  "pitch": -45.32,
+  "yaw": -169.19
+ },
+ {
+  "match_id": "2393237",
+  "round": 18,
+  "side": "T",
+  "type": "molotov",
+  "place": "TopofMid",
+  "seconds_into_round": 7.84,
+  "position": [
+   374.8,
+   -29.2,
+   -195.5
+  ],
+  "pitch": 1.7,
+  "yaw": -127.5
+ },
+ {
+  "match_id": "2393237",
+  "round": 19,
+  "side": "T",
+  "type": "flashbang",
+  "place": "TopofMid",
+  "seconds_into_round": 7.61,
+  "position": [
+   373.8,
+   -13.6,
+   -200.7
+  ],
+  "pitch": 1.93,
+  "yaw": -130.12
+ },
+ {
+  "match_id": "2393237",
+  "round": 19,
+  "side": "T",
+  "type": "molotov",
+  "place": "TopofMid",
+  "seconds_into_round": 9.53,
+  "position": [
+   176.1,
+   -232.4,
+   -152.0
+  ],
+  "pitch": -11.14,
+  "yaw": -145.0
+ },
+ {
+  "match_id": "2393237",
+  "round": 19,
+  "side": "T",
+  "type": "hegrenade",
+  "place": "Middle",
+  "seconds_into_round": 37.12,
+  "position": [
+   -220.5,
+   -924.3,
+   -167.3
+  ],
+  "pitch": -5.67,
+  "yaw": 129.98
+ },
+ {
+  "match_id": "2393237",
+  "round": 19,
+  "side": "T",
+  "type": "smokegrenade",
+  "place": "TRamp",
+  "seconds_into_round": 61.5,
+  "position": [
+   283.1,
+   -1598.1,
+   -176.0
+  ],
+  "pitch": -14.55,
+  "yaw": -178.85
+ },
+ {
+  "match_id": "2393237",
+  "round": 20,
+  "side": "T",
+  "type": "molotov",
+  "place": "Connector",
+  "seconds_into_round": 34.58,
+  "position": [
+   -652.4,
+   -1238.1,
+   -168.0
+  ],
+  "pitch": -6.33,
+  "yaw": -139.08
+ },
+ {
+  "match_id": "2393237",
+  "round": 20,
+  "side": "T",
+  "type": "smokegrenade",
+  "place": "BombsiteA",
+  "seconds_into_round": 38.02,
+  "position": [
+   -496.3,
+   -1408.7,
+   -101.8
+  ],
+  "pitch": 9.76,
+  "yaw": 179.59
+ },
+ {
+  "match_id": "2393240",
+  "round": 1,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 13.89,
+  "position": [
+   -1133.8,
+   -1324.7,
+   -168.0
+  ],
+  "pitch": -17.41,
+  "yaw": -36.16
+ },
+ {
+  "match_id": "2393240",
+  "round": 1,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 39.19,
+  "position": [
+   -1110.7,
+   -1341.5,
+   -167.4
+  ],
+  "pitch": -18.67,
+  "yaw": -36.3
+ },
+ {
+  "match_id": "2393240",
+  "round": 3,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "SnipersNest",
+  "seconds_into_round": 8.86,
+  "position": [
+   -1122.6,
+   -679.6,
+   -164.2
+  ],
+  "pitch": 12.62,
+  "yaw": 13.56
+ },
+ {
+  "match_id": "2393240",
+  "round": 3,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "SnipersNest",
+  "seconds_into_round": 17.56,
+  "position": [
+   -1121.0,
+   -670.7,
+   -167.6
+  ],
+  "pitch": 12.54,
+  "yaw": 13.51
+ },
+ {
+  "match_id": "2393240",
+  "round": 3,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "SnipersNest",
+  "seconds_into_round": 22.33,
+  "position": [
+   -1168.9,
+   -740.1,
+   -168.0
+  ],
+  "pitch": 3.47,
+  "yaw": 61.61
+ },
+ {
+  "match_id": "2393240",
+  "round": 3,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "Jungle",
+  "seconds_into_round": 48.48,
+  "position": [
+   -814.2,
+   -1338.4,
+   -168.0
+  ],
+  "pitch": -17.16,
+  "yaw": -43.44
+ },
+ {
+  "match_id": "2393240",
+  "round": 3,
+  "side": "CT",
+  "type": "flashbang",
+  "place": "Jungle",
+  "seconds_into_round": 50.67,
+  "position": [
+   -994.3,
+   -1473.0,
+   -166.3
+  ],
+  "pitch": -15.46,
+  "yaw": -12.18
+ },
+ {
+  "match_id": "2393240",
+  "round": 4,
+  "side": "CT",
+  "type": "flashbang",
+  "place": "Jungle",
+  "seconds_into_round": 8.23,
+  "position": [
+   -837.4,
+   -1436.8,
+   -168.0
+  ],
+  "pitch": -53.04,
+  "yaw": 49.59
+ },
+ {
+  "match_id": "2393240",
+  "round": 4,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "BombsiteA",
+  "seconds_into_round": 12.94,
+  "position": [
+   -609.3,
+   -1309.1,
+   -168.0
+  ],
+  "pitch": 2.57,
+  "yaw": 93.23
+ },
+ {
+  "match_id": "2393240",
+  "round": 4,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 28.31,
+  "position": [
+   -1238.4,
+   -1099.2,
+   -168.0
+  ],
+  "pitch": -0.51,
+  "yaw": 74.89
+ },
+ {
+  "match_id": "2393240",
+  "round": 4,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 34.28,
+  "position": [
+   -1219.4,
+   -998.4,
+   -168.0
+  ],
+  "pitch": -7.25,
+  "yaw": 69.86
+ },
+ {
+  "match_id": "2393240",
+  "round": 5,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "SnipersNest",
+  "seconds_into_round": 9.5,
+  "position": [
+   -1124.6,
+   -683.9,
+   -167.2
+  ],
+  "pitch": 12.48,
+  "yaw": 13.42
+ },
+ {
+  "match_id": "2393240",
+  "round": 5,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 15.22,
+  "position": [
+   -1087.1,
+   -1527.9,
+   -156.8
+  ],
+  "pitch": 12.81,
+  "yaw": -2.69
+ },
+ {
+  "match_id": "2393240",
+  "round": 5,
+  "side": "CT",
+  "type": "flashbang",
+  "place": "Jungle",
+  "seconds_into_round": 16.78,
+  "position": [
+   -1101.6,
+   -1527.9,
+   -159.8
+  ],
+  "pitch": 12.81,
+  "yaw": -2.69
+ },
+ {
+  "match_id": "2393240",
+  "round": 5,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "Connector",
+  "seconds_into_round": 26.89,
+  "position": [
+   -616.2,
+   -928.8,
+   -219.6
+  ],
+  "pitch": 10.37,
+  "yaw": 129.31
+ },
+ {
+  "match_id": "2393240",
+  "round": 5,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "Jungle",
+  "seconds_into_round": 33.17,
+  "position": [
+   -805.9,
+   -1317.5,
+   -168.0
+  ],
+  "pitch": -17.79,
+  "yaw": -44.58
+ },
+ {
+  "match_id": "2393240",
+  "round": 6,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 5.97,
+  "position": [
+   -1168.6,
+   -854.9,
+   -168.0
+  ],
+  "pitch": -15.29,
+  "yaw": 71.5
+ },
+ {
+  "match_id": "2393240",
+  "round": 6,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "BombsiteA",
+  "seconds_into_round": 42.16,
+  "position": [
+   -736.7,
+   -1347.2,
+   -168.0
+  ],
+  "pitch": 14.38,
+  "yaw": 71.43
+ },
+ {
+  "match_id": "2393240",
+  "round": 6,
+  "side": "CT",
+  "type": "flashbang",
+  "place": "Jungle",
+  "seconds_into_round": 64.64,
+  "position": [
+   -1103.0,
+   -1527.9,
+   -159.7
+  ],
+  "pitch": 12.95,
+  "yaw": -2.74
+ },
+ {
+  "match_id": "2393240",
+  "round": 6,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "Jungle",
+  "seconds_into_round": 66.17,
+  "position": [
+   -1016.9,
+   -1527.0,
+   -163.8
+  ],
+  "pitch": -4.01,
+  "yaw": 37.79
+ },
+ {
+  "match_id": "2393240",
+  "round": 7,
+  "side": "CT",
+  "type": "flashbang",
+  "place": "CTSpawn",
+  "seconds_into_round": 10.92,
+  "position": [
+   -1079.4,
+   -1528.0,
+   -159.1
+  ],
+  "pitch": 12.9,
+  "yaw": -2.74
+ },
+ {
+  "match_id": "2393240",
+  "round": 7,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "Connector",
+  "seconds_into_round": 22.11,
+  "position": [
+   -532.4,
+   -1018.9,
+   -168.0
+  ],
+  "pitch": 15.23,
+  "yaw": 130.64
+ },
+ {
+  "match_id": "2393240",
+  "round": 7,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "Connector",
+  "seconds_into_round": 23.41,
+  "position": [
+   -546.8,
+   -1008.3,
+   -168.0
+  ],
+  "pitch": 13.7,
+  "yaw": 129.95
+ },
+ {
+  "match_id": "2393240",
+  "round": 7,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "BombsiteA",
+  "seconds_into_round": 35.69,
+  "position": [
+   -716.5,
+   -1514.3,
+   -168.0
+  ],
+  "pitch": 4.51,
+  "yaw": 88.4
+ },
+ {
+  "match_id": "2393240",
+  "round": 8,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "CTSpawn",
+  "seconds_into_round": 3.86,
+  "position": [
+   -894.6,
+   -2335.0,
+   -168.0
+  ],
+  "pitch": -12.62,
+  "yaw": 38.14
+ },
+ {
+  "match_id": "2393240",
+  "round": 8,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "BombsiteA",
+  "seconds_into_round": 8.97,
+  "position": [
+   -720.7,
+   -1306.1,
+   -168.0
+  ],
+  "pitch": 2.5,
+  "yaw": 85.05
+ },
+ {
+  "match_id": "2393240",
+  "round": 8,
+  "side": "CT",
+  "type": "flashbang",
+  "place": "Jungle",
+  "seconds_into_round": 10.31,
+  "position": [
+   -803.3,
+   -1362.1,
+   -168.0
+  ],
+  "pitch": -64.6,
+  "yaw": 33.1
+ },
+ {
+  "match_id": "2393240",
+  "round": 8,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "Jungle",
+  "seconds_into_round": 17.39,
+  "position": [
+   -1066.8,
+   -1527.9,
+   -156.1
+  ],
+  "pitch": 13.06,
+  "yaw": -2.59
+ },
+ {
+  "match_id": "2393240",
+  "round": 9,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "Connector",
+  "seconds_into_round": 19.52,
+  "position": [
+   -535.4,
+   -1019.1,
+   -168.0
+  ],
+  "pitch": 12.4,
+  "yaw": 130.27
+ },
+ {
+  "match_id": "2393240",
+  "round": 10,
+  "side": "CT",
+  "type": "flashbang",
+  "place": "Stairs",
+  "seconds_into_round": 21.92,
+  "position": [
+   -523.7,
+   -1367.6,
+   -134.7
+  ],
+  "pitch": -48.23,
+  "yaw": -84.5
+ },
+ {
+  "match_id": "2393240",
+  "round": 11,
+  "side": "CT",
+  "type": "flashbang",
+  "place": "BombsiteA",
+  "seconds_into_round": 8.56,
+  "position": [
+   -727.5,
+   -1352.9,
+   -168.0
+  ],
+  "pitch": 6.43,
+  "yaw": 79.7
+ },
+ {
+  "match_id": "2393240",
+  "round": 11,
+  "side": "CT",
+  "type": "smokegrenade",
+  "place": "BombsiteA",
+  "seconds_into_round": 17.67,
+  "position": [
+   -740.8,
+   -1357.9,
+   -168.0
+  ],
+  "pitch": 13.64,
+  "yaw": 68.04
+ },
+ {
+  "match_id": "2393240",
+  "round": 11,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "Jungle",
+  "seconds_into_round": 21.08,
+  "position": [
+   -1062.8,
+   -1466.9,
+   -164.7
+  ],
+  "pitch": -16.66,
+  "yaw": -5.14
+ },
+ {
+  "match_id": "2393240",
+  "round": 11,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "Jungle",
+  "seconds_into_round": 22.27,
+  "position": [
+   -1021.8,
+   -1451.0,
+   -166.0
+  ],
+  "pitch": -16.97,
+  "yaw": -8.3
+ },
+ {
+  "match_id": "2393240",
+  "round": 12,
+  "side": "CT",
+  "type": "hegrenade",
+  "place": "SnipersNest",
+  "seconds_into_round": 7.97,
+  "position": [
+   -1238.7,
+   -570.1,
+   -168.0
+  ],
+  "pitch": 0.74,
+  "yaw": 5.53
+ },
+ {
+  "match_id": "2393240",
+  "round": 12,
+  "side": "CT",
+  "type": "incgrenade",
+  "place": "Connector",
+  "seconds_into_round": 19.5,
+  "position": [
+   -612.2,
+   -915.3,
+   -226.3
+  ],
+  "pitch": 9.24,
+  "yaw": 131.37
+ },
+ {
+  "match_id": "2393240",
+  "round": 14,
+  "side": "T",
+  "type": "decoy",
+  "place": "TSpawn",
+  "seconds_into_round": 57.75,
+  "position": [
+   1239.9,
+   -1128.0,
+   -249.7
+  ],
+  "pitch": -46.5,
+  "yaw": -166.49
+ },
+ {
+  "match_id": "2393240",
+  "round": 15,
+  "side": "T",
+  "type": "smokegrenade",
+  "place": "TSpawn",
+  "seconds_into_round": 0.31,
+  "position": [
+   1214.2,
+   -115.3,
+   -150.4
+  ],
+  "pitch": -45.16,
+  "yaw": -169.02
+ },
+ {
+  "match_id": "2393240",
+  "round": 17,
+  "side": "T",
+  "type": "flashbang",
+  "place": "SideAlley",
+  "seconds_into_round": 6.09,
+  "position": [
+   369.6,
+   65.8,
+   -218.6
+  ],
+  "pitch": 0.0,
+  "yaw": -124.53
+ },
+ {
+  "match_id": "2393240",
+  "round": 17,
+  "side": "T",
+  "type": "molotov",
+  "place": "TopofMid",
+  "seconds_into_round": 7.42,
+  "position": [
+   236.8,
+   -191.5,
+   -167.6
+  ],
+  "pitch": -1.93,
+  "yaw": -144.85
+ },
+ {
+  "match_id": "2393240",
+  "round": 18,
+  "side": "T",
+  "type": "smokegrenade",
+  "place": "TSpawn",
+  "seconds_into_round": 0.27,
+  "position": [
+   1215.2,
+   -16.2,
+   -161.1
+  ],
+  "pitch": -43.39,
+  "yaw": -166.3
+ },
+ {
+  "match_id": "2393240",
+  "round": 18,
+  "side": "T",
+  "type": "molotov",
+  "place": "Apartments",
+  "seconds_into_round": 69.22,
+  "position": [
+   -1224.0,
+   742.9,
+   -80.0
+  ],
+  "pitch": 0.05,
+  "yaw": -179.99
+ },
+ {
+  "match_id": "2393240",
+  "round": 19,
+  "side": "T",
+  "type": "flashbang",
+  "place": "TopofMid",
+  "seconds_into_round": 7.23,
+  "position": [
+   362.3,
+   -13.6,
+   -200.3
+  ],
+  "pitch": 0.8,
+  "yaw": -127.34
+ },
+ {
+  "match_id": "2393240",
+  "round": 19,
+  "side": "T",
+  "type": "molotov",
+  "place": "PalaceAlley",
+  "seconds_into_round": 53.62,
+  "position": [
+   586.5,
+   -1582.6,
+   -264.0
+  ],
+  "pitch": -13.23,
+  "yaw": -178.63
+ },
+ {
+  "match_id": "2393240",
+  "round": 19,
+  "side": "T",
+  "type": "hegrenade",
+  "place": "PalaceInterior",
+  "seconds_into_round": 58.38,
+  "position": [
+   188.8,
+   -1467.5,
+   -176.0
+  ],
+  "pitch": -1.15,
+  "yaw": -120.96
+ },
+ {
+  "match_id": "2393240",
+  "round": 19,
+  "side": "T",
+  "type": "hegrenade",
+  "place": "BombsiteA",
+  "seconds_into_round": 73.88,
+  "position": [
+   -871.1,
+   -2334.1,
+   -168.8
+  ],
+  "pitch": 5.58,
+  "yaw": 169.3
+ },
+ {
+  "match_id": "2393240",
+  "round": 20,
+  "side": "T",
+  "type": "hegrenade",
+  "place": "TopofMid",
+  "seconds_into_round": 8.5,
+  "position": [
+   281.1,
+   -172.3,
+   -168.1
+  ],
+  "pitch": -2.58,
+  "yaw": -145.32
+ },
+ {
+  "match_id": "2393240",
+  "round": 20,
+  "side": "T",
+  "type": "molotov",
+  "place": "TopofMid",
+  "seconds_into_round": 9.86,
+  "position": [
+   231.9,
+   -189.1,
+   -167.6
+  ],
+  "pitch": -1.38,
+  "yaw": -145.32
+ },
+ {
+  "match_id": "2393240",
+  "round": 20,
+  "side": "T",
+  "type": "smokegrenade",
+  "place": "TSpawn",
+  "seconds_into_round": 36.38,
+  "position": [
+   1387.3,
+   70.9,
+   -154.1
+  ],
+  "pitch": -29.23,
+  "yaw": -163.94
+ },
+ {
+  "match_id": "2393240",
+  "round": 20,
+  "side": "T",
+  "type": "flashbang",
+  "place": "BombsiteA",
+  "seconds_into_round": 71.95,
+  "position": [
+   -109.9,
+   -1521.4,
+   -54.0
+  ],
+  "pitch": 5.55,
+  "yaw": -169.71
+ },
+ {
+  "match_id": "2393240",
+  "round": 21,
+  "side": "T",
+  "type": "smokegrenade",
+  "place": "TSpawn",
+  "seconds_into_round": 0.41,
+  "position": [
+   1215.0,
+   -16.2,
+   -158.0
+  ],
+  "pitch": -43.48,
+  "yaw": -166.35
+ },
+ {
+  "match_id": "2393240",
+  "round": 21,
+  "side": "T",
+  "type": "hegrenade",
+  "place": "BombsiteA",
+  "seconds_into_round": 38.44,
+  "position": [
+   -796.0,
+   -2247.0,
+   -179.3
+  ],
+  "pitch": -15.73,
+  "yaw": 71.19
+ }
+]

@@ -35,9 +35,10 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Lobby page | Tom (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | Match page | Nikesh (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | CS2 with the bot base installed on the demo laptop | Unassigned | Not started | Demo laptop | 2026-11-14 |
-| Clone pipeline: recording in, clone profile out | Unassigned | Not started | `clone-pipeline/` (proposed) | 2026-11-14 |
-| Route converter: recording data to the bot playback format | Unassigned | Not started | `clone-pipeline/` (proposed) | 2026-11-14 |
-| CloneDirector plugin: applies a clone to a bot inside CS2 | Unassigned | Not started | `clone-director/` (proposed) | 2026-11-14 |
+| Clone pipeline: recording in, clone profile out | Arjun | Done. Tested on real recordings (9 tests pass). | `clone-pipeline/`, `HANDOFF.md` | 2026-11-14 |
+| donk clone (`donk_v1`): profile, purchases, grenades, 80 route files | Arjun | Done. Built from 4 matches, 80 rounds. | `clones/` | 2026-11-14 |
+| Route converter: recording data to the bot playback format | Arjun | In progress. Files are written. **Not tested in the game.** Several field values are guesses (`HANDOFF.md` section 5.1). | `clone-pipeline/clone_pipeline/recording.py` | 2026-11-14 |
+| CloneDirector plugin: applies a clone to a bot inside CS2 | Unassigned | Not started. Build notes are in `HANDOFF.md` section 5.2. | `clone-director/` (proposed) | 2026-11-14 |
 | Generating model: CS-NET v4 plus player identity | Unassigned | Not started | `clone-model/` (proposed) | 2026-11-14 |
 | Replay page: real player next to clone | Unassigned | Not started | `replay/` (proposed) | 2026-11-14 |
 | Clone profile page | Unassigned | Not started | Not decided | 2026-11-14 |
@@ -854,6 +855,7 @@ Newest first. One line per change: date, who, what changed.
 - 2026-11-14, Ashirwad: claimed the real match service; added stand-in bots and a stand-in
   side-by-side page to the status board; proposed the `stand_in_bot` profile field; ignored
   personal agent instruction files in `.gitignore`.
+- 2026-11-14, Arjun (with Claude): added the clone pipeline (`clone-pipeline/`), the first donk clone (`clones/donk_v1`), and `HANDOFF.md` for the next agent. Ran on real recordings: parsing, route cutting, habits, playback file writing, 9 tests. Not run: anything in the game.
 - 2026-11-14, Arjun (with Claude): first version of this spec. Added the status board, the
   generating model plan, and the agent rules in `AGENTS.md` and `CLAUDE.md`.
 - 2026-11-14, Ashirwad: added the mock match service in `match-service/` (commit `6e009f1`).
