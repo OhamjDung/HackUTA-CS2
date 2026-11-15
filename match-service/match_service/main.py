@@ -22,7 +22,8 @@ from .backends.cs2 import Cs2Backend
 from .backends.mock import MockBackend
 from .console import ConsoleChannel, NetconChannel, PluginChannel, RconChannel
 from .core import MatchRecord, Settings, load_clones, now
-from .models import TEAM_SIZE, Clone, Event, Match, MatchCreate, MatchPlayer
+from .drivers import describe
+from .models import TEAM_SIZE, Clone, CloneInfo, Event, Match, MatchCreate, MatchPlayer
 from .replay import RouteLibrary
 from .scoring import ScoringUnavailable, score_player
 
@@ -104,9 +105,10 @@ def create_app(settings: Settings | None = None, channel: ConsoleChannel | None 
             raise HTTPException(404, f"No match with id {match_id}")
         return record
 
-    @app.get("/clones", response_model=list[Clone])
+    @app.get("/clones", response_model=list[CloneInfo])
     async def list_clones():
-        return list(clones().values())
+        # The profile plus how it would be played now (drivers.py). Existing fields are unchanged.
+        return [describe(c, settings) for c in clones().values()]
 
     @app.post("/matches", status_code=201)
     async def create_match(body: MatchCreate):

@@ -29,6 +29,10 @@
   ..\clones. Also installs MatchBridge, because CloneDirector refuses commands from netcon.
   CloneDirector itself must be installed first (clone-director\README.md). Not run in CS2.
 
+.PARAMETER Open
+  Open the demo pages (http://localhost:<port>/demo/) in the default browser once the service is up.
+  The pages then run matches in the real CS2 with the bots chosen by -Bots.
+
 .PARAMETER Console
   How to send commands to CS2: netcon (default; needs -netconport 2121 in CS2's launch options),
   rcon (needs rcon_password in CS2), or plugin (the MatchBridge plugin).
@@ -44,7 +48,8 @@ param(
     [ValidateSet("off", "tv")]
     [string]$Record = "off",
     [ValidateSet("stand_in", "clone")]
-    [string]$Bots = "stand_in"
+    [string]$Bots = "stand_in",
+    [switch]$Open
 )
 
 $ErrorActionPreference = "Stop"
@@ -186,6 +191,10 @@ Write-Host "Recording: $Record"
 Write-Host "Match traces saved to: $env:TRACE_DIR"
 Set-Location $here
 uv sync
+if ($Open) {
+    Start-Process powershell -WindowStyle Hidden -ArgumentList "-NoProfile", "-Command",
+        "Start-Sleep -Seconds 6; Start-Process 'http://localhost:$Port/demo/'"
+}
 if ($Listen -ne "127.0.0.1") {
     Write-Host "Listening on $Listen : anyone on this network can create and stop matches." -ForegroundColor Yellow
 }

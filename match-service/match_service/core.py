@@ -56,6 +56,9 @@ class Settings:
     cs2_plugin_port: int = 27100
     cs2_plugin_token: str = ""  # empty: use cs2_console_password
     clone_join_seconds: float = 20.0  # how long to wait for every clone bot to join
+    # Which route files CloneDirector plays: `recorded` (cut from the player's matches) or `generated`
+    # (written by a trained model; needs `model` in the profile). See drivers.py.
+    cs2_routes: str = "recorded"
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -85,6 +88,7 @@ class Settings:
             cs2_plugin_port=int(env.get("CS2_PLUGIN_PORT", cls.cs2_plugin_port)),
             cs2_plugin_token=env.get("CS2_PLUGIN_TOKEN", cls.cs2_plugin_token),
             clone_join_seconds=float(env.get("CS2_CLONE_JOIN_SECONDS", cls.clone_join_seconds)),
+            cs2_routes=env.get("CS2_CLONE_ROUTES", cls.cs2_routes),
         )
 
 
@@ -117,6 +121,7 @@ def load_clones(clones_dir: Path) -> dict[str, Clone]:
                 display_name=data["display_name"],
                 source=data["source"],
                 stand_in_bot=data.get("stand_in_bot"),
+                model=data.get("model"),
             )
         except ValidationError as exc:
             log.warning("skipping clone profile %s: %s", path.name, exc)

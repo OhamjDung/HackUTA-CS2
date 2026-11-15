@@ -65,8 +65,8 @@ let matchId = param("match"), radars = {}, outlineData = null;
 
 async function setup() {
   outlineData = await outline();
-  const clones = await api("/clones").catch(() => []);
-  const opts = clones.map(c => `<option value="${esc(c.clone_id)}">${esc(c.display_name)} (${esc(c.clone_id)})</option>`).join("");
+  const clones = (await api("/clones").catch(() => [])).filter(c => c.playable !== false);
+  const opts = clones.map(c => `<option value="${esc(c.clone_id)}">${esc(c.display_name)} (${esc(c.clone_id)})${c.label ? " · " + esc(c.label) : ""}</option>`).join("");
   $("ct").innerHTML = opts; $("t").innerHTML = opts;
   if (clones.some(c => c.clone_id === "donk_v1")) $("ct").value = "donk_v1";
   if (clones.some(c => c.clone_id === "broky_v1")) $("t").value = "broky_v1";

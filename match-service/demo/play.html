@@ -59,9 +59,9 @@ const $ = id => document.getElementById(id);
 let clones = [], radar = null, matchId = null, timer = null;
 
 function checkboxes(el, prefix, preset) {
-  el.innerHTML = clones.map(c => `<label style="display:flex;gap:6px;align-items:center;color:var(--text)">
+  el.innerHTML = clones.filter(c => c.playable !== false).map(c => `<label style="display:flex;gap:6px;align-items:center;color:var(--text)">
       <input type="checkbox" value="${esc(c.clone_id)}" data-${prefix} ${preset.includes(c.clone_id) ? "checked" : ""}>
-      ${esc(c.display_name)}</label>`).join("");
+      ${esc(c.display_name)} <span class="muted small">${esc(c.label || "")}</span></label>`).join("");
 }
 
 async function setup() {

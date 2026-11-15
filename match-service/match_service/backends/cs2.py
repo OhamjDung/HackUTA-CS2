@@ -25,6 +25,7 @@ from pathlib import Path
 
 from ..console import ConsoleChannel, UnsafeCommand
 from ..core import Emit, MatchRecord, Settings, now
+from ..drivers import describe
 from ..models import Clone, MatchCreate, Score, Server
 from ..replay import Trace, gsi_players
 
@@ -50,6 +51,8 @@ class Cs2Backend:
             raise ValueError(f"CS2_RECORD must be off or tv, not {settings.cs2_record!r}")
         if settings.cs2_bots not in ("stand_in", "clone"):
             raise ValueError(f"CS2_BOTS must be stand_in or clone, not {settings.cs2_bots!r}")
+        if settings.cs2_routes not in ("recorded", "generated"):
+            raise ValueError(f"CS2_CLONE_ROUTES must be recorded or generated, not {settings.cs2_routes!r}")
         self.s = settings
         self.emit = emit
         self.ch = channel
@@ -72,13 +75,14 @@ class Cs2Backend:
         errors = []
         if len(body.players) > 1:
             errors.append("The cs2 backend allows at most one human player: the person at the CS2 machine")
-        if self.s.cs2_bots == "clone":
-            if body.clones and body.map != "de_mirage":
-                errors.append("CloneDirector supports de_mirage only")
-            return errors
-        missing = [c.clone_id for c in body.clones if c.clone_id in clones and not clones[c.clone_id].stand_in_bot]
-        if missing:
-            errors.append(f"No stand_in_bot in the profile of: {', '.join(missing)}")
+        if self.s.cs2_bots == "clone" and body.clones and body.map != "de_mirage":
+            errors.append("CloneDirector supports de_mirage only")
+        unplayable = {c.clone_id: info.reason for c in body.clones if c.clone_id in clones
+                      and not (info := describe(clones[c.clone_id], self.s)).playable}
+        if unplayable and self.s.cs2_bots == "stand_in":
+            errors.append(f"No stand_in_bot in the profile of: {', '.join(unplayable)}")
+        elif unplayable:
+            errors += [f"{cid} cannot be played: {why}" for cid, why in unplayable.items()]
         return errors
 
     def start(self, record: MatchRecord, clones: dict[str, Clone]) -> None:
@@ -265,7 +269,9 @@ class Cs2Backend:
             return None
         want = Counter((self.bot_names[p.clone_id], JOINTEAM[p.team]) for p in clones)
         try:
-            await self.clone_ch.send([f"clone_add {p.clone_id} {p.team.lower()}" for p in clones])
+            # `recorded` is CloneDirector's default, so the command is only sent for another source.
+            routes = [f"clone_routes {self.s.cs2_routes}"] if self.s.cs2_routes != "recorded" else []
+            await self.clone_ch.send(routes + [f"clone_add {p.clone_id} {p.team.lower()}" for p in clones])
             loop = asyncio.get_running_loop()
             deadline = loop.time() + self.s.clone_join_seconds
             while True:

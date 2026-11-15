@@ -109,8 +109,11 @@ async function scoreAll() {
   const errors = [a, b].filter(r => r && r.error);
   scores.clone = a && !a.error ? a : null;
   scores.base = b && !b.error ? b : null;
-  // A typed match id goes to whichever column its bots belong to.
-  if (typed && scores.clone && scores.clone.bots === "stand_in" && !$("m-base").value) [scores.clone, scores.base] = [null, scores.clone];
+  // A match goes to the column its bots belong to: built-in stand-in bots are the default-bot baseline,
+  // CloneDirector's clones are the clone. Only when the match says neither (the mock) is the choice kept.
+  const played = [scores.clone, scores.base].filter(Boolean);
+  const byBots = kind => played.find(r => r.bots === kind) || null;
+  if (byBots("clone") || byBots("stand_in")) [scores.clone, scores.base] = [byBots("clone"), byBots("stand_in")];
   table();
   if (errors.length) $("notes").innerHTML += errors.map(e => `<li class="t">Match ${esc(e.match_id)}: ${esc(e.error)}</li>`).join("");
 }

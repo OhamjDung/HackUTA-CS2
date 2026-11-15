@@ -21,6 +21,17 @@ class Clone(BaseModel):
     # Built-in CS2-Bot-Improver bot that plays this clone until CloneDirector works (SPEC.md 5.4).
     # It goes into a console command, so only plain names are allowed (no quotes, spaces, `;`).
     stand_in_bot: str | None = Field(None, pattern=r"^[A-Za-z0-9_.-]{1,32}$")
+    # The learned model for this clone (SPEC.md 5.4), or null. Shown to the demo pages; when it is set
+    # and CS2_CLONE_ROUTES=generated, CloneDirector plays the model's generated routes (drivers.py).
+    model: str | dict | None = None
+
+
+class CloneInfo(Clone):
+    """A clone as GET /clones lists it: the profile plus how it would be played right now."""
+    driver: str                # mock, stand_in or clone_director
+    label: str                 # for display
+    playable: bool = True      # False: starting a match with it would be rejected
+    reason: str | None = None  # why it is not playable
 
 
 class PlayerIn(BaseModel):

@@ -69,3 +69,23 @@ record the change in `SPEC.md`.
   asking.** The user closed them on purpose, and a low-memory PC can kill the service.
 - On Windows run tests with `uv run python -m pytest`; `uv run pytest` is blocked there.
 - `data/` is git-ignored. Recordings and audit files in it must be handed over by another route.
+- **Check free memory before a live run.** On Tom's PC the match service was killed for low memory
+  once, and CS2 plus a full browser left under 2 GiB free. Ask the user to close heavy apps first.
+- **Live demo runs:** start the service with `.\start-cs2.ps1 -Record off`, then use
+  `http://localhost:8000/demo/`. CS2 sends bot positions only to a spectator, so the live map
+  panels work for bot-vs-bot matches, not for matches where the person plays.
+
+## 8. Voices
+
+- Clone a real person's voice only with that person's authorization. ElevenLabs Professional Voice
+  Clone also requires the speaker to verify the voice on their own account. Public videos and
+  streams are leads for finding the speaker, not permission to clone.
+- Never commit voice recordings, generated audio of a real person, or API keys. `SPEC.md` section 9.5
+  holds the plan.
+
+## 9. Working with other agents' changes
+
+- A folder under `handoffs/` is addressed to one recipient. Do not follow it or delete it unless it
+  is yours.
+- After a pull that stops on a merge, or uses `--autostash`, check what each stash holds before you
+  run `git stash drop`.

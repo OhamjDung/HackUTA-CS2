@@ -30,14 +30,15 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Research: which bots, dataset, and model to build on | Arjun | Done | Sections 4, 7, 8 | 2026-11-14 |
 | This spec and the agent rules | Arjun | Done | `SPEC.md`, `AGENTS.md`, `CLAUDE.md` | 2026-11-14 |
 | Match service, mock version (Server API with a fake CS2 server) | Ashirwad | Done | `match-service/` | 2026-11-14 |
-| Match service, real version (starts and controls a real CS2 match) | Ashirwad | In progress. Runs in CS2 on Tom's PC over netcon: map, stand-in bots, team names, `ready` then `live`. Scores through `/gsi` seen in CS2 (Tom's second run); the end of a match not yet. Recording is off by default (`CS2_RECORD`); `tv` recording not tried. Clone mode (`CS2_BOTS=clone`, CloneDirector through MatchBridge) written; tested against fakes only | `match-service/match_service/backends/cs2.py` | 2026-11-14 |
+| Match service, real version (starts and controls a real CS2 match) | Ashirwad | In progress. A stand-in Wingman match on Tom's PC finished automatically. At halftime the service inflated the score and emitted six extra `round.ended` events. GOTV and CloneDirector mode still await live checks. | `match-service/match_service/backends/cs2.py` | 2026-11-14 |
 | Character showcase viewer (WebGPU hot-swap stage, 5 blockouts, B1-B3) | Nikesh | Done. B1-B3 verified in headless-Chromium GPU QA: real WebGPU backend, initial model ~20ms, 5/5 GLBs cached, clean swaps, zero console errors | `frontend/` | 2026-11-14 |
 | Character showcase: auto-cycle loop + AnimationMixer fallback (B4) | Nikesh | Done. Full 5-model auto-loop verified live (CS2→Smash→Fortnite→FIFA→Halo→CS2), pause freeze + manual override verified, mixer path unit-verified, 0 errors, 0 refetches | `frontend/` | 2026-11-14 |
 | Character showcase: chromatic lighting/HUD sync + GLB gatekeeper | Nikesh | Done. Per-character rim/accent verified live (artist FIFA rig renders through mixer path, 0 errors); `verify-models.mjs`: 5/5 PASS (Idle clip, skins, meshopt, 0.31MB/10MB) | `frontend/` | 2026-11-14 |
 | 3D Character Glitch-Swap Showcase (Nodes A1-A5, B1-B4, C1-C2) | Nikesh | COMPLETE & VERIFIED. Artist KTX2+Meshopt rigs integrated (5/5 gatekeeper PASS, 0.31MB); 5-character live sweep: mixer path, 1.85m framing, chromatic rim/HUD, KTX transcode clean, 0 errors, 0 refetches | `frontend/`, `frontend/scripts/chargen/` | 2026-11-14 |
 | Stand-in bots: built-in CS2-Bot-Improver pro bots used in place of clones until CloneDirector works | Ashirwad | In progress. `donk_v1` and `broky_v1` profiles use the `donk` and `broky` bots; not run in CS2 | `match-service/sample_clones/` | 2026-11-14 |
 | In-game similarity score: a bot's rounds in CS2 against the real player's held-back match (section 10.2) | Ashirwad | In progress. Scorer, map-area lookup and both held-back references written and tested; served as `GET /matches/{id}/score` and shown on the proof page (run against the mock in a browser); no real CS2 trace scored yet | `clone-pipeline/clone_pipeline/ingame.py`, `clone-pipeline/references/`, `match-service/match_service/scoring.py` | 2026-11-14 |
-| Side-by-side page, stand-in version (two synced panels; replay page content replaces it) | Ashirwad | In progress. Demo pages served by the match service at `/demo/`: bot vs bot with one live map panel per bot, play vs a bot, replay (real round vs bot round on one clock, clone vs clone, recorded rounds) and proof. Run against the mock in a browser; bot positions from CS2 not yet seen | `match-service/demo/`, `match-service/match_service/replay.py` | 2026-11-14 |
+| Side-by-side page, stand-in version (two synced panels; replay page content replaces it) | Ashirwad (live check by Codex) | In progress. Both live map panels drew bot positions from CS2. Replay played the donk stand-in and a recorded pro donk opening on one clock. The event list showed the service's halftime scoring error. | `match-service/demo/`, `match-service/match_service/replay.py` | 2026-11-14 |
+| Demo pages wired to the real CS2 bots, with a seam for learned models | Tom (with Claude) | Done for stand-in bots. With `start-cs2.ps1 -Open`, every demo page was loaded in a browser against a real CS2 match (donk vs broky, 9-4 in 13 rounds, ended by itself) and the Play page started a match with the player on CT. `GET /clones` reports each clone's driver and whether it is playable; `CS2_CLONE_ROUTES=generated` is the hook for a trained model's routes. CloneDirector and generated routes not run in CS2 | `match-service/match_service/drivers.py`, `match-service/demo/`, `match-service/start-cs2.ps1` | 2026-11-14 |
 | Lobby page | Tom (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | Match page | Nikesh (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | CS2 with the bot base installed on the demo laptop | Tom | Done. CS2-Bot-Improver v1.4.9 runs in Bot Mode on Tom's PC. A donk-vs-broky stand-in match on Mirage plays and its score counts through `/gsi`. The bot base's `!record`/`!replay` replays a recorded walk, and a converted donk route file loads and moves a bot; whether it runs the right route is not confirmed. CloneDirector is not installed there yet. | Tom's PC (the demo machine) | 2026-11-14 |
@@ -55,6 +56,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Replay page: real player next to clone | Unassigned | In progress (demo version by Ashirwad: 2D map from positions, no video, no generated path) | `match-service/demo/replay.html` | 2026-11-14 |
 | Clone profile page | Unassigned | Not started | Not decided | 2026-11-14 |
 | Caster voice (Gemini script, ElevenLabs audio) | Unassigned | Not started | Not decided | 2026-11-14 |
+| Pro bot voices: donk and broky (ElevenLabs) | Unassigned (research by Codex) | In progress. MVP targets verified voice packs for `donk_v1` and `broky_v1`. Player authorization, verified voices, and playback tests pending. | Section 9.5 | 2026-11-14 |
 | Similarity search (MongoDB Atlas) | Unassigned | Not started | Not decided | 2026-11-14 |
 | Hosting on Vultr, domain from GoDaddy Registry | Unassigned | Not started | Not decided | 2026-11-14 |
 | DEV article | Unassigned | Not started | Not decided | 2026-11-14 |
@@ -176,6 +178,16 @@ Checked on 2026-11-14.
   tests pass). In a browser against the mock, the proof page filled the clone column from a mock match (donk CT:
   position 59%, route 38%, against a ceiling of 79% / 57%; marked mock) and showed an error for a
   missing match id. Mock matches walk real routes, so these are not results.
+- Live demo on Tom's PC (2026-11-14, match `09a357d5a255`). Restarted CS2 with the updated
+  game state config and ran donk (CT) vs broky (T) stand-in bots on Mirage in Wingman with
+  recording off. Both live map panels rendered changing bot positions from `/gsi`. The Events
+  feed showed `round.ended` from round one. After eight rounds at 7–1, the bots swapped sides
+  and the service reported 7–7, emitting six extra `round.ended` events in one update. The
+  radar trace still followed the game's round number. CS2 finished automatically with nine
+  wins for donk's team after ten traced rounds. The service emitted `match.ended` with reason
+  `finished`, reported 9–7 and showed 16 `round.ended` events. Replay played donk's stand-in
+  round 1 alongside pro donk's match 2393232 round 5 on a shared clock. The replay used position
+  data from CS2 and from the pro recording.
 - Every GitHub repository in section 4 exists. Stars, licenses, and update dates come from GitHub.
 - The OpenCS2 counts in section 7 come from queries against its index tables.
 - The match service's cs2 backend, against a fake console and hand-written game state updates
@@ -234,16 +246,14 @@ Checked on 2026-11-14.
 - Every time estimate in section 11.
 - Sending console commands to CS2 through RCON (`-usercon`, `rcon_password`) or the MatchBridge
   plugin. Not needed while netcon works.
-- The wingman match ending by itself at 9 rounds through the service (the service was stopped for
-  low memory first), and `round.ended` in `/matches/<id>/events`.
+- Correct Wingman score and `round.ended` counts across the side swap. The live match ended
+  automatically, but the service overcounted rounds (see above).
 - Whether a converted route file (`donk_v1_t_2393226_r13`) makes a T-side bot run donk's real path.
   It loads and the bot moves; the path was not checked.
-- Bot positions from game state (`allplayers_*` in the updated config; CS2 must restart to read
-  it). CS2 is said to send them only to a spectator, so bot-vs-bot traces should work and
-  play-vs-bot matches have none. Field shape from the CounterStrike2GSI docs.
+- Whether CS2 sends bot positions to the service when the local player joins a team instead of
+  spectating. Positions arrived in the bot-vs-bot spectator run.
 - Why `bot_add_ct "donk"` once added other bots straight after `bot_kick`.
-- Scoring a real CS2 trace: needs the match service's position trace from game state (`allplayers`,
-  sent only while the person at the PC spectates), which has not arrived from CS2 yet.
+- Scoring the bot positions collected in a real CS2 match against the held-back reference.
 - CounterStrikeSharp loading MatchBridge, `Server.NextFrame` running
   the commands, and `matchbridge_jointeam` moving the player.
 - `tv_record` / `tv_stoprecord` recording a Bot Mode game (`CS2_RECORD=tv`).
@@ -293,6 +303,7 @@ One install of CS2-Bot-Improver gives the first four rows.
 | Generating model: reading recordings into its training format | CS-NET v4's own parser (`demo_parser/`) and data scripts |
 | Model test numbers | CS-NET v4's `scripts/evaluate_pretrain.py` |
 | Replay page | CS-NET v4's viewer (`visualizer/`) |
+| Per-bot voice | Existing match/replay events, [ElevenLabs synthesis API](https://elevenlabs.io/docs/overview/capabilities/text-to-speech) (hosted service), then CS2-Bot-Controller's voice API (AGPL-3.0) for optional game audio. Use [Xiph libopus](https://opus-codec.org/license/) (BSD-3-Clause) to encode game packets offline. |
 | Path to key presses (after the hackathon) | cs2-movesim |
 | Match control API | This repository's `match-service/` |
 | Match service: events from the game | CS2's Game State Integration (Valve). Field names from the [CounterStrike2GSI](https://github.com/antonpup/CounterStrike2GSI) README; read only, no code copied |
@@ -828,8 +839,8 @@ of the replay.
   text on the player's habits.
 - **Gemini, caster script.** Send the real round's first-person video clip plus both rounds' event
   lists. It writes about 20 seconds of commentary. This uses Gemini's ability to read video.
-- **ElevenLabs, caster voice.** Turn the script into audio with a stock voice. Do not copy a real
-  caster's or player's voice.
+- **ElevenLabs, caster voice.** Turn the script into audio with a stock voice. Bot callouts have
+  their own approval and playback path in section 9.5.
 - **MongoDB Atlas.** One document per clone profile. One style vector per professional in OpenCS2.
   Atlas Vector Search (MongoDB's nearest-neighbor search over lists of numbers) returns the most
   similar professionals for a clone.
@@ -838,6 +849,86 @@ of the replay.
 
 Pick the exact Gemini model name from `https://mlh.link/gemini`. Nobody has checked which Flash
 model is current.
+
+### 9.5 Pro bot voices: donk and broky (ElevenLabs)
+
+**MVP scope.** Ship short, scripted CS2 callouts using verified clones of the professional players
+donk and broky, mapped to `donk_v1` and `broky_v1`. Both verified player packs must pass the
+listening and playback checks below to complete the voice MVP. Self-service voice enrollment and
+voices for additional players are outside this MVP. Use clearly labeled fictional voices or
+silence as temporary demo fallbacks while a player pack is pending. Label verified output as an
+AI-generated bot voice and use a stock voice for the caster.
+
+**Authorization and sourcing, in order.** ElevenLabs requires each speaker to create and verify
+their own Professional Voice Clone (PVC), even if the team has permission. Arrange separate
+private pilots with donk and broky through the players or their representatives. Define in writing the
+approved languages and lines, private match/replay use, any public demo or promotional use,
+retention, revocation, and any team or recording rights that apply. The speaker shares the
+verified PVC privately with the project, or renders the agreed lines on their own account and
+delivers the audio. Prefer a scoped workspace share or speaker-rendered files. Treat external
+sharing links as access credentials. Confirm that the project's plan and key can use a shared
+voice with the selected model before depending on it.
+
+| Source | How we would use it |
+|---|---|
+| Fresh player-recorded session | First choice. Ask for an isolated mic track of natural, concise comms. Prefer one setup and the actual language intended for the voice pack. Record quiet tactical speech, with enough delivery variety for callouts such as “one Palace,” “bomb down,” and “save.” |
+| Player-owned stream or team practice mic stems | Ask the player or recording owner for clean originals and permission for cloning and output use. Use only the target's isolated channel. Keep any other speakers and private comms out of the dataset. |
+| Team or organizer interview masters | Ask for original isolated audio if the player opts in. Team Spirit's [donk profile video](https://www.youtube.com/watch?v=ScuMpQTyaVE) and [BLAST's broky interview](https://blast.tv/cs/news/broky-everyone-thinks-theyre-the-best-team) identify producers to approach. The BLAST page is a written interview. Neither establishes accessible, cleared audio or enough usable minutes. Prefer current recordings in the desired speaking style. |
+| YouTube, Twitch, esports VODs and match demos | Use public clips to identify the recording owner or agree on delivery with the speaker. Obtain an authorized original file from its owner if suitable. Public availability or a content license alone does not give permission to clone a speaker. Do not assume OpenCS2 match demos include usable, cleared isolated voice. |
+
+**Recording and generation.** ElevenLabs recommends at least 30 minutes of clean single-speaker
+speech and roughly 2–3 hours for the best PVC results. Train in the language intended for the
+pack and test English or mixed-language comms separately if needed. Record lossless masters in a
+quiet space, with consistent mic position and level. Trim long gaps and omit clipping, music,
+other voices, and overprocessed segments. Keep a small separate set of real spoken callouts for
+listening comparisons. PVC setup usually takes 3–6 hours according to ElevenLabs and can take
+longer. Start with `eleven_v4` where the shared PVC supports it and compare against
+`eleven_multilingual_v2`. Start with the provider's default voice settings and vary clone
+strength only on persistent accent or resemblance issues. For lines that sound read aloud, compare with Voice Changer
+(`eleven_multilingual_sts_v2`) using a consented speaker to perform the intended timing and
+emphasis. Verify that the PVC is available for conversion and judge accent and pronunciation by
+ear. Instant Voice Cloning is a fast prototype option for a consenting teammate, using about
+1–2 minutes of clean audio. Use ElevenLabs Voice Design for an original fictional demo pack.
+
+**Playback.** Pre-render a small pack of short lines and a few variants per event. Start with
+round-start and round-end cues with known timestamps. Add tactical cues only when the bot could
+know the fact its line states. A spectator's full-map information is unsuitable for team
+callouts. Use a separate optional asset pack keyed by clone ID, locale and event plus a version.
+Keep ElevenLabs keys, source audio, verification data and private sharing links out of Git and
+out of the game and browser. Keep approved audio within its permitted distribution scope. Store
+provenance and approved use with the pack so it can be disabled, removed and replaced on
+revocation. Restrict generation to reviewed lines. A missing, disabled or invalid pack makes
+the bot quiet. No synthesis, network calls or audio encoding on the game path.
+
+1. **Replay first.** Add opt-in playback to the existing replay clock using cached audio. Play
+   each cue once when playback crosses its timestamp. Pause cancels playback and seeking clears
+   queued cues. Leave the match-service API, the clone profile schema and game startup alone.
+   The live spectator test overcounted rounds at halftime (section 3). Use verified cue times
+   for the demo and validate the event stream before scheduling automatic round-end lines.
+2. **Private CS2 test.** Use the installed CS2-Bot-Controller release's `CanSendVoice`,
+   `GetVoiceStatus` and `SendVoiceFrame`. Pre-encode mono audio to the packet format confirmed
+   against that release. Start with 48 kHz and 20 ms Opus frames as a test candidate. Send
+   individual encoded frames, paced on the game thread, only when the capability is ready.
+   Verify frame sizing, slot attribution, recipients and audible output with one fictional pack.
+   Use a bounded queue, one active line per bot, a cooldown, and drop stale audio on death,
+   disconnect, round/map change, or slot reuse. Disable in-game voice if the release cannot
+   deliver it to the intended audience. The replay can still use the same clips.
+3. **Promotion.** Compare the same 10–15 unseen lines across candidates, with shuffled model
+   labels, and have the speaker or an authorized reviewer listen. Score resemblance,
+   intelligibility over game audio, pronunciation of map terms, and whether delivery sounds
+   like team comms. Check both clean audio and the actual game channel. Verify missing/corrupt
+   packs, offline operation, round transitions and spectators/teammates, and confirm movement,
+   purchases, scoring and match completion still behave as before. Only use a speaker's pack
+   after approval of the generated lines and delivery context.
+
+**Cost and state.** On 2026-11-14 ElevenLabs listed Creator at US$22/month after the introductory
+rate, with PVC creation and one creation slot. Each player can own their own PVC. Confirm sharing, plan entitlements and the
+applicable commercial-use terms for the demo and later release. Estimate cost from the chosen
+model's character rate or Voice Changer's audio duration, including retakes. For example, 25
+cues × 3 variants × 35 characters is 2,625 characters per bot per full TTS pass. Cached playback
+does not use ElevenLabs credits per match. The provider docs and repo interfaces were read.
+No player authorization, voice training, generation, audio quality comparison, or in-game
+voice delivery has been verified.
 
 ## 10. Proof and measurement
 
@@ -1071,9 +1162,9 @@ demo. A released product would need each player's or team's permission.
 6. **A license file for this repository.**
 7. **Recordings in CS2.** netcon and game state work. `record` over netcon freezes the client and
    can crash CS2 (section 3); the service no longer sends it, and recording is off by default.
-   Scores through `/gsi` work (Tom's second run). Next: a full match to its end, then maybe
-   `CS2_RECORD=tv` (`tv_record`; not tested). The demo pages draw bots from game state positions
-   instead of video meanwhile.
+   The spectator run verified automatic match completion and map playback from game state
+   positions. The service overcounted rounds at the side swap (section 3). `CS2_RECORD=tv`
+   (`tv_record`) has yet to be tried in CS2.
 
 ## 17. After the hackathon
 
@@ -1082,12 +1173,15 @@ demo. A released product would need each player's or team's permission.
 2. Cloning users while they play, as a finished feature.
 3. An upload page: recordings in, clone out, with one new identity vector trained per person.
 4. More maps. Each map needs its own recordings.
-5. The clone speaking in the game's voice chat. The bot interface supports it (`SendVoiceFrame`).
+5. Expand optional clone voice from pre-rendered callouts to more game situations after the
+   private CS2 playback and recipient checks (section 9.5).
 
 ## 18. Sources
 
 - [CS2-Bot-Improver](https://github.com/ed0ard/CS2-Bot-Improver)
 - [CS2-Bot-Controller](https://github.com/XBribo/CS2-Bot-Controller), with its `TECH.md` and `csharp/BotControllerApi/` source
+- Voice research: [ElevenLabs Professional Voice Cloning](https://elevenlabs.io/docs/eleven-creative/voices/voice-cloning/professional-voice-cloning), [private sharing](https://elevenlabs.io/docs/help-center/product/voices/my-voices/how-do-i-share-a-voice), [models](https://elevenlabs.io/docs/overview/models/), [Voice Changer API](https://elevenlabs.io/docs/api-reference/speech-to-speech/convert), [Voice Design](https://elevenlabs.io/docs/eleven-creative/voices/voice-design), [pricing](https://elevenlabs.io/pricing/api), [use policy](https://elevenlabs.io/use-policy), and [voice data privacy](https://elevenlabs.io/privacy-policy).
+- Voice delivery and source access: [Bot Controller voice interface](https://github.com/XBribo/CS2-Bot-Controller/blob/main/TECH.md), [Opus RFC](https://www.rfc-editor.org/rfc/rfc6716.html), and [YouTube Terms of Service](https://www.youtube.com/t/terms).
 - [CS2-Smarter-Bot](https://github.com/ed0ard/CS2-Smarter-Bot)
 - [CS2-Bot-NadeSystem](https://github.com/ed0ard/CS2-Bot-NadeSystem)
 - [demoparser2](https://github.com/LaihoE/demoparser)
@@ -1106,6 +1200,10 @@ demo. A released product would need each player's or team's permission.
 
 - 2026-11-14, Ashirwad: added `GET /matches/{id}/score` (in-game similarity from a match trace) and filled the proof page's clone and default-bot columns from it; traces record `bots`; `start-cs2.ps1` saves traces to `data/traces/`; the proof page shows the failed first identity test. Tested against the mock only.
 
+- 2026-11-14, Codex: specified verified ElevenLabs voice packs for donk and broky as the voice MVP, with offline audio packs and staged replay and private CS2 validation.
+
+- 2026-11-14, Codex: ran the private Wingman demo with live bot maps and synchronized donk replay; observed automatic completion and six extra halftime round events. Recording stayed off.
+
 - 2026-11-14, Arjun (Codex): verified the offline path exporter on the real A100 checkpoint (eight development examples / 24 predictions), checked its JSON and Matplotlib review figure, and preserved the artifacts in the experimental release. Updated obsolete not-run model/download statements; live clone gameplay and identity likeness remain unproven.
 
 - 2026-11-14, Arjun (Codex): added development-only generated-path review export from the pinned prediction engine and explicit completed validation states. Twelve CPU tests pass; GPU export check pending. No failed identity or generated path is promoted.
@@ -1118,6 +1216,19 @@ demo. A released product would need each player's or team's permission.
 
 Newest first. One line per change: date, who, what changed.
 
+- 2026-11-14, Tom (with Claude): wired the demo pages to the real CS2 bots. Added `drivers.py` (how each clone
+  is played), `driver`/`label`/`playable`/`reason` and `model` on `GET /clones` (additive), the
+  `CS2_CLONE_ROUTES` setting (`recorded` or `generated`) as the hook for a trained model, and
+  `start-cs2.ps1 -Open`. 57 service tests pass (6 new). Ran on Tom's PC: a donk-vs-broky wingman match
+  started from the service on the real game, ran past the halftime side swap with the score and
+  `round.ended` count matching every round, and ended by itself at CT 9, T 4. In a browser: Bot vs bot,
+  Replay (all three tabs; the real-vs-bot clock advanced), Proof (in-game scores from the real match) and
+  the Play page (match went live, player put on CT) worked with no console errors. The Proof page now
+  places a stand-in match under Default bot; the overview table no longer says positions and the 9-round
+  finish are unseen.
+- 2026-11-14, Tom (with Claude): merged Codex's live-demo and voice entries into `SPEC.md` after its
+  session ended mid-pull, and added sections 7 to 9 rules to `AGENTS.md` (memory check, demo run, voice
+  authorization, handoff folders). No new tests run.
 - 2026-11-14, Ashirwad: fixed the halftime score jump Tom found (7-1 to 7-7 in match 09a357d5a255):
   the service now picks the score reading where no team's score drops. Not yet rerun in CS2.
 - 2026-11-14, Ashirwad: in-game similarity scorer (`clone_pipeline/ingame.py`): Mirage area lookup and

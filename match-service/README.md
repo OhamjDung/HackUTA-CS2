@@ -144,6 +144,30 @@ names swapped and the scores not, so the service only accepts the reading of the
 neither team's score drops (the names break a tie). One match at a time; at most one
 human (the person at the CS2 PC).
 
+### Demo pages in the real game, and where a trained model plugs in
+
+With the cs2 backend, every demo page runs its matches in the real CS2. One command does it, with
+CS2 already open in Bot Mode (`-netconport 2121`):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\start-cs2.ps1 -Record off -Open
+```
+
+`GET /clones` says how each clone would be played now: `driver` (`stand_in` or `clone_director`),
+`label`, `playable` and, if not, `reason`. The pages list only playable clones. It adds fields; the
+existing ones are unchanged.
+
+A trained model needs no new code path. It reaches the game as route files that CloneDirector plays
+like recorded ones (SPEC.md section 8.5):
+
+1. Fill the clone profile's `model` field (null today) and put the generated route segments in the
+   clone's folder under `clones/`.
+2. Start with `-Bots clone` and `CS2_CLONE_ROUTES=generated` (the service then sends
+   `clone_routes generated` before `clone_add`). A clone with no `model` is shown as not playable in
+   that mode, so a failed or missing model never silently plays.
+3. A clone whose identity test failed keeps `model: null` and plays recorded routes
+   (`CS2_CLONE_ROUTES=recorded`, the default).
+
 ### Setup on the CS2 machine (Windows)
 
 `start-cs2.ps1` does the setup and starts the service. It needs [uv](https://docs.astral.sh/uv/)
