@@ -1,18 +1,25 @@
-"""Mock backend: no game. A match steps through its states on timers with random round winners."""
+"""Mock backend: no game. A match steps through its states on timers with random round winners.
+
+Each round also gets a simulated trace for the replay pages: every player walks a real recorded
+route for its side (its own clone's routes when the clone has data), marked `simulated`.
+"""
 
 import asyncio
 import random
+import time
 
 from ..core import Emit, MatchRecord, Settings
+from ..replay import RouteLibrary, Trace, simulated_round
 from ..models import ROUNDS_TO_WIN, Clone, Match, MatchCreate, Server
 
 
 class MockBackend:
     name = "mock"
 
-    def __init__(self, settings: Settings, emit: Emit):
+    def __init__(self, settings: Settings, emit: Emit, library: RouteLibrary | None = None):
         self.s = settings
         self.emit = emit
+        self.library = library or RouteLibrary(settings.clone_data_dir)
         self.used_ports: set[int] = set()
 
     def busy(self) -> bool:
@@ -22,6 +29,7 @@ class MockBackend:
         return []
 
     def start(self, record: MatchRecord, clones: dict[str, Clone]) -> None:
+        record.trace = Trace(record.match.match_id, record.match.map, "simulated")
         record.task = asyncio.create_task(self._simulate(record))
 
     def demo_path(self, match_id: str):
@@ -65,8 +73,14 @@ class MockBackend:
         await self.emit(record, "match.live", {})
 
         rng = random.Random(m.match_id)
+        route_rng = random.Random(f"{m.match_id}-routes")
+        trace = record.trace
         to_win = ROUNDS_TO_WIN[m.mode]
         while max(m.score.CT, m.score.T) < to_win:
+            n = m.round + 1
+            simulated_round(self.library, trace, n, m.players, route_rng)
+            trace.reveal[n] = (time.monotonic(), self.s.round_seconds)
+            trace.live_round = n
             await asyncio.sleep(self.s.round_seconds)
             winner = rng.choice(["CT", "T"])
             setattr(m.score, winner, getattr(m.score, winner) + 1)
@@ -75,6 +89,9 @@ class MockBackend:
 
         m.status = "ended"
         m.demo_url = f"{self.s.public_url}/demos/{m.match_id}.dem"
+        trace.live_round = None
+        if self.s.trace_dir:
+            trace.save(self.s.trace_dir)
         self._release(m)
         winner = "CT" if m.score.CT > m.score.T else "T"
         await self.emit(record, "match.ended", {"reason": "finished", "winner": winner,

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CS2 Clones demo</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="common.js"></script>
+</head>
+<body>
+<main>
+  <h1>Play against anyone's clone</h1>
+  <p class="lead">Bare-minimum demo pages for each feature. The clone dashboard and picker, the lobby and the
+    match page are teammates' work; these pages only show what each feature does. Until Arjun's
+    clones are installed in CS2, the bots are CS2-Bot-Improver's built-in <b>donk</b> and
+    <b>broky</b>. The real players' rounds come from their recorded matches.</p>
+
+  <div class="grid three">
+    <a class="card" href="play.html" style="text-decoration:none;color:inherit">
+      <h2>Play against a bot</h2>
+      <p class="muted small">Pick a side and the clones to face. The service loads the map, adds the bots and
+        puts you on your team.</p>
+      <span class="pill good">works with stand-in bots</span>
+    </a>
+    <a class="card" href="watch.html" style="text-decoration:none;color:inherit">
+      <h2>Bot vs bot, side by side</h2>
+      <p class="muted small">donk against broky. One panel follows each bot live, with the score.</p>
+      <span class="pill good">works with stand-in bots</span>
+      <span class="pill warn">positions not yet seen in CS2</span>
+    </a>
+    <a class="card" href="replay.html" style="text-decoration:none;color:inherit">
+      <h2>Replay: real player vs clone</h2>
+      <p class="muted small">A bot's round next to the real player's closest recorded round, on one clock.
+        Also: both clones in one round, and every recorded round.</p>
+      <span class="pill good">works</span>
+      <span class="pill todo">video, generated path, caster: placeholders</span>
+    </a>
+    <a class="card" href="proof.html" style="text-decoration:none;color:inherit">
+      <h2>Proof</h2>
+      <p class="muted small">How alike each player is to himself (the ceiling), the habits a clone carries,
+        and where the in-game numbers and the model test will go.</p>
+      <span class="pill good">ceiling numbers</span>
+      <span class="pill todo">in-game score, swap test: need Arjun</span>
+    </a>
+    <div class="card">
+      <h2>Clone dashboard</h2>
+      <p class="muted small">See your clones and pick which to play against. Built by a teammate; these
+        pages use a plain list instead.</p>
+      <button class="todo" disabled>Open the clone dashboard</button>
+      <div class="todo-note">Link goes here when the dashboard is up</div>
+    </div>
+    <div class="card">
+      <h2>Clone yourself</h2>
+      <p class="muted small">Upload your matches, get your own clone (SPEC.md section 17, after the hackathon).</p>
+      <button class="todo" disabled>Upload recordings</button>
+      <div class="todo-note">Needs the clone pipeline as a service</div>
+    </div>
+  </div>
+
+  <div class="grid two" style="margin-top:14px">
+    <div class="card">
+      <h2>Demo script for the judges</h2>
+      <ol class="steps">
+        <li><span><b>Bot vs bot.</b> On <a href="watch.html">Bot vs bot</a>, start donk (CT) vs broky (T). Point at
+          the two panels: each follows one bot live.</span></li>
+        <li><span><b>Replay.</b> Open <a href="replay.html">Replay</a> on that match, pick a round and donk: his bot's round
+          plays next to the real donk's closest recorded round.</span></li>
+        <li><span><b>Clone vs clone.</b> Same page, second tab: both bots' routes in one round.</span></li>
+        <li><span><b>Proof.</b> <a href="proof.html">Proof</a>: how alike donk is to himself, and what the clone carries.</span></li>
+        <li><span><b>Play.</b> A judge sits at the CS2 PC: <a href="play.html">Play vs a bot</a>, CT against broky.</span></li>
+      </ol>
+    </div>
+    <div class="card">
+      <h2>What is real right now</h2>
+      <table>
+        <tr><th>Piece</th><th>State</th></tr>
+        <tr><td>Starting a match in CS2, adding bots, scores</td><td><span class="pill good">ran on Tom's PC, scores count</span> <span class="pill warn">end at 9 rounds: not yet seen</span></td></tr>
+        <tr><td>Bot positions from game state (for the panels and replays)</td><td><span class="pill warn">written, not yet seen in CS2</span></td></tr>
+        <tr><td>Real players' rounds</td><td><span class="pill good">from their recorded matches</span></td></tr>
+        <tr><td>Arjun's data-built clones in CS2</td><td><span class="pill todo">swap in with <code>-Bots clone</code></span></td></tr>
+        <tr><td>Match video recording</td><td><span class="pill bad">off: <code>record</code> froze CS2</span></td></tr>
+      </table>
+      <p class="muted small" id="mode-note"></p>
+    </div>
+  </div>
+</main>
+<script>
+  refreshStatus().then(h => {
+    if (!h) return;
+    document.getElementById("mode-note").textContent = h.backend === "mock"
+      ? "This service runs the mock: matches are simulated, and each bot walks a real recorded route for its side. Start it with MATCH_BACKEND=cs2 on the CS2 PC for the real game."
+      : "This service controls the CS2 on this PC.";
+  });
+</script>
+</body>
+</html>

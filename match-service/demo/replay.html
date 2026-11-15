@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Replay</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="common.js"></script>
+</head>
+<body>
+<main>
+  <h1>Replay</h1>
+  <p class="lead">Rounds drawn on the map from positions. The real players' rounds come from their recorded
+    pro matches (the clone pipeline's output); the bots' rounds come from matches this service ran.
+    There's no video yet: CS2's <code>record</code> command froze the game.</p>
+
+  <div class="tabs">
+    <button data-tab="vs" class="on">Real player vs bot</button>
+    <button data-tab="clones">Clone vs clone</button>
+    <button data-tab="real">Recorded rounds</button>
+  </div>
+
+  <!-- Real vs bot -->
+  <section data-pane="vs">
+    <div class="card">
+      <div class="row">
+        <label>Match<select id="vs-match"></select></label>
+        <label>Round<select id="vs-round"></select></label>
+        <label>Bot<select id="vs-player"></select></label>
+        <span class="spacer"></span>
+        <span id="vs-source"></span>
+      </div>
+      <p class="muted small" id="vs-hint" style="margin:10px 0 0"></p>
+    </div>
+    <div class="grid two" style="margin-top:14px">
+      <div class="card">
+        <h2>Real player <span class="muted small" id="real-title"></span></h2>
+        <div class="radar-wrap"><canvas class="radar" id="real-radar"></canvas><div class="empty" id="real-empty">Pick a match, round and bot.</div></div>
+        <div class="radar-caption"><span id="real-label" class="muted"></span></div>
+      </div>
+      <div class="card">
+        <h2>Bot in this match <span class="muted small" id="bot-title"></span></h2>
+        <div class="radar-wrap"><canvas class="radar" id="bot-radar"></canvas><div class="empty" id="bot-empty"></div></div>
+        <div class="radar-caption"><span id="bot-label" class="muted"></span><span id="score"></span></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px"><div id="vs-player-ctl"></div></div>
+  </section>
+
+  <!-- Clone vs clone -->
+  <section data-pane="clones" hidden>
+    <div class="card">
+      <div class="row">
+        <label>Match<select id="cc-match"></select></label>
+        <label>Round<select id="cc-round"></select></label>
+      </div>
+      <p class="muted small" style="margin:10px 0 0">SPEC.md 10.4: show the two clones' different routes in one round.</p>
+    </div>
+    <div class="grid two" style="margin-top:14px">
+      <div class="card">
+        <div class="radar-wrap"><canvas class="radar" id="cc-radar"></canvas><div class="empty" id="cc-empty">Pick a match and round.</div></div>
+        <div style="margin-top:10px" id="cc-player-ctl"></div>
+      </div>
+      <div class="card">
+        <h2>Who went where</h2>
+        <table id="cc-table"><tr><td class="muted">Pick a round.</td></tr></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recorded rounds -->
+  <section data-pane="real" hidden>
+    <div class="card">
+      <div class="row">
+        <label>Player<select id="r-clone"></select></label>
+        <label>Side<select id="r-side"><option>T</option><option>CT</option></select></label>
+        <label style="flex:1;min-width:260px">Recorded round<select id="r-route"></select></label>
+      </div>
+    </div>
+    <div class="grid two" style="margin-top:14px">
+      <div class="card">
+        <div class="radar-wrap"><canvas class="radar" id="r-radar"></canvas></div>
+        <div style="margin-top:10px" id="r-player-ctl"></div>
+      </div>
+      <div class="card">
+        <h2>This round</h2>
+        <table id="r-table"></table>
+        <p class="muted small">Each recorded round is the player's first ~20 s, cut from a real match. The
+          clone replays these routes; the generic bot plays the rest of the round.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="card" style="margin-top:14px">
+    <h2>Coming with the other pieces</h2>
+    <div class="row">
+      <button class="todo" disabled>First-person video (OpenCS2)</button>
+      <button class="todo" disabled>Generated path overlay</button>
+      <button class="todo" disabled>Caster commentary</button>
+      <button class="todo" disabled>Download match recording (.dem)</button>
+      <button class="todo" disabled>Run CloneDirector until the same route</button>
+    </div>
+    <p class="todo-note">Video: the real player's first-person clip from OpenCS2, next to the map. Generated path: Arjun's
+      identity model. Caster: Gemini script, ElevenLabs voice. Recording: needs a way to record that doesn't freeze CS2
+      (try <code>-Record tv</code>). Same route: SPEC.md 10.1 runs the clone until it picks the real round's route label; needs
+      CloneDirector in CS2.</p>
+  </div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+let OUT, matches = [], traces = {};
+
+// A canvas in a hidden tab has no size, so redraw whenever a tab opens or the window resizes.
+function redraw() { [vsPlayer, ccPlayer, rPlayer].forEach(p => p.set(p.t)); }
+document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => {
+  document.querySelectorAll("[data-tab]").forEach(x => x.classList.toggle("on", x === b));
+  document.querySelectorAll("[data-pane]").forEach(p => p.hidden = p.dataset.pane !== b.dataset.tab);
+  redraw();
+});
+window.addEventListener("resize", redraw);
+
+async function getTrace(id) {
+  if (!traces[id] || traces[id].live_round != null) traces[id] = await api(`/matches/${id}/trace`);
+  return traces[id];
+}
+
+function roundOptions(trace) {
+  return trace.rounds.filter(r => r.players.some(p => p.path.length > 1))
+    .map(r => `<option value="${r.round}">round ${r.round}${r.round === trace.live_round ? " (live)" : ""}</option>`).join("");
+}
+
+// --- Real vs bot ----------------------------------------------------------------------------
+const realRadar = () => new Radar($("real-radar"), OUT), botRadar = () => new Radar($("bot-radar"), OUT);
+let vs = { real: null, bot: null, rr: null, br: null };
+const vsPlayer = new Player($("vs-player-ctl"), t => drawVs(t));
+
+function drawVs(t) {
+  if (vs.rr) vs.rr.draw(vs.real ? [{ name: vs.real.name, team: vs.real.team, path: vs.real.path, focus: true }] : [], t);
+  if (vs.br) vs.br.draw(vs.bot ? [{ ...vs.bot, diedAt: vs.bot.died_at, focus: true }] : [], t);
+}
+
+async function vsMatchChanged() {
+  const id = $("vs-match").value;
+  if (!id) return;
+  const trace = await getTrace(id);
+  $("vs-source").innerHTML = trace.source === "simulated"
+    ? `<span class="pill warn" title="Mock match: each bot walked a real recorded route">simulated match</span>`
+    : `<span class="pill good">from CS2 game state</span>`;
+  $("vs-round").innerHTML = roundOptions(trace);
+  const want = param("round");
+  if (want && [...$("vs-round").options].some(o => o.value === want)) $("vs-round").value = want;
+  vsRoundChanged();
+}
+
+async function vsRoundChanged() {
+  const trace = await getTrace($("vs-match").value);
+  const r = trace.rounds.find(r => r.round === +$("vs-round").value);
+  const bots = (r ? r.players : []).filter(p => p.clone_id);
+  $("vs-player").innerHTML = bots.map(p => `<option>${esc(p.name)}</option>`).join("");
+  vsCompare();
+}
+
+async function vsCompare() {
+  const id = $("vs-match").value, round = $("vs-round").value, player = $("vs-player").value;
+  if (!id || !round || !player) return;
+  const c = await api(`/matches/${id}/compare?round=${round}&player=${encodeURIComponent(player)}`);
+  vs.bot = c.bot;
+  vs.real = c.real ? { name: c.real.recording.split("_")[0], team: c.real.side, path: c.real.path } : null;
+  vs.rr = vs.rr || realRadar(); vs.br = vs.br || botRadar();
+  $("bot-title").textContent = `${c.bot.name} · round ${round} · ${c.bot.team}`;
+  $("bot-label").textContent = c.bot.died_at != null ? `died at ${c.bot.died_at.toFixed(1)} s` : "survived the recorded part";
+  $("bot-empty").textContent = "";
+  if (c.real) {
+    $("real-title").textContent = `${vs.real.name} · pro match ${c.real.match_id}, round ${c.real.round} · ${c.real.side}`;
+    $("real-label").textContent = c.real.label;
+    $("real-empty").textContent = "";
+    $("score").innerHTML = `<span title="Average distance between the two paths, in game units. Lower is closer.">path distance <b>${c.real.score}</b> u</span>`;
+  } else {
+    $("real-title").textContent = ""; $("real-label").textContent = ""; $("score").textContent = "";
+    $("real-empty").textContent = c.note || "No recorded round to compare.";
+  }
+  vsPlayer.setMax(Math.max(20, pathEnd(c.bot), vs.real ? pathEnd(vs.real) : 0));
+  vsPlayer.set(0);
+  $("vs-hint").textContent = c.real
+    ? "The real round shown is the one, of all this player's recorded rounds on this side, whose path is closest to the bot's."
+    : "";
+}
+
+// --- Clone vs clone ---------------------------------------------------------------------------
+let cc = { round: null, radar: null };
+const ccPlayer = new Player($("cc-player-ctl"), t => cc.radar && cc.round &&
+  cc.radar.draw(cc.round.players.map(p => ({ ...p, diedAt: p.died_at })), t));
+
+async function ccMatchChanged() {
+  const id = $("cc-match").value;
+  if (!id) return;
+  $("cc-round").innerHTML = roundOptions(await getTrace(id));
+  ccRoundChanged();
+}
+async function ccRoundChanged() {
+  const trace = await getTrace($("cc-match").value);
+  cc.round = trace.rounds.find(r => r.round === +$("cc-round").value);
+  if (!cc.round) return;
+  cc.radar = cc.radar || new Radar($("cc-radar"), OUT);
+  $("cc-empty").textContent = "";
+  const rows = await Promise.all(cc.round.players.map(async p => {
+    let label = "";
+    if (p.clone_id) {
+      const c = await api(`/matches/${trace.match_id}/compare?round=${cc.round.round}&player=${encodeURIComponent(p.name)}`).catch(() => null);
+      label = c && c.real ? `${esc(c.real.label)} <span class="muted small">(closest real round, ${c.real.score} u)</span>` : "";
+    }
+    return `<tr><td class="${p.team === "CT" ? "ct" : "t"}"><b>${esc(p.name)}</b></td><td>${p.team}</td><td>${label || '<span class="muted">—</span>'}</td></tr>`;
+  }));
+  $("cc-table").innerHTML = `<tr><th>Bot</th><th>Side</th><th>Route (named after the closest real round)</th></tr>` + rows.join("");
+  ccPlayer.setMax(Math.max(20, ...cc.round.players.map(pathEnd)));
+  ccPlayer.set(0);
+}
+
+// --- Recorded rounds --------------------------------------------------------------------------
+let rr = { radar: null, route: null, routes: [] };
+const rPlayer = new Player($("r-player-ctl"), t => rr.radar && rr.route &&
+  rr.radar.draw([{ name: rr.route.recording.split("_")[0], team: rr.route.side, path: rr.route.path, focus: true }], t));
+
+async function rCloneChanged() {
+  rr.routes = await api(`/replay/clones/${$("r-clone").value}/routes`);
+  rSideChanged();
+}
+function rSideChanged() {
+  const list = rr.routes.filter(r => r.side === $("r-side").value);
+  $("r-route").innerHTML = list.map(r => `<option value="${esc(r.recording)}">match ${r.match_id} round ${r.round} · ${esc(r.label)}</option>`).join("");
+  rRouteChanged();
+}
+async function rRouteChanged() {
+  const rec = $("r-route").value;
+  if (!rec) return;
+  rr.route = await api(`/replay/clones/${$("r-clone").value}/routes/${rec}`);
+  rr.radar = rr.radar || new Radar($("r-radar"), OUT);
+  const r = rr.route;
+  $("r-table").innerHTML = [["Route", r.label], ["Route key", r.route_key], ["Buy", r.buy_type],
+    ["Pro match", r.match_id], ["Round", r.round], ["Length", `${r.seconds} s`]]
+    .map(([k, v]) => `<tr><th>${k}</th><td>${esc(v)}</td></tr>`).join("");
+  rPlayer.setMax(pathEnd(r)); rPlayer.set(0);
+}
+
+// --- Setup ------------------------------------------------------------------------------------
+async function setup() {
+  OUT = await outline();
+  matches = (await api("/matches").catch(() => [])).filter(m => m.has_trace);
+  const opts = matches.map(m => `<option value="${m.match_id}">${m.match_id} · ${esc(m.players.join(" vs "))} · ${m.score.CT}-${m.score.T} ${esc(m.status)}</option>`).join("");
+  $("vs-match").innerHTML = $("cc-match").innerHTML = opts || `<option value="">no matches with positions yet</option>`;
+  if (!matches.length) {
+    $("vs-hint").innerHTML = `No match with positions yet. Start one on <a href="watch.html">Bot vs bot</a>, or browse the real players' rounds in the third tab.`;
+  }
+  const want = param("match");
+  if (want && matches.some(m => m.match_id === want)) { $("vs-match").value = $("cc-match").value = want; }
+  $("vs-match").onchange = vsMatchChanged; $("vs-round").onchange = vsRoundChanged; $("vs-player").onchange = vsCompare;
+  $("cc-match").onchange = ccMatchChanged; $("cc-round").onchange = ccRoundChanged;
+  if (matches.length) { vsMatchChanged(); ccMatchChanged(); }
+
+  const real = await api("/replay/clones").catch(() => []);
+  $("r-clone").innerHTML = real.map(c => `<option value="${esc(c.clone_id)}">${esc(c.display_name)} (${c.routes} rounds)</option>`).join("");
+  $("r-clone").onchange = rCloneChanged; $("r-side").onchange = rSideChanged; $("r-route").onchange = rRouteChanged;
+  if (real.length) rCloneChanged();
+  if (!matches.length) document.querySelector('[data-tab="real"]').click();
+}
+setup();
+</script>
+</body>
+</html>

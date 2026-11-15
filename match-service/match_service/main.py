@@ -6,20 +6,26 @@ Implements the Server API (README.md). The endpoints are the same whatever runs 
   from CS2's Game State Integration. See backends/cs2.py.
 """
 
+import json
 import logging
 import uuid
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import httpx
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from .backends.cs2 import Cs2Backend
 from .backends.mock import MockBackend
 from .console import ConsoleChannel, NetconChannel, PluginChannel, RconChannel
 from .core import MatchRecord, Settings, load_clones, now
 from .models import TEAM_SIZE, Clone, Event, Match, MatchCreate, MatchPlayer
+from .replay import RouteLibrary
+
+DEMO_DIR = Path(__file__).resolve().parent.parent / "demo"
 
 log = logging.getLogger("match_service")
 
@@ -59,8 +65,9 @@ def create_app(settings: Settings | None = None, channel: ConsoleChannel | None 
         except httpx.HTTPError as exc:
             log.warning("callback to %s failed: %s", record.callback_url, exc)
 
+    library = RouteLibrary(settings.clone_data_dir)
     if settings.backend == "mock":
-        backend = MockBackend(settings, emit)
+        backend = MockBackend(settings, emit, library)
     elif settings.backend == "cs2":
         channel = channel or make_channel(settings)
         backend = Cs2Backend(settings, emit, channel, clone_channel or make_clone_channel(settings))
@@ -185,6 +192,89 @@ def create_app(settings: Settings | None = None, channel: ConsoleChannel | None 
     @app.get("/health")
     async def health():
         return await backend.health()
+
+    # --- Replay data (not in the Interface specs doc; used by the demo pages in demo/) -----------
+
+    @app.get("/matches")
+    async def list_matches():
+        """Every match since the service started, newest first."""
+        out = [{"match_id": r.match.match_id, "status": r.match.status, "map": r.match.map,
+                "mode": r.match.mode, "score": r.match.score.model_dump(), "round": r.match.round,
+                "created_at": r.match.created_at,
+                "players": [p.display_name + ("" if p.is_clone else " (human)") for p in r.match.players],
+                "has_trace": bool(r.trace and r.trace.rounds)} for r in matches.values()]
+        return sorted(out, key=lambda m: m["created_at"], reverse=True)
+
+    def trace_json(match_id: str) -> dict:
+        record = matches.get(match_id)
+        if record and record.trace:
+            return record.trace.to_json()
+        if settings.trace_dir and match_id.isalnum():
+            saved = settings.trace_dir / f"{match_id}.json"
+            if saved.is_file():
+                return json.loads(saved.read_text())
+        raise HTTPException(404, f"No trace for match {match_id}")
+
+    @app.get("/matches/{match_id}/trace")
+    async def get_trace(match_id: str):
+        """Each player's path per round: [[seconds into the round, x, y], ...]."""
+        return trace_json(match_id)
+
+    @app.get("/matches/{match_id}/compare")
+    async def compare(match_id: str, round: int, player: str):
+        """One bot's round next to the real player's closest recorded round on the same side."""
+        trace = trace_json(match_id)
+        rnd = next((r for r in trace["rounds"] if r["round"] == round), None)
+        bot = next((p for p in (rnd or {}).get("players", []) if p["name"] == player), None)
+        if not bot:
+            raise HTTPException(404, f"No player {player!r} in round {round}")
+        real = library.closest(bot["clone_id"], bot["team"], bot["path"]) if bot["clone_id"] else None
+        return {"match_id": match_id, "round": round, "source": trace["source"], "bot": bot, "real": real,
+                "note": None if real else "No recorded rounds for this player on this side"}
+
+    @app.get("/replay/clones")
+    async def replay_clones():
+        """Clones that have recorded rounds (the clone pipeline's output)."""
+        out = []
+        for cid in library.clone_ids():
+            prof = library.profile(cid)
+            out.append({"clone_id": cid, "display_name": prof.get("display_name"), "rounds": prof.get("rounds"),
+                        "routes": len(library.routes(cid))})
+        return out
+
+    @app.get("/replay/clones/{clone_id}")
+    async def replay_clone(clone_id: str):
+        prof = library.profile(clone_id)
+        if not prof:
+            raise HTTPException(404, f"No clone data for {clone_id}")
+        keep = ["clone_id", "display_name", "source", "map", "rounds", "weapons", "aggression", "aim_skill",
+                "reaction_ms", "positions", "route_shares", "similarity", "source_games", "model"]
+        return {k: prof.get(k) for k in keep}
+
+    @app.get("/replay/clones/{clone_id}/routes")
+    async def replay_routes(clone_id: str):
+        if not library.profile(clone_id):
+            raise HTTPException(404, f"No clone data for {clone_id}")
+        return [{k: v for k, v in r.items() if k != "file"} for r in library.routes(clone_id)]
+
+    @app.get("/replay/clones/{clone_id}/routes/{recording}")
+    async def replay_route(clone_id: str, recording: str):
+        route = library.route(clone_id, recording)
+        if not route:
+            raise HTTPException(404, f"No recorded round {recording} for {clone_id}")
+        return route
+
+    @app.get("/replay/outline")
+    async def replay_outline():
+        """Grid cells covered by any recorded route: a rough map shape for drawing."""
+        return library.outline()
+
+    @app.get("/", include_in_schema=False)
+    async def root():
+        return RedirectResponse("/demo/")
+
+    if DEMO_DIR.is_dir():
+        app.mount("/demo", StaticFiles(directory=DEMO_DIR, html=True), name="demo")
 
     return app
 

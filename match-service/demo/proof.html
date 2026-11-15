@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Proof</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="common.js"></script>
+</head>
+<body>
+<main>
+  <h1>Proof</h1>
+  <p class="lead">SPEC.md section 10. The claim: the clone plays closer to the real player than a default bot
+    does. Today we can show the ceiling (how alike the player is to himself) and the habits each
+    clone carries. The in-game numbers need Arjun's clones running in CS2.</p>
+
+  <div class="row" style="margin-bottom:14px">
+    <label>Player<select id="clone"></select></label>
+  </div>
+
+  <div class="card">
+    <h2>Similarity to the real player <span class="muted small" id="held"></span></h2>
+    <table id="sim"></table>
+    <div class="row" style="margin-top:12px">
+      <button class="todo" disabled>Measure the clone in game (15+ rounds)</button>
+      <button class="todo" disabled>Measure a default bot (baseline)</button>
+    </div>
+    <p class="todo-note">Both need recorded bot rounds in CS2: the clone through CloneDirector, the baseline through a
+      default bot. The replay pages already collect bot positions per round; the same three measures run on them.</p>
+  </div>
+
+  <div class="grid two" style="margin-top:14px">
+    <div class="card"><h2>Route choice per side</h2><div id="routes"></div></div>
+    <div class="card"><h2>Where he spends time, per side</h2><div id="positions"></div></div>
+  </div>
+
+  <div class="grid two" style="margin-top:14px">
+    <div class="card">
+      <h2>What the clone carries</h2>
+      <table id="habits"></table>
+    </div>
+    <div class="card">
+      <h2>Model proof: the identity swap test</h2>
+      <p class="muted small">SPEC.md 8.6: generate movement with donk's identity, then swap in broky's, and check the
+        path changes toward broky's habits.</p>
+      <button class="todo" disabled>Run the swap test</button>
+      <p class="todo-note">Needs Arjun's generating model (clone-model/).</p>
+    </div>
+  </div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const pct = v => v == null ? "—" : `${Math.round(v * 100)}%`;
+
+function bars(obj, n = 6) {
+  return Object.entries(obj || {}).sort((a, b) => b[1] - a[1]).slice(0, n).map(([k, v]) =>
+    `<div style="display:grid;grid-template-columns:150px 1fr 44px;gap:8px;align-items:center;margin:4px 0">
+      <span class="small">${esc(k)}</span><div class="bar"><i style="width:${Math.round(v * 100)}%"></i></div>
+      <span class="small muted" style="text-align:right">${pct(v)}</span></div>`).join("") || `<p class="muted">No data.</p>`;
+}
+
+async function show(id) {
+  const c = await api(`/replay/clones/${id}`);
+  const sim = (c.similarity || {}).player_vs_self || {};
+  $("held").textContent = c.similarity ? `held-back match ${(c.similarity.held_back_matches || []).join(", ")}` : "";
+  const rows = [
+    ["Position overlap", s => pct(s.position_overlap)],
+    ["Route overlap", s => pct(s.route_overlap)],
+    ["Median seconds to first contact", s => (s.median_seconds_to_first_contact || []).join(" vs ")],
+    ["Rounds (building vs held back)", s => (s.rounds || []).join(" vs ")],
+  ];
+  $("sim").innerHTML = `<tr><th>Measure</th><th>Side</th><th>${esc(c.display_name)} vs himself (ceiling)</th><th>Clone in game</th><th>Default bot</th></tr>`
+    + rows.flatMap(([name, f]) => ["T", "CT"].map(side => `<tr><td>${name}</td><td class="${side === "CT" ? "ct" : "t"}">${side}</td>
+        <td class="num">${sim[side] ? esc(f(sim[side])) : "—"}</td><td class="muted">not measured</td><td class="muted">not measured</td></tr>`)).join("");
+  $("routes").innerHTML = ["T", "CT"].map(s => `<h2 class="${s === "CT" ? "ct" : "t"}" style="font-size:14px">${s} · ${(c.rounds || {})[s] ?? "?"} rounds</h2>${bars((c.route_shares || {})[s])}`).join("");
+  $("positions").innerHTML = ["T", "CT"].map(s => `<h2 class="${s === "CT" ? "ct" : "t"}" style="font-size:14px">${s}</h2>${bars((c.positions || {})[s])}`).join("");
+  $("habits").innerHTML = [
+    ["Source matches", (c.source_games || []).map(g => g.match_id).join(", ")],
+    ["Weapons, most used first", (c.weapons || []).join(", ")],
+    ["Aggression (0–1)", c.aggression],
+    ["Aim skill (0–1)", c.aim_skill],
+    ["Reaction time", c.reaction_ms == null ? "not measured" : `${c.reaction_ms} ms`],
+    ["Learned model", c.model || "not yet (Arjun)"],
+  ].map(([k, v]) => `<tr><th>${k}</th><td>${esc(v)}</td></tr>`).join("");
+}
+
+(async () => {
+  const list = await api("/replay/clones").catch(() => []);
+  $("clone").innerHTML = list.map(c => `<option value="${esc(c.clone_id)}">${esc(c.display_name)}</option>`).join("");
+  $("clone").onchange = e => show(e.target.value);
+  if (!list.length) return;
+  const first = list.some(c => c.clone_id === "donk_v1") ? "donk_v1" : list[0].clone_id;
+  $("clone").value = first;
+  show(first);
+})();
+</script>
+</body>
+</html>

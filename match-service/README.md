@@ -34,6 +34,12 @@ Interactive docs: http://localhost:8000/docs
 | `GET /demos/{id}.dem` | The match recording (cs2 backend, once the match has ended) |
 | `GET /health` | Which backend runs; for cs2, whether the console answers and when game state last arrived |
 | `POST /gsi` | cs2 backend only: where CS2 sends game state |
+| `GET /matches` | Every match since the service started, newest first (not in the spec) |
+| `GET /matches/{id}/trace` | Each player's path per round, `[[seconds into the round, x, y], ...]` (not in the spec) |
+| `GET /matches/{id}/compare?round=&player=` | A bot's round and the real player's closest recorded round (not in the spec) |
+| `GET /replay/clones`, `/replay/clones/{id}`, `/replay/clones/{id}/routes[/{recording}]` | Real recorded rounds from `../clones` (not in the spec) |
+| `GET /replay/outline` | Map cells any recorded route crossed, for drawing (not in the spec) |
+| `GET /demo/` | The demo pages (see below); `/` redirects here |
 
 Example:
 
@@ -76,6 +82,24 @@ Failed callbacks are logged and not retried.
 | `MOCK_SERVER_IP`, `MOCK_BASE_PORT` | `127.0.0.1`, 27015 | What goes in `server` and `join_link` |
 | `MOCK_PUBLIC_URL` | `http://localhost:8000` | Base of `demo_url` |
 | `CLONES_DIR` | `sample_clones/` | Where clone profiles are read from |
+
+## Demo pages
+
+Bare-minimum pages for the judges, at `http://localhost:8000/demo/`. They stand in for the
+teammates' lobby, match page and clone dashboard, and show what each feature does:
+
+- **Play vs a bot**: pick a side, mode, map and opponents; follow status and score.
+- **Bot vs bot**: start donk vs broky; one live map panel per bot, plus score and events.
+- **Replay**: a bot's round next to the real player's closest recorded round, on one clock; both
+  bots in one round; every recorded round of the real players.
+- **Proof**: the clone files' "player vs himself" numbers and habits.
+
+Disabled buttons with dashed borders mark features that need other pieces (video, generated path,
+caster voice, recording, the clone dashboard). On a Mac, run the mock and open the pages: each
+simulated bot walks a real recorded route for its side, so everything has data. With CS2, bot
+positions come from game state (`allplayers_*` in the config; restart CS2 after installing it),
+which CS2 sends only while the person at the PC spectates. Not yet seen in CS2. Set `TRACE_DIR`
+to keep traces after a restart.
 
 ## Running with real CS2
 

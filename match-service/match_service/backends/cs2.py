@@ -17,6 +17,7 @@ Who plays each clone (CS2_BOTS):
 
 import asyncio
 import logging
+import time
 from collections import Counter
 from collections.abc import Callable
 from datetime import datetime
@@ -25,6 +26,7 @@ from pathlib import Path
 from ..console import ConsoleChannel, UnsafeCommand
 from ..core import Emit, MatchRecord, Settings, now
 from ..models import Clone, MatchCreate, Score, Server
+from ..replay import Trace, gsi_players
 
 log = logging.getLogger("match_service.cs2")
 
@@ -82,6 +84,9 @@ class Cs2Backend:
     def start(self, record: MatchRecord, clones: dict[str, Clone]) -> None:
         self.current = record
         self.started = False
+        record.trace = Trace(record.match.match_id, record.match.map, "gsi")
+        self._round_live: int | None = None
+        self._round_t0 = 0.0
         # CloneDirector names the bot after the personality: stand_in_bot, else display_name.
         self.bot_names = {p.clone_id: clones[p.clone_id].stand_in_bot or (
                               clones[p.clone_id].display_name if self.s.cs2_bots == "clone" else None)
@@ -153,10 +158,32 @@ class Cs2Backend:
         ct_score, t_score = int(ct.get("score", 0)), int(t.get("score", 0))
         # Our score is keyed by the side each team STARTED on.
         target = Score(CT=t_score if swapped else ct_score, T=ct_score if swapped else t_score)
+        self._record_positions(record, payload)
         await self._advance_score(record, target)
 
         if phase == "gameover":
             await self._finish(record)
+
+    def _record_positions(self, record: MatchRecord, payload: dict) -> None:
+        """Add the players' positions to the match trace, while a round is being played.
+
+        Time is seconds since this round's freeze time ended, as seen by the service. CS2 sends
+        positions (`allplayers`) only to a spectator, so a match with a human playing has no trace.
+        """
+        trace = record.trace
+        phase = (payload.get("round") or {}).get("phase")
+        round_no = int((payload.get("map") or {}).get("round", 0) or 0) + 1
+        if phase != "live" or trace is None:
+            if trace is not None:
+                trace.live_round = None
+            return
+        if self._round_live != round_no:
+            self._round_live, self._round_t0 = round_no, time.monotonic()
+        t = time.monotonic() - self._round_t0
+        clone_of = {name: cid for cid, name in self.bot_names.items() if name}
+        for p in gsi_players(payload):
+            trace.add(round_no, t, p["name"], p["team"], p["x"], p["y"], clone_of.get(p["name"]), p["alive"])
+        trace.live_round = round_no
 
     # --- the match ----------------------------------------------------------------------------
 
@@ -273,6 +300,10 @@ class Cs2Backend:
         except (OSError, asyncio.TimeoutError) as exc:
             log.warning("could not stop recording: %s", exc)
         m.status = "ended"
+        if record.trace is not None:
+            record.trace.live_round = None
+            if self.s.trace_dir:
+                record.trace.save(self.s.trace_dir)
         if self.s.cs2_record != "off":
             m.demo_url = f"{self.s.public_url}/demos/{m.match_id}.dem"
         winner = "CT" if m.score.CT > m.score.T else "T" if m.score.T > m.score.CT else None

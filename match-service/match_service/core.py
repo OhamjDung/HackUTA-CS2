@@ -16,6 +16,8 @@ from .models import Clone, Event, Match
 log = logging.getLogger("match_service")
 
 DEFAULT_CLONES_DIR = Path(__file__).resolve().parent.parent / "sample_clones"
+# The clone pipeline's output (profiles plus recorded routes), used for replays.
+DEFAULT_CLONE_DATA_DIR = Path(__file__).resolve().parent.parent.parent / "clones"
 
 # emit(record, event_name, data) records an event and sends it to the match's callback_url.
 Emit = Callable[["MatchRecord", str, dict], Awaitable[None]]
@@ -32,6 +34,8 @@ class Settings:
     base_port: int = 27015
     public_url: str = "http://localhost:8000"
     clones_dir: Path = DEFAULT_CLONES_DIR
+    clone_data_dir: Path = DEFAULT_CLONE_DATA_DIR  # real recorded routes for the replay pages
+    trace_dir: Path | None = None  # where finished match traces are saved; None keeps them in memory
     # cs2 backend only
     cs2_console: str = "netcon"  # netcon, rcon or plugin (see console.py)
     cs2_console_host: str = "127.0.0.1"
@@ -66,6 +70,8 @@ class Settings:
             base_port=int(env.get("SERVER_PORT", env.get("MOCK_BASE_PORT", cls.base_port))),
             public_url=env.get("PUBLIC_URL", env.get("MOCK_PUBLIC_URL", cls.public_url)).rstrip("/"),
             clones_dir=Path(env.get("CLONES_DIR", DEFAULT_CLONES_DIR)),
+            clone_data_dir=Path(env.get("CLONE_DATA_DIR", DEFAULT_CLONE_DATA_DIR)),
+            trace_dir=Path(env["TRACE_DIR"]) if env.get("TRACE_DIR") else None,
             cs2_console=env.get("CS2_CONSOLE", cls.cs2_console),
             cs2_console_host=env.get("CS2_CONSOLE_HOST", cls.cs2_console_host),
             cs2_console_port=int(env["CS2_CONSOLE_PORT"]) if env.get("CS2_CONSOLE_PORT") else None,
@@ -93,6 +99,7 @@ class MatchRecord:
     mock_fail: bool
     events: list[Event] = field(default_factory=list)
     task: asyncio.Task | None = None
+    trace: "Trace | None" = None  # where each player went, per round (replay.py)
 
     @property
     def active(self) -> bool:

@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bot vs bot</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="common.js"></script>
+</head>
+<body>
+<main>
+  <h1>Bot vs bot, side by side</h1>
+  <p class="lead">Two clones play each other. Each panel follows one bot through the current round: its
+    path is bright, everyone else is dim. Positions come from CS2's game state while the person at
+    the PC spectates (in the mock: real recorded routes).</p>
+
+  <div class="card" id="setup">
+    <div class="row">
+      <label>CT<select id="ct"></select></label>
+      <label>T<select id="t"></select></label>
+      <label>Map<select id="map"><option>de_mirage</option><option>de_inferno</option><option>de_dust2</option></select></label>
+      <label>Mode<select id="mode"><option value="wingman">wingman (first to 9)</option><option value="competitive">competitive (first to 13)</option></select></label>
+      <span class="spacer"></span>
+      <button class="primary" id="start">Start match</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <label>…or watch a match already running<select id="existing"><option value="">choose</option></select></label>
+    </div>
+    <div class="error" id="err"></div>
+  </div>
+
+  <div id="live" hidden>
+    <div class="card" style="margin-top:14px">
+      <div class="row">
+        <div class="timeline" id="timeline"></div>
+        <span class="spacer"></span>
+        <a id="replay-link" href="#">Open in replay →</a>
+        <button id="stop">Stop match</button>
+      </div>
+      <div class="score" style="margin-top:12px">
+        <div class="side"><span class="ct" id="ct-names">CT</span><span class="num ct" id="ct-score">0</span><span class="muted small">started CT</span></div>
+        <div class="muted" id="round-label">round 0</div>
+        <div class="side"><span class="t" id="t-names">T</span><span class="num t" id="t-score">0</span><span class="muted small">started T</span></div>
+      </div>
+    </div>
+    <div class="grid two" id="panels" style="margin-top:14px"></div>
+    <div class="grid two" style="margin-top:14px">
+      <div class="card"><h2>Events</h2><div class="feed" id="feed"></div></div>
+      <div class="card">
+        <h2>Coming with Arjun's pieces</h2>
+        <div class="row">
+          <button class="todo" disabled>Show generated path</button>
+          <button class="todo" disabled>Live caster commentary</button>
+          <button class="todo" disabled>Watch first-person</button>
+        </div>
+        <p class="todo-note">Generated movement needs the identity model; commentary needs the caster
+          service; first-person view needs a match recording, and <code>record</code> froze CS2.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+let matchId = param("match"), radars = {}, outlineData = null;
+
+async function setup() {
+  outlineData = await outline();
+  const clones = await api("/clones").catch(() => []);
+  const opts = clones.map(c => `<option value="${esc(c.clone_id)}">${esc(c.display_name)} (${esc(c.clone_id)})</option>`).join("");
+  $("ct").innerHTML = opts; $("t").innerHTML = opts;
+  if (clones.some(c => c.clone_id === "donk_v1")) $("ct").value = "donk_v1";
+  if (clones.some(c => c.clone_id === "broky_v1")) $("t").value = "broky_v1";
+  const list = await api("/matches").catch(() => []);
+  $("existing").innerHTML += list.map(m => `<option value="${m.match_id}">${m.match_id} · ${esc(m.status)} · ${esc(m.players.join(" vs "))}</option>`).join("");
+  $("existing").onchange = e => e.target.value && attach(e.target.value);
+  $("start").onclick = start;
+  if (matchId) attach(matchId);
+}
+
+async function start() {
+  $("err").textContent = "";
+  try {
+    const body = { map: $("map").value, mode: $("mode").value, players: [],
+      clones: [{ clone_id: $("ct").value, team: "CT" }, { clone_id: $("t").value, team: "T" }] };
+    const res = await api("/matches", { method: "POST", body });
+    attach(res.match_id);
+  } catch (e) { $("err").textContent = e.message; }
+}
+
+function attach(id) {
+  matchId = id;
+  history.replaceState(null, "", `?match=${id}`);
+  $("live").hidden = false;
+  $("replay-link").href = `replay.html?match=${id}`;
+  $("stop").onclick = () => api(`/matches/${id}/stop`, { method: "POST" }).catch(e => alert(e.message));
+  radars = {}; $("panels").innerHTML = "";
+  tick();
+}
+
+const STEPS = ["starting", "ready", "live", "ended"];
+let timer = null;
+async function tick() {
+  clearTimeout(timer);
+  const id = matchId;
+  try {
+    const [m, events] = await Promise.all([api(`/matches/${id}`), api(`/matches/${id}/events`)]);
+    const trace = await api(`/matches/${id}/trace`).catch(() => null);
+    if (id !== matchId) return;
+    render(m, events, trace);
+    if (m.status === "ended" || m.status === "failed") return;
+  } catch (e) { $("err").textContent = e.message; }
+  timer = setTimeout(tick, 400);
+}
+
+function render(m, events, trace) {
+  const idx = STEPS.indexOf(m.status);
+  $("timeline").innerHTML = STEPS.map((s, i) => `<span class="${i < idx ? "done" : i === idx ? "now" : ""}">${s}</span>`).join("")
+    + (m.status === "failed" ? `<span class="now" style="border-color:var(--bad)">failed</span>` : "");
+  const names = team => m.players.filter(p => p.team === team).map(p => p.display_name).join(", ") || team;
+  $("ct-names").textContent = names("CT"); $("t-names").textContent = names("T");
+  $("ct-score").textContent = m.score.CT; $("t-score").textContent = m.score.T;
+  $("round-label").textContent = m.status === "live" ? `round ${m.round + 1}` : m.status;
+  $("feed").innerHTML = events.slice().reverse().map(e =>
+    `<div><b>${esc(e.event)}</b> ${esc(new Date(e.sent_at).toLocaleTimeString())} ${esc(JSON.stringify(e.data))}</div>`).join("")
+    || `<div>No events yet.</div>`;
+  if (m.error) $("err").textContent = m.error;
+
+  // One panel per clone in the match.
+  const bots = m.players.filter(p => p.is_clone);
+  const rounds = trace ? trace.rounds : [];
+  const shown = trace && (trace.live_round ?? (rounds.length ? rounds[rounds.length - 1].round : null));
+  const round = rounds.find(r => r.round === shown);
+  for (const b of bots) {
+    const key = b.display_name;
+    if (!radars[key]) {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `<h2><span class="${b.team === "CT" ? "ct" : "t"}">${esc(b.display_name)}</span>
+          <span class="muted small">${esc(b.clone_id)} · started ${b.team}</span></h2>
+        <div class="radar-wrap"><canvas class="radar"></canvas><div class="empty"></div></div>
+        <div class="radar-caption"><span data-state></span><span class="muted" data-round></span></div>`;
+      $("panels").appendChild(card);
+      radars[key] = { radar: new Radar(card.querySelector("canvas"), outlineData), card };
+    }
+    const { radar, card } = radars[key];
+    const players = round ? round.players : [];
+    const me = players.find(p => p.name === key);
+    radar.draw(players.map(p => ({ ...p, diedAt: p.died_at, focus: p.name === key })));
+    card.querySelector(".empty").textContent = players.length ? "" : emptyText(m, trace);
+    card.querySelector("[data-state]").textContent = me
+      ? `${me.team} · ${me.died_at != null ? `died at ${me.died_at.toFixed(1)} s` : "alive"} · ${pathEnd(me).toFixed(1)} s into the round`
+      : "";
+    card.querySelector("[data-round]").textContent = shown ? `round ${shown}${trace.live_round ? " (live)" : ""} · ${trace.source}` : "";
+  }
+}
+
+function emptyText(m, trace) {
+  if (m.status === "starting" || m.status === "ready") return "Waiting for the first round…";
+  if (m.status === "failed") return "The match failed.";
+  if (!trace) return "No position data for this match.";
+  return trace.source === "gsi"
+    ? "No positions from CS2 yet. CS2 sends them only while the person at the PC spectates, and only after CS2 restarts with the updated game state config."
+    : "Waiting for positions…";
+}
+
+window.addEventListener("resize", () => matchId && tick());
+setup();
+</script>
+</body>
+</html>

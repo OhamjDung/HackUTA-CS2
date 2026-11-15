@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Play against a bot</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="common.js"></script>
+</head>
+<body>
+<main>
+  <h1>Play against a bot</h1>
+  <p class="lead">A minimal lobby: pick your side and the clones you want to face, and the service sets up
+    the match. In CS2 you play at the CS2 PC, and the service puts you on your team. Tom's lobby page
+    will replace this form; the clone picker is the teammate's dashboard.</p>
+
+  <div class="grid two">
+    <div class="card">
+      <h2>Lobby</h2>
+      <div class="grid" style="gap:10px">
+        <div class="row">
+          <label>Your side<select id="side"><option value="CT">CT</option><option value="T">T</option></select></label>
+          <label>Mode<select id="mode"><option value="wingman">wingman, 2 per side (first to 9)</option><option value="competitive">competitive, 5 per side (first to 13)</option></select></label>
+          <label>Map<select id="map"><option>de_mirage</option><option>de_inferno</option><option>de_dust2</option></select></label>
+        </div>
+        <label>Your Steam ID<input id="steam" value="76561198000000001" pattern="7656119\d{10}"></label>
+        <div>
+          <div class="muted small" style="margin-bottom:6px">Opponents (enemy team)</div>
+          <div class="row" id="enemies"></div>
+        </div>
+        <div>
+          <div class="muted small" style="margin-bottom:6px">Teammates (optional)</div>
+          <div class="row" id="mates"></div>
+        </div>
+        <div class="row">
+          <button class="primary" id="start">Start match</button>
+          <button class="todo" disabled title="Needs Tom's lobby: invite links for other players">Invite a friend</button>
+        </div>
+        <div class="error" id="err"></div>
+      </div>
+    </div>
+
+    <div class="card" id="match" hidden>
+      <div class="row"><h2 style="margin:0">Match <span class="muted" id="mid"></span></h2><span class="spacer"></span><button id="stop">Stop</button></div>
+      <div class="timeline" id="timeline" style="margin:10px 0"></div>
+      <div id="join"></div>
+      <div class="score" style="margin:14px 0">
+        <div class="side"><span class="ct">CT</span><span class="num ct" id="ct-score">0</span></div>
+        <div class="muted" id="round-label"></div>
+        <div class="side"><span class="t">T</span><span class="num t" id="t-score">0</span></div>
+      </div>
+      <div class="radar-wrap"><canvas class="radar" id="radar"></canvas><div class="empty" id="empty"></div></div>
+      <div class="feed" id="feed" style="margin-top:10px"></div>
+    </div>
+  </div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+let clones = [], radar = null, matchId = null, timer = null;
+
+function checkboxes(el, prefix, preset) {
+  el.innerHTML = clones.map(c => `<label style="display:flex;gap:6px;align-items:center;color:var(--text)">
+      <input type="checkbox" value="${esc(c.clone_id)}" data-${prefix} ${preset.includes(c.clone_id) ? "checked" : ""}>
+      ${esc(c.display_name)}</label>`).join("");
+}
+
+async function setup() {
+  radar = new Radar($("radar"), await outline());
+  clones = await api("/clones").catch(() => []);
+  checkboxes($("enemies"), "enemy", ["broky_v1"]);
+  checkboxes($("mates"), "mate", []);
+  $("start").onclick = start;
+}
+
+async function start() {
+  $("err").textContent = "";
+  const side = $("side").value, other = side === "CT" ? "T" : "CT";
+  const pick = sel => [...document.querySelectorAll(`[data-${sel}]:checked`)].map(i => i.value);
+  const enemies = pick("enemy"), mates = pick("mate").filter(id => !enemies.includes(id));
+  const body = { map: $("map").value, mode: $("mode").value,
+    players: [{ steam_id: $("steam").value.trim(), team: side }],
+    clones: [...enemies.map(id => ({ clone_id: id, team: other })), ...mates.map(id => ({ clone_id: id, team: side }))] };
+  try {
+    const res = await api("/matches", { method: "POST", body });
+    matchId = res.match_id;
+    $("match").hidden = false; $("mid").textContent = matchId;
+    $("stop").onclick = () => api(`/matches/${matchId}/stop`, { method: "POST" }).catch(e => alert(e.message));
+    tick();
+  } catch (e) { $("err").textContent = e.message; }
+}
+
+const STEPS = ["starting", "ready", "live", "ended"];
+async function tick() {
+  clearTimeout(timer);
+  try {
+    const [m, events] = await Promise.all([api(`/matches/${matchId}`), api(`/matches/${matchId}/events`)]);
+    const trace = await api(`/matches/${matchId}/trace`).catch(() => null);
+    const idx = STEPS.indexOf(m.status);
+    $("timeline").innerHTML = STEPS.map((s, i) => `<span class="${i < idx ? "done" : i === idx ? "now" : ""}">${s}</span>`).join("")
+      + (m.status === "failed" ? `<span class="now" style="border-color:var(--bad)">failed</span>` : "");
+    $("ct-score").textContent = m.score.CT; $("t-score").textContent = m.score.T;
+    $("round-label").textContent = m.status === "live" ? `round ${m.round + 1}` : "";
+    const human = m.players.find(p => !p.is_clone);
+    $("join").innerHTML = m.status === "starting" ? `<p class="muted">Loading the map and adding the bots…</p>`
+      : m.status === "failed" ? `<p class="error">${esc(m.error)}</p>`
+      : HEALTH && HEALTH.backend === "cs2"
+        ? `<p>You're at the CS2 PC: the service put you on <b>${esc(human && human.team)}</b>. Good luck.</p>`
+        : `<p>Join: <a href="${esc(m.join_link)}">${esc(m.join_link)}</a> <span class="muted small">(the mock has no real server)</span></p>`;
+    const rounds = trace ? trace.rounds : [];
+    const shown = trace && (trace.live_round ?? (rounds.length ? rounds[rounds.length - 1].round : null));
+    const round = rounds.find(r => r.round === shown);
+    radar.draw(round ? round.players.map(p => ({ ...p, diedAt: p.died_at })) : []);
+    $("empty").textContent = round && round.players.length ? "" : (trace && trace.source === "gsi"
+      ? "CS2 sends positions only to a spectator, so there is no map while you play. Your match still counts."
+      : "Waiting for the first round…");
+    $("feed").innerHTML = events.slice().reverse().map(e => `<div><b>${esc(e.event)}</b> ${esc(JSON.stringify(e.data))}</div>`).join("");
+    if (m.status === "ended" || m.status === "failed") return;
+  } catch (e) { $("err").textContent = e.message; }
+  timer = setTimeout(tick, 500);
+}
+
+setup();
+</script>
+</body>
+</html>

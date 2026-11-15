@@ -30,13 +30,13 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Research: which bots, dataset, and model to build on | Arjun | Done | Sections 4, 7, 8 | 2026-11-14 |
 | This spec and the agent rules | Arjun | Done | `SPEC.md`, `AGENTS.md`, `CLAUDE.md` | 2026-11-14 |
 | Match service, mock version (Server API with a fake CS2 server) | Ashirwad | Done | `match-service/` | 2026-11-14 |
-| Match service, real version (starts and controls a real CS2 match) | Ashirwad | In progress. Runs in CS2 on Tom's PC over netcon: map, stand-in bots, team names, `ready` then `live`. Recording is off by default (`CS2_RECORD`); `tv` recording and scores through `/gsi` not yet seen in CS2. Clone mode (`CS2_BOTS=clone`, CloneDirector through MatchBridge) written; tested against fakes only | `match-service/match_service/backends/cs2.py` | 2026-11-14 |
+| Match service, real version (starts and controls a real CS2 match) | Ashirwad | In progress. Runs in CS2 on Tom's PC over netcon: map, stand-in bots, team names, `ready` then `live`. Scores through `/gsi` seen in CS2 (Tom's second run); the end of a match not yet. Recording is off by default (`CS2_RECORD`); `tv` recording not tried. Clone mode (`CS2_BOTS=clone`, CloneDirector through MatchBridge) written; tested against fakes only | `match-service/match_service/backends/cs2.py` | 2026-11-14 |
 | Character showcase viewer (WebGPU hot-swap stage, 5 blockouts, B1-B3) | Nikesh | Done. B1-B3 verified in headless-Chromium GPU QA: real WebGPU backend, initial model ~20ms, 5/5 GLBs cached, clean swaps, zero console errors | `frontend/` | 2026-11-14 |
 | Character showcase: auto-cycle loop + AnimationMixer fallback (B4) | Nikesh | Done. Full 5-model auto-loop verified live (CS2→Smash→Fortnite→FIFA→Halo→CS2), pause freeze + manual override verified, mixer path unit-verified, 0 errors, 0 refetches | `frontend/` | 2026-11-14 |
 | Character showcase: chromatic lighting/HUD sync + GLB gatekeeper | Nikesh | Done. Per-character rim/accent verified live (artist FIFA rig renders through mixer path, 0 errors); `verify-models.mjs`: 5/5 PASS (Idle clip, skins, meshopt, 0.31MB/10MB) | `frontend/` | 2026-11-14 |
 | 3D Character Glitch-Swap Showcase (Nodes A1-A5, B1-B4, C1-C2) | Nikesh | COMPLETE & VERIFIED. Artist KTX2+Meshopt rigs integrated (5/5 gatekeeper PASS, 0.31MB); 5-character live sweep: mixer path, 1.85m framing, chromatic rim/HUD, KTX transcode clean, 0 errors, 0 refetches | `frontend/`, `frontend/scripts/chargen/` | 2026-11-14 |
 | Stand-in bots: built-in CS2-Bot-Improver pro bots used in place of clones until CloneDirector works | Ashirwad | In progress. `donk_v1` and `broky_v1` profiles use the `donk` and `broky` bots; not run in CS2 | `match-service/sample_clones/` | 2026-11-14 |
-| Side-by-side page, stand-in version (two synced panels; replay page content replaces it) | Ashirwad | Not started | Not decided | 2026-11-14 |
+| Side-by-side page, stand-in version (two synced panels; replay page content replaces it) | Ashirwad | In progress. Demo pages served by the match service at `/demo/`: bot vs bot with one live map panel per bot, play vs a bot, replay (real round vs bot round on one clock, clone vs clone, recorded rounds) and proof. Run against the mock in a browser; bot positions from CS2 not yet seen | `match-service/demo/`, `match-service/match_service/replay.py` | 2026-11-14 |
 | Lobby page | Tom (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | Match page | Nikesh (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | CS2 with the bot base installed on the demo laptop | Tom | Done. CS2-Bot-Improver v1.4.9 runs in Bot Mode on Tom's PC. A donk-vs-broky stand-in match on Mirage plays and its score counts through `/gsi`. The bot base's `!record`/`!replay` replays a recorded walk, and a converted donk route file loads and moves a bot; whether it runs the right route is not confirmed. CloneDirector is not installed there yet. | Tom's PC (the demo machine) | 2026-11-14 |
@@ -47,7 +47,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Route converter: recording data to the bot playback format | Arjun | In progress. Files are written. **Not tested in the game.** Several field values are guesses (`HANDOFF.md` section 5.1). | `clone-pipeline/clone_pipeline/recording.py` | 2026-11-14 |
 | CloneDirector plugin: applies a clone to a bot inside CS2 | Arjun (Codex) | In progress. Compiles; 26 C# tests pass, including all 159 donk/broky files. Not run in CS2. | `clone-director/` | 2026-11-14 |
 | Generating model: CS-NET v4 plus player identity | Arjun (Codex) | In progress. A100-SXM4-80GB ready; verified nine-match data selection and feature preparation before optimization. | `clone-model/` | 2026-11-14 |
-| Replay page: real player next to clone | Unassigned | Not started | `replay/` (proposed) | 2026-11-14 |
+| Replay page: real player next to clone | Unassigned | In progress (demo version by Ashirwad: 2D map from positions, no video, no generated path) | `match-service/demo/replay.html` | 2026-11-14 |
 | Clone profile page | Unassigned | Not started | Not decided | 2026-11-14 |
 | Caster voice (Gemini script, ElevenLabs audio) | Unassigned | Not started | Not decided | 2026-11-14 |
 | Similarity search (MongoDB Atlas) | Unassigned | Not started | Not decided | 2026-11-14 |
@@ -163,8 +163,11 @@ Checked on 2026-11-14.
 - Console safety: every channel refuses commands with a newline or `;` before connecting, and
   profiles with an unsafe `stand_in_bot` are skipped (`match-service/tests/test_safety.py`, 6
   tests). Clone mode against a fake game, CloneDirector and MatchBridge, using the real
-  `clones/` profiles (`match-service/tests/test_clones.py`, 7 tests). All 42 match service tests
-  pass. Tom ran the 26 earlier tests on Windows: they pass with
+  `clones/` profiles (`match-service/tests/test_clones.py`, 7 tests). Replay data: real recorded
+  rounds read from `clones/`, traces from game state and from the mock, the closest-round match,
+  and the demo pages being served (`match-service/tests/test_replay.py`, 5 tests). All 47 match
+  service tests pass. The demo pages ran in a browser against the mock (Ashirwad's Mac): bot vs
+  bot panels, play vs a bot, all three replay tabs and the proof page. Tom ran the 26 earlier tests on Windows: they pass with
   `uv run python -m pytest` (Application Control blocks `uv run pytest` there).
 
 - CloneDirector Release build with .NET SDK 10.0.404 and CounterStrikeSharp.API 1.0.378:
@@ -211,6 +214,9 @@ Checked on 2026-11-14.
   low memory first), and `round.ended` in `/matches/<id>/events`.
 - Whether a converted route file (`donk_v1_t_2393226_r13`) makes a T-side bot run donk's real path.
   It loads and the bot moves; the path was not checked.
+- Bot positions from game state (`allplayers_*` in the updated config; CS2 must restart to read
+  it). CS2 is said to send them only to a spectator, so bot-vs-bot traces should work and
+  play-vs-bot matches have none. Field shape from the CounterStrike2GSI docs.
 - Why `bot_add_ct "donk"` once added other bots straight after `bot_kick`.
 - CounterStrikeSharp loading MatchBridge, `Server.NextFrame` running
   the commands, and `matchbridge_jointeam` moving the player.
@@ -753,6 +759,25 @@ of the replay.
 ### 9.3 Web pages
 
 - **Lobby page and match page.** Owned by teammates, built against the match service.
+- **Demo pages (`match-service/demo/`, Ashirwad).** Bare-minimum versions of each feature for the
+  judges, served by the match service at `/demo/`. Written from zero (plain HTML and canvas; no
+  existing viewer reads these files). They stand in until the teammates' pages exist:
+  - *Play vs a bot*: a minimal lobby form (side, mode, map, opponents, teammates), status, score.
+  - *Bot vs bot*: starts donk vs broky and shows one live map panel per bot, plus score and events.
+  - *Replay*: a bot's round from a match next to the real player's closest recorded round on the
+    same side, on one clock; both bots in one round (10.4); and every recorded round.
+  - *Proof*: the clone files' ceiling numbers (player vs himself) and habits; in-game and baseline
+    columns empty until clones run in CS2.
+  - Disabled placeholder buttons mark what needs other pieces: first-person video, generated path,
+    caster voice, match recording, the clone dashboard, CloneDirector's same-route run, swap test.
+- **Replay data behind them (`match_service/replay.py`).** Real rounds: the clone pipeline's route
+  files in `clones/` (Brotli JSON, 64 ticks a second), cut to 8 points a second. Bot rounds: the
+  cs2 backend records each player's position per round from game state (`allplayers`, only while
+  the person at the PC spectates); the mock gives each clone a real recorded route for its side,
+  marked `simulated`. "Closest real round": the average distance between the two paths, first 20 s
+  of the bot's round. New endpoints (additions; nothing existing changed): `GET /matches`,
+  `GET /matches/{id}/trace`, `GET /matches/{id}/compare`, `GET /replay/clones[/{id}[/routes[/{rec}]]]`,
+  `GET /replay/outline`. Traces are saved to `TRACE_DIR` when set.
 - **Replay page.** Starts from CS-NET v4's viewer, which already draws a generated path over the real
   path. Add: the clone's recorded round next to the real player's round, the real first-person video
   from OpenCS2, and the caster audio.
@@ -1000,8 +1025,9 @@ demo. A released product would need each player's or team's permission.
 6. **A license file for this repository.**
 7. **Recordings in CS2.** netcon and game state work. `record` over netcon freezes the client and
    can crash CS2 (section 3); the service no longer sends it, and recording is off by default.
-   Next: a run that confirms scores through `/gsi`, then a run with `CS2_RECORD=tv` (`tv_record`;
-   not tested).
+   Scores through `/gsi` work (Tom's second run). Next: a full match to its end, then maybe
+   `CS2_RECORD=tv` (`tv_record`; not tested). The demo pages draw bots from game state positions
+   instead of video meanwhile.
 
 ## 17. After the hackathon
 
@@ -1034,6 +1060,9 @@ demo. A released product would need each player's or team's permission.
 
 Newest first. One line per change: date, who, what changed.
 
+- 2026-11-14, Ashirwad: demo pages at `/demo/` (play vs a bot, bot vs bot side by side, replay,
+  proof) with placeholders for Arjun's pieces; match traces from game state positions; replay
+  endpoints; 47 tests; pages run against the mock.
 - 2026-11-14, Arjun (Codex): kept the verified roster through every upstream tick pass and rejected empty parsed matches after the upstream round-team check skipped the extra-observer match. Nine learned-model tests pass; the A100 is ready while data preparation completes.
 
 - 2026-11-14, Arjun (Codex): compiled MatchBridge Release with SDK 10 (net8.0 target), zero warnings/errors, and re-ran all 42 service tests successfully. Read CLONE_AUDIT.md; its CS2 evidence is for stand-in presets, while data-built clones still await in-game checks. Updated build status; no C# changes.
