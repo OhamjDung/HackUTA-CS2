@@ -77,12 +77,37 @@ class Cs2Backend:
     def busy(self) -> bool:
         return self.current is not None and self.current.active
 
-    async def plugin_command(self, command: str) -> str:
-        """One CloneDirector command through the plugin channel (used to start a replay puzzle)."""
+    def _need_clone_channel(self) -> None:
         if self.clone_ch is self.ch and self.s.cs2_console != "plugin":
             raise RuntimeError("CloneDirector only accepts commands through the MatchBridge plugin. "
                                "Start the service with  start-cs2.ps1 -Bots clone")
-        return await self.clone_ch.query(command, 1.0)
+
+    async def plugin_command(self, command: str) -> str:
+        """One CloneDirector command through the plugin channel (used to start a replay puzzle)."""
+        self._need_clone_channel()
+        # send(), not query(): the plugin channel's query() only pings MatchBridge and drops the
+        # command, so puzzle_load never reached CloneDirector. MatchBridge cannot return the
+        # command's output, so there is no reply to pass on.
+        await self.clone_ch.send([command])
+        return "sent"
+
+    async def prepare_puzzle(self, map_: str, side: str) -> None:
+        """Get CS2 ready for puzzle_load: on the puzzle's map, with the person at the PC on a team.
+
+        CloneDirector refuses a puzzle for another map and needs a human in the game, so
+        "Practice in CS2" loads the map first when CS2 is elsewhere (or at the menu).
+        """
+        self._need_clone_channel()   # say this before spending a minute loading a map
+        if map_name(self.gsi) == map_:
+            return
+        if self.busy():
+            raise RuntimeError(f"A match on {map_name(self.gsi)} is running. Stop it before practising a {map_} puzzle.")
+        await self.ch.send(["game_type 0", f"game_mode {GAME_MODE['competitive']}", f"map {map_}"])
+        if not await self._wait_for(lambda g: map_name(g) == map_, self.s.map_load_seconds):
+            raise RuntimeError(f"CS2 did not report map {map_} within {self.s.map_load_seconds:.0f} s.")
+        await asyncio.sleep(self.s.puzzle_settle_seconds)   # plugins and the player finish loading
+        await self.ch.send([f"jointeam {JOINTEAM.get(side, 3)}"])
+        await asyncio.sleep(min(1.0, self.s.puzzle_settle_seconds))
 
     def validate(self, body: MatchCreate, clones: dict[str, Clone], others: list[MatchRecord]) -> list[str]:
         errors = []

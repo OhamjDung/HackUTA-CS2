@@ -56,3 +56,10 @@ def test_plain_copies_keep_the_original_settings():
     # A file already patched with human aim can be turned back into plain copies.
     back = patch_db(patch_db(SAMPLE, HUMAN_AIM), None)
     assert back == db
+
+
+def test_v2_is_a_plain_copy_with_full_strength_aim():
+    db = patch_db(SAMPLE, HUMAN_AIM)
+    for clone_id, player in (("donk_v2", "donk"), ("broky_v2", "broky")):
+        assert entry(db, clone_id) == entry(SAMPLE, player).replace(f'"{player}"', f'"{clone_id}"', 1)
+    assert "99999999999999999999.9.9.9" in entry(db, "donk_v2")   # donk's uncapped aim kept

@@ -26,6 +26,10 @@ public sealed partial class CloneDirectorPlugin
 
     private readonly PuzzleRecorder _recorder = new();
     private readonly Dictionary<string, int> _savedCvars = [];
+    private string? _savedQuotaMode;   // bot_quota_mode is a string cvar, so it is kept apart
+
+    private static bool IsPuzzleHuman(CCSPlayerController p) => p.IsValid && !p.IsHLTV && !p.IsBot;
+    private static bool IsPuzzleBot(CCSPlayerController p) => p.IsValid && !p.IsHLTV && p.IsBot;
     private readonly Dictionary<int, PuzzlePlayerData> _driven = [];   // game slot -> the recorded player it follows
     private string _puzzleDir = "", _deathDir = "", _serviceUrl = "";
     private PuzzlePhase _phase = PuzzlePhase.Idle;
@@ -52,7 +56,7 @@ public sealed partial class CloneDirectorPlugin
     private void PuzzleSampleAll()
     {
         double now = Server.CurrentTime;
-        foreach (var p in Utilities.GetPlayers())
+        foreach (var p in AllPlayers())
         {
             if (!p.IsValid || p.IsHLTV || p.TeamNum is not (2 or 3) || !p.PawnIsAlive) continue;
             var pawn = p.PlayerPawn.Value;
@@ -77,6 +81,7 @@ public sealed partial class CloneDirectorPlugin
         double now = Server.CurrentTime;
         string? attackerName = e.Attacker is { IsValid: true } a && a.Slot != victim.Slot ? a.PlayerName : null;
         _recorder.AddEvent(now, "kill", attackerName, victim.PlayerName, ItemName(e.Weapon));
+        _recorder.MarkDeath(now, victim.Slot);
 
         if (_run is { Finished: false } run && _hero is not null)
         {
@@ -84,7 +89,7 @@ public sealed partial class CloneDirectorPlugin
             else if (e.Attacker is { IsValid: true } k && k.Slot == _hero.Slot && victim.TeamNum != _hero.TeamNum) run.HeroGotKill();
         }
 
-        if (victim.IsBot) return;   // only a human's death is saved
+        if (!IsPuzzleHuman(victim)) return;   // only a human's death is saved
         var at = victim.PlayerPawn.Value?.AbsOrigin;
         var ang = victim.PlayerPawn.Value?.EyeAngles;
         if (at is null || ang is null) return;
@@ -150,7 +155,7 @@ public sealed partial class CloneDirectorPlugin
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or InvalidDataException)
         { command.ReplyToCommand($"[CloneDirector] Cannot load puzzle: {ex.Message}"); return; }
         if (data.Map != Server.MapName) { command.ReplyToCommand($"[CloneDirector] Puzzle is for {data.Map}; this is {Server.MapName}."); return; }
-        var hero = Utilities.GetPlayers().FirstOrDefault(p => p.IsValid && !p.IsBot && !p.IsHLTV);
+        var hero = AllPlayers().FirstOrDefault(IsPuzzleHuman);
         if (hero is null) { command.ReplyToCommand("[CloneDirector] No human player is in the game. Join the match first."); return; }
         StartPuzzle(data, hero);
         command.ReplyToCommand($"[CloneDirector] Puzzle {data.Id}: preparing bots, then the round restarts. {PuzzleStatus()}");
@@ -167,6 +172,9 @@ public sealed partial class CloneDirectorPlugin
     {
         if (!ConsoleOnly(player, command)) return;
         command.ReplyToCommand("[CloneDirector] " + PuzzleStatus());
+        // Every player the plugin sees, to check bot detection in the game.
+        command.ReplyToCommand("[CloneDirector] players: " + string.Join(", ", AllPlayers().Select(p =>
+            $"{p.Slot}:{p.PlayerName} bot={p.IsBot} team={p.TeamNum}")));
     }
 
     private string PuzzleStatus() => _phase == PuzzlePhase.Idle
@@ -181,21 +189,35 @@ public sealed partial class CloneDirectorPlugin
         foreach (var b in _bots.Values) b.Session.Release("puzzle");   // clones must not fight the recorded players
         _bots.Clear(); _waiting.Clear(); _pending = null;
         foreach (var name in PuzzleCvars)
-            if (!_savedCvars.ContainsKey(name) && ConVar.Find(name)?.GetPrimitiveValue<int>() is int value) _savedCvars[name] = value;
+            if (!_savedCvars.ContainsKey(name) && CvarAsInt(name) is int value) _savedCvars[name] = value;
         _puzzle = data; _hero = hero; _run = null; _driven.Clear(); _recorder.Clear();
         int others = data.Players.Count - 1;
         // Bots come from the bot quota (random bots). They are moved to the sides the puzzle needs next.
-        foreach (var cmd in new[] { "mp_ignore_round_win_conditions 1", "mp_freezetime 0", "mp_limitteams 0", "mp_autoteambalance 0", $"bot_quota {others}" })
+        _savedQuotaMode ??= ConVar.Find("bot_quota_mode")?.StringValue;
+        // "normal": bot_quota is the number of bots. In "fill" (the bot base's setting) it counts the human too.
+        foreach (var cmd in new[] { "mp_ignore_round_win_conditions 1", "mp_freezetime 0", "mp_limitteams 0", "mp_autoteambalance 0", "bot_quota_mode normal", $"bot_quota {others}" })
             Server.ExecuteCommand(cmd);
         hero.ChangeTeam(data.Hero.Side == "T" ? CsTeam.Terrorist : CsTeam.CounterTerrorist);
         _phase = PuzzlePhase.FillingBots;
         _phaseDeadline = Server.CurrentTime + 25;
     }
 
+    // Some of these cvars are Bool (mp_autoteambalance, mp_ignore_round_win_conditions), and
+    // GetPrimitiveValue<int> throws on a Bool: that exception stopped every puzzle_load in CS2.
+    private static int? CvarAsInt(string name)
+    {
+        var cvar = ConVar.Find(name);
+        if (cvar is null) return null;
+        return cvar.Type == ConVarType.Bool ? (cvar.GetPrimitiveValue<bool>() ? 1 : 0) : cvar.GetPrimitiveValue<int>();
+    }
+
     private void EndPuzzleMode(bool restoreCvars = true)
     {
         _phase = PuzzlePhase.Idle; _run = null; _puzzle = null; _hero = null; _driven.Clear();
         if (!restoreCvars) return;
+        if (_savedQuotaMode is { } mode && Regex.IsMatch(mode, "^[a-z]{1,16}$"))
+            Server.ExecuteCommand($"bot_quota_mode {mode}");
+        _savedQuotaMode = null;
         foreach (var (name, value) in _savedCvars) Server.ExecuteCommand($"{name} {value}");
         _savedCvars.Clear();
     }
@@ -223,12 +245,17 @@ public sealed partial class CloneDirectorPlugin
     private void PrepareBots()
     {
         if (_puzzle is null) { _phase = PuzzlePhase.Idle; return; }
-        var bots = Utilities.GetPlayers().Where(p => p.IsValid && p.IsBot && !p.IsHLTV).ToList();
+        var bots = AllPlayers().Where(IsPuzzleBot).ToList();
         int needed = _puzzle.Players.Count - 1;
         if (bots.Count != needed)
         {
             if (Server.CurrentTime > _phaseDeadline)
-            { Log($"Puzzle: found {bots.Count} bots, need {needed}. Giving up."); EndPuzzleMode(); }
+            {
+                var seen = string.Join(", ", AllPlayers().Select(p =>
+                    $"{p.Slot}:{p.PlayerName} bot={p.IsBot} team={p.TeamNum} state={p.Connected}"));
+                Log($"Puzzle: found {bots.Count} bots, need {needed}. Giving up. Players: {seen}");
+                EndPuzzleMode();
+            }
             return;
         }
         // How many bots each side needs. A bot already on a side that still needs one stays; the rest move.
@@ -263,7 +290,7 @@ public sealed partial class CloneDirectorPlugin
         Server.NextFrame(() =>
         {
             if (_phase != PuzzlePhase.WaitingRound || _puzzle != data || _hero is not { IsValid: true } hero) return;
-            var bots = Utilities.GetPlayers().Where(p => p.IsValid && p.IsBot && !p.IsHLTV && p.TeamNum is 2 or 3).OrderBy(p => p.Slot).ToList();
+            var bots = AllPlayers().Where(p => IsPuzzleBot(p) && p.TeamNum is 2 or 3).OrderBy(p => p.Slot).ToList();
             _driven.Clear();
             foreach (var other in data.Players.Where(p => !p.Hero))
             {
@@ -339,12 +366,11 @@ public sealed partial class CloneDirectorPlugin
         string text = run.Solved ? $"Solved: {run.Kills} kill(s), alive."
             : survived ? $"Alive, but {run.Kills} of {need} kill(s)."
             : "You died.";
-        if (_hero is { IsValid: true } hero) hero.PrintToChat($" [Puzzle] {text}");
+        if (_hero is { IsValid: true } hero) hero.PrintToChat($" [Puzzle] {text} Puzzle finished; normal settings restored.");
         Log($"Puzzle {puzzle.Id} finished: survived={survived} kills={run.Kills} need={need} solved={run.Solved}");
         string url = $"{_serviceUrl}/puzzles/{puzzle.Id}/result";
         string body = JsonSerializer.Serialize(new { survived, kills = run.Kills });
-        _driven.Clear();
-        _phase = PuzzlePhase.Idle;   // the recorded players play as normal bots from here
+        EndPuzzleMode();
         _ = Task.Run(async () =>
         {
             try { using var content = new StringContent(body, Encoding.UTF8, "application/json"); (await Http.PostAsync(url, content)).EnsureSuccessStatusCode(); }

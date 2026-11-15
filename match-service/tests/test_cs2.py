@@ -19,7 +19,7 @@ ASH = "76561198000000001"
 
 
 def settings(tmp_path, **extra):
-    base = dict(backend="cs2", cs2_settle_seconds=0.0, warmup_seconds=0.01, map_load_seconds=1.0, restart_seconds=0.0, gsi_token=TOKEN, demo_dir=tmp_path)
+    base = dict(backend="cs2", cs2_settle_seconds=0.0, puzzle_settle_seconds=0.0, warmup_seconds=0.01, map_load_seconds=1.0, restart_seconds=0.0, gsi_token=TOKEN, demo_dir=tmp_path)
     base.update(extra)
     return Settings(**base)
 

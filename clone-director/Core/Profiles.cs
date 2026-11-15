@@ -15,6 +15,8 @@ public sealed class CloneProfile
     [JsonPropertyName("route_shares")] public Dictionary<string, Dictionary<string, double>> RouteShares { get; init; } = [];
     // Optional. Written by clone_pipeline/quirks.py for learned-quirk clones such as "donkL".
     [JsonPropertyName("quirk_controls")] public Dictionary<string, QuirkControl> QuirkControls { get; init; } = [];
+    // Optional. v2 clones: rule-based game sense (Core/GameSense.cs). Absent: every rule off.
+    [JsonPropertyName("game_sense")] public GameSenseSettings GameSense { get; init; } = new();
 
     public string Personality => StandInBot ?? DisplayName;
 }
@@ -144,6 +146,10 @@ public sealed class ProfileStore(string root)
                 throw new InvalidDataException($"{share} must be between 0 and 1.");
         if (Quirks.Value(profile, "shots_per_burst") is < 1 or > Quirks.MaxBurst)
             throw new InvalidDataException("shots_per_burst must be between 1 and 30.");
+        if (Quirks.Value(profile, "slow_share") is < 0 or > 1)
+            throw new InvalidDataException("slow_share must be between 0 and 1.");
+        if (profile.GameSense is null) throw new InvalidDataException("game_sense cannot be null.");
+        profile.GameSense.Validate();
         foreach (var (side, plans) in profile.BuyPlan)
         {
             CheckSide(side);

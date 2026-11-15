@@ -55,6 +55,24 @@ public sealed class PuzzleTests
     }
 
     [Fact]
+    public void BotKilledBeforeHeroKeepsItsDeathInTheRewind()
+    {
+        var recorder = new PuzzleRecorder();
+        for (int i = 0; i <= 20; i++)
+        {
+            double time = i * 0.25;
+            recorder.Sample(time, 1, "hero", "CT", 0, 0, 0, 0, 0, 100, "ak47", Loadout("ak47"));
+            if (time <= 2)
+                recorder.Sample(time, 2, "enemy", "T", 100, 0, 0, 0, 0, 100, "awp", Loadout("awp"));
+        }
+        recorder.MarkDeath(2.1, 2);
+        var puzzle = recorder.Build(5, 1, "d", "Death", "de_mirage", "", 10, 0, 0, 0, 0, 0)!;
+        var enemy = Assert.Single(puzzle.Players, player => player.Name == "enemy");
+        Assert.Equal(0, enemy.Track[^1].Hp);
+        Assert.Equal(2.1, enemy.Track[^1].T);
+    }
+
+    [Fact]
     public void OldFramesAreDropped()
     {
         var r = Recorded(out double death);

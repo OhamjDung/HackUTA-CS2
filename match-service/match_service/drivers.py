@@ -29,6 +29,14 @@ def describe(clone: Clone, settings: Settings) -> CloneInfo:
     if settings.cs2_bots == "clone":
         generated = settings.cs2_routes == "generated"
         label = ("CloneDirector, generated routes" if generated else "CloneDirector, recorded routes")
+        # A profile can name a model whose paths are not yet route files (donkLF, brokyLF): it still
+        # plays recorded routes, and generated mode has nothing to play for it.
+        pending = isinstance(clone.model, dict) and clone.model.get("routes_generated") is False
+        if pending and generated:
+            return CloneInfo(**base, driver=CLONE_DIRECTOR, label=label, playable=False,
+                             reason="model named, but no generated routes exist for it yet")
+        if pending:
+            label += " (model adapter not converted to routes yet)"
         if generated and not clone.model:
             return CloneInfo(**base, driver=CLONE_DIRECTOR, label=label + shared, playable=False,
                              reason="no model in the profile, so no generated routes")

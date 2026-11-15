@@ -3,7 +3,10 @@
 `add_puzzle_routes` is called from create_app; it mounts the routes on the app and returns the store.
 """
 
+import asyncio
 import json
+import time
+import uuid
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
@@ -11,7 +14,7 @@ from pydantic import BaseModel, Field
 
 from .core import Settings
 from .feedback import feedback_for
-from .puzzles import ID_RE, MAX_VIDEO_BYTES, NotFound, PuzzleStore, new_id, validate_puzzle
+from .puzzles import ID_RE, MAX_VIDEO_BYTES, NotFound, PuzzleStore, is_solved, needed_kills, new_id, validate_puzzle
 
 
 class ResultBody(BaseModel):
@@ -42,7 +45,25 @@ class DraftBody(BaseModel):
 
 def add_puzzle_routes(app: FastAPI, settings: Settings, backend) -> PuzzleStore:
     store = PuzzleStore(settings.puzzle_dir, settings.puzzle_seed_dir)
-    active_attempt: dict = {}  # the puzzle and player of the attempt running in CS2 now
+    active_attempt: dict = {}  # one CS2 instance can play one attempt at a time
+    attempt_timeout = 120.0
+    completed_attempts: dict = {}
+
+    def clear_attempt():
+        path = active_attempt.get("path")
+        active_attempt.clear()
+        if path:
+            try:
+                path.unlink(missing_ok=True)
+            except OSError:
+                pass  # a leftover copy cannot be used to submit a result
+
+    def expire_attempt():
+        now = time.monotonic()
+        if active_attempt and now >= active_attempt["deadline"]:
+            clear_attempt()
+        for run_id in [key for key, value in completed_attempts.items() if value["expires"] <= now]:
+            del completed_attempts[run_id]
 
     def puzzle_or_404(puzzle_id: str):
         try:
@@ -158,9 +179,31 @@ def add_puzzle_routes(app: FastAPI, settings: Settings, backend) -> PuzzleStore:
 
     @app.post("/puzzles/{puzzle_id}/result")
     async def puzzle_result(puzzle_id: str, body: ResultBody):
+        expire_attempt()
+        if active_attempt and active_attempt["run_id"] == puzzle_id:
+            attempt = dict(active_attempt)
+            puzzle = attempt["puzzle"]
+            if attempt["library"]:
+                result = store.record_attempt(puzzle.id, attempt["player"], body.survived, body.kills)
+            else:
+                result = {"solved": is_solved(puzzle, body.survived, body.kills),
+                          "survived": body.survived, "kills": body.kills,
+                          "need_kills": needed_kills(puzzle.original.kills)}
+            completed_attempts[puzzle_id] = {"result": result, "expires": time.monotonic() + 300}
+            clear_attempt()
+            return result
+        # Explicit manual results remain available for saved library puzzles.
         puzzle_or_404(puzzle_id)
-        mine = active_attempt.get("player") if active_attempt.get("id") == puzzle_id else None
-        return store.record_attempt(puzzle_id, body.player or mine or "guest", body.survived, body.kills)
+        return store.record_attempt(puzzle_id, body.player or "guest", body.survived, body.kills)
+
+    @app.get("/puzzle-attempts/{attempt_id}")
+    async def attempt_status(attempt_id: str):
+        expire_attempt()
+        if active_attempt and active_attempt["run_id"] == attempt_id:
+            return {"state": "pending"}
+        if attempt_id in completed_attempts:
+            return {"state": "finished", "result": completed_attempts[attempt_id]["result"]}
+        raise HTTPException(404, "Puzzle attempt expired or was not found")
 
     @app.post("/puzzles/{puzzle_id}/vote")
     async def puzzle_vote(puzzle_id: str, body: VoteBody):
@@ -170,23 +213,35 @@ def add_puzzle_routes(app: FastAPI, settings: Settings, backend) -> PuzzleStore:
         except ValueError as exc:
             raise HTTPException(422, str(exc))
 
-    async def launch(puzzle, player: str) -> dict:
-        """Copy a puzzle to the plugin's puzzle folder and tell CloneDirector to load it."""
+    async def launch(puzzle, player: str, *, library: bool = True) -> dict:
+        """Reserve the game and use a unique copied id to correlate its callback."""
         if backend.name != "cs2" or not hasattr(backend, "plugin_command"):
             raise HTTPException(409, "Practice in CS2 needs MATCH_BACKEND=cs2 with CloneDirector. "
                                      "The page's map replay works without it.")
         if not settings.game_puzzle_dir:
             raise HTTPException(409, "PUZZLE_GAME_DIR is not set: the service does not know where "
                                      "CloneDirector reads puzzles from")
-        settings.game_puzzle_dir.mkdir(parents=True, exist_ok=True)
-        (settings.game_puzzle_dir / f"{puzzle.id}.json").write_text(puzzle.model_dump_json(), encoding="utf-8")
+        expire_attempt()
+        if active_attempt:
+            raise HTTPException(409, "Another puzzle attempt is still running. Wait for it to finish or time out.")
+        run_id = "run_" + uuid.uuid4().hex
+        path = settings.game_puzzle_dir / f"{run_id}.json"
+        active_attempt.update({"run_id": run_id, "puzzle": puzzle, "player": player,
+                               "library": library, "path": path,
+                               "deadline": time.monotonic() + attempt_timeout})
         try:
-            reply = await backend.plugin_command(f"puzzle_load {puzzle.id}")
-        except (RuntimeError, OSError) as exc:
-            raise HTTPException(409, f"Could not reach CloneDirector: {exc}")
-        active_attempt.clear()
-        active_attempt.update({"id": puzzle.id, "player": player})
-        return {"started": True, "puzzle_id": puzzle.id, "reply": reply}
+            settings.game_puzzle_dir.mkdir(parents=True, exist_ok=True)
+            copy = puzzle.model_dump()
+            copy["id"] = run_id
+            path.write_text(json.dumps(copy), encoding="utf-8")
+            if hasattr(backend, "prepare_puzzle"):
+                await backend.prepare_puzzle(puzzle.map, puzzle.hero().side)
+            reply = await backend.plugin_command(f"puzzle_load {run_id}")
+        except (RuntimeError, OSError, asyncio.TimeoutError) as exc:
+            if active_attempt.get("run_id") == run_id:
+                clear_attempt()
+            raise HTTPException(409, f"Could not start the puzzle in CS2: {exc}")
+        return {"started": True, "puzzle_id": puzzle.id, "reply": reply, "attempt_id": run_id}
 
     @app.post("/puzzles/{puzzle_id}/start")
     async def puzzle_start(puzzle_id: str, body: StartBody):
@@ -235,7 +290,7 @@ def add_puzzle_routes(app: FastAPI, settings: Settings, backend) -> PuzzleStore:
     @app.post("/deaths/{death_id}/start")
     async def start_death(death_id: str, body: StartBody):
         """Retry the last 10 seconds before a death in CS2, without saving it to the library."""
-        return await launch(read_death(death_id), body.player)
+        return await launch(read_death(death_id), body.player, library=False)
 
     @app.post("/deaths/{death_id}/save", status_code=201)
     async def save_death(death_id: str, body: SaveDeathBody):

@@ -71,6 +71,9 @@ class Settings:
     clone_join_seconds: float = 20.0  # how long to wait for every clone bot to join
     # How long to wait for every clone bot to show in `status` before removing extra bots (see _settle_bots).
     cs2_settle_seconds: float = 6.0
+    # After "Practice in CS2" loads the puzzle's map: wait for the plugins and the player to load
+    # before joining a team and sending puzzle_load. Not measured; 5 s is a guess.
+    puzzle_settle_seconds: float = 5.0
     # Which route files CloneDirector plays: `recorded` (cut from the player's matches) or `generated`
     # (written by a trained model; needs `model` in the profile). See drivers.py.
     cs2_routes: str = "recorded"
@@ -112,6 +115,7 @@ class Settings:
             clone_join_seconds=float(env.get("CS2_CLONE_JOIN_SECONDS", cls.clone_join_seconds)),
             cs2_routes=env.get("CS2_CLONE_ROUTES", cls.cs2_routes),
             cs2_settle_seconds=float(env.get("CS2_SETTLE_SECONDS", cls.cs2_settle_seconds)),
+            puzzle_settle_seconds=float(env.get("CS2_PUZZLE_SETTLE_SECONDS", cls.puzzle_settle_seconds)),
         )
 
 

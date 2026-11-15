@@ -17,6 +17,8 @@ export default function PuzzlePractice({ id }: { id: string }) {
   const [survived, setSurvived] = useState(true);
   const [kills, setKills] = useState(1);
   const [result, setResult] = useState<AttemptResult | null>(null);
+  const [automatic, setAutomatic] = useState<AttemptResult | null>(null);
+  const [watch, setWatch] = useState<string | null>(null);
 
   const load = () =>
     call<PuzzleDetail>(`/puzzles/${encodeURIComponent(id)}`)
@@ -27,6 +29,32 @@ export default function PuzzlePractice({ id }: { id: string }) {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  useEffect(() => {
+    if (!watch) return;
+    let stopped = false;
+    const poll = async () => {
+      try {
+        const state = await call<{ state: 'pending' | 'finished'; result?: AttemptResult }>(`/puzzle-attempts/${encodeURIComponent(watch)}`);
+        if (!stopped && state.state === 'finished' && state.result) {
+          setAutomatic(state.result);
+          setWatch(null);
+          setStatus({ ok: true, text: 'Result received from CS2.' });
+          load();
+        }
+      } catch {
+        if (!stopped) setStatus({ ok: false, text: 'Waiting for the result; the match service could not be reached.' });
+      }
+    };
+    const timer = window.setInterval(poll, 2000);
+    const timeout = window.setTimeout(() => {
+      setWatch(null);
+      setStatus({ ok: false, text: 'No result arrived within two minutes. Check CS2 and CloneDirector, then try again.' });
+    }, 120000);
+    return () => { stopped = true; window.clearInterval(timer); window.clearTimeout(timeout); };
+    // load is intentionally not a dependency: polling belongs to the active attempt.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, watch]);
 
   if (error) {
     return (
@@ -80,8 +108,12 @@ export default function PuzzlePractice({ id }: { id: string }) {
             disabled={busy}
             onClick={() =>
               act(async () => {
-                await call(`/puzzles/${encodeURIComponent(id)}/start`, { method: 'POST', json: { player } });
-                setStatus({ ok: true, text: 'Loaded in CS2. Switch to the game: you control the highlighted player.' });
+                setWatch(null);
+                setAutomatic(null);
+                setResult(null);
+                const started = await call<{ attempt_id: string }>(`/puzzles/${encodeURIComponent(id)}/start`, { method: 'POST', json: { player } });
+                setWatch(started.attempt_id);
+                setStatus({ ok: true, text: 'Sent to CS2. Switch to the game; the result will appear here when the attempt finishes.' });
               })
             }
             className={`${pill} bg-[#E4002B] text-white hover:bg-[#ff1a44]`}
@@ -96,6 +128,13 @@ export default function PuzzlePractice({ id }: { id: string }) {
           </p>
         )}
 
+        {automatic && (
+          <p role="status" className={`rounded-[12px] border border-white/[0.16] p-[14px] text-[15px] ${automatic.solved ? 'text-[#7ee2a0]' : 'text-[#ff8a9b]'}`}>
+            {automatic.solved ? 'Solved.' : automatic.survived ? `Not solved: survived with ${automatic.kills} of ${p.need_kills} required kills.` : 'Not solved: you died.'}
+            {' '}Rating {automatic.player.rating} ({automatic.rating_change >= 0 ? '+' : ''}{automatic.rating_change}).
+          </p>
+        )}
+
         <div>
           <h3 className="mb-[10px] font-mono text-[13px] font-bold uppercase tracking-[0.06em] text-[#D8D8DE]">What went wrong in the clip</h3>
           <FeedbackList items={p.feedback} empty="The original player survived, or no clear mistake was found." />
@@ -107,6 +146,8 @@ export default function PuzzlePractice({ id }: { id: string }) {
             e.preventDefault();
             act(async () => {
               const r = await call<AttemptResult>(`/puzzles/${encodeURIComponent(id)}/result`, { method: 'POST', json: { player, survived, kills } });
+              setWatch(null);
+              setAutomatic(null);
               setResult(r);
               load();
             });

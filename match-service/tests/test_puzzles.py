@@ -1,5 +1,6 @@
 import json
 from datetime import date
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -129,6 +130,16 @@ def test_seed_puzzles_are_listed_with_stats(client):
     assert client.get("/puzzles?sort=bad").status_code == 422
 
 
+def test_action_seed_puzzles_have_full_windows_and_combat():
+    seed_dir = Path(__file__).resolve().parents[1] / "seed_puzzles"
+    for puzzle_id in ("pro_2393226_r9_donk", "pro_2393024_r19_broky"):
+        puzzle = validate_puzzle(json.loads((seed_dir / f"{puzzle_id}.json").read_text(encoding="utf-8")))
+        assert puzzle.window_seconds == 30
+        hero = next(player for player in puzzle.players if player.hero)
+        assert any(event.type == "kill" and event.attacker == hero.name and event.t < 30 for event in puzzle.events)
+        assert len([player for player in puzzle.players if player.side != hero.side and player.start.health > 0]) >= 2
+
+
 def test_get_puzzle_includes_the_document_and_feedback(client):
     body = client.get("/puzzles/seed1").json()
     assert body["puzzle"]["players"][0]["name"] == "hero" and body["feedback"]
@@ -227,15 +238,66 @@ def cs2_client(tmp_path, **extra):
 
 
 def test_start_copies_the_puzzle_and_sends_puzzle_load_through_the_plugin(tmp_path):
+    from tests.test_cs2 import gsi
     app, main, bridge, game = cs2_client(tmp_path)
     with TestClient(app) as client:
+        gsi(client)   # CS2 is already on de_mirage
         r = client.post("/puzzles/seed1/start", json={"player": "tom"})
         assert r.status_code == 200 and r.json()["started"]
-        assert "puzzle_load seed1" in bridge.sent and "puzzle_load seed1" not in main.sent
-        assert json.loads((game / "seed1.json").read_text(encoding="utf-8"))["id"] == "seed1"
+        run_id = bridge.sent[-1].split()[-1]
+        assert bridge.sent[-1] == f"puzzle_load {run_id}" and bridge.sent[-1] not in main.sent
+        assert json.loads((game / f"{run_id}.json").read_text(encoding="utf-8"))["id"] == run_id
         # the plugin reports back without a name: the result is saved under the player who started it
-        client.post("/puzzles/seed1/result", json={"survived": True, "kills": 2})
+        client.post(f"/puzzles/{run_id}/result", json={"survived": True, "kills": 2})
         assert client.get("/players/tom").json()["solved"] == 1
+
+
+def test_start_loads_the_puzzle_map_and_joins_a_team_when_cs2_is_elsewhere(tmp_path):
+    import threading, time
+    from tests.test_cs2 import gsi
+    app, main, bridge, game = cs2_client(tmp_path, map_load_seconds=5.0)
+    with TestClient(app) as client:
+        def report_map():   # CS2 reports the map once the service has asked for it
+            deadline = time.monotonic() + 5
+            while "map de_mirage" not in main.sent and time.monotonic() < deadline:
+                time.sleep(0.02)
+            gsi(client)
+        threading.Thread(target=report_map).start()
+        r = client.post("/puzzles/seed1/start", json={"player": "tom"})
+        assert r.status_code == 200, r.text
+        assert main.sent.index("map de_mirage") < main.sent.index("jointeam 3")
+        assert bridge.sent[-1].startswith("puzzle_load run_")
+
+
+def test_start_says_so_when_the_map_never_loads(tmp_path):
+    app, main, bridge, game = cs2_client(tmp_path, map_load_seconds=0.2)
+    with TestClient(app) as client:
+        r = client.post("/puzzles/seed1/start", json={"player": "tom"})
+        assert r.status_code == 409 and "de_mirage" in r.json()["detail"], r.text
+        assert "puzzle_load seed1" not in bridge.sent
+
+
+def test_plugin_command_sends_the_command_not_only_a_ping():
+    import asyncio
+    from match_service.console import PluginChannel
+
+    async def run():
+        got = []
+
+        async def handle(reader, writer):
+            while line := (await reader.readline()).decode().strip():
+                got.append(line)
+                writer.write(b"pong\n" if line == "matchbridge_ping" else b"ok\n")
+                await writer.drain()
+            writer.close()
+
+        server = await asyncio.start_server(handle, "127.0.0.1", 0)
+        port = server.sockets[0].getsockname()[1]
+        await PluginChannel("127.0.0.1", port, "tok").send(["puzzle_load seed1"])
+        server.close()
+        return got
+
+    assert asyncio.run(run()) == ["auth tok", "puzzle_load seed1"]
 
 
 def test_a_death_can_be_retried_without_saving_it(tmp_path):
@@ -244,8 +306,10 @@ def test_a_death_can_be_retried_without_saving_it(tmp_path):
     deaths.mkdir()
     (deaths / "death_1.json").write_text(json.dumps(make_puzzle("death_1")), encoding="utf-8")
     with TestClient(app) as client:
+        from tests.test_cs2 import gsi
+        gsi(client)
         assert client.post("/deaths/death_1/start", json={"player": "tom"}).status_code == 200
-        assert "puzzle_load death_1" in bridge.sent
+        assert bridge.sent[-1].startswith("puzzle_load run_")
         assert [r["id"] for r in client.get("/puzzles").json()] == ["seed1"]   # not added to the library
 
 
@@ -260,3 +324,78 @@ def test_start_without_the_plugin_channel_says_so(tmp_path):
     with TestClient(create_app(s, channel=RecordingChannel())) as client:   # stand-in bots: netcon only
         r = client.post("/puzzles/seed1/start", json={"player": "tom"})
         assert r.status_code == 409 and "MatchBridge" in r.json()["detail"]
+
+
+def test_game_attempt_callbacks_are_correlated_and_cannot_be_replayed(tmp_path):
+    from tests.test_cs2 import gsi
+    app, main, bridge, game = cs2_client(tmp_path)
+    with TestClient(app) as client:
+        gsi(client)
+        assert client.post("/puzzles/seed1/start", json={"player": "tom"}).status_code == 200
+        run_id = bridge.sent[-1].split()[-1]
+        assert run_id != "seed1"
+        assert client.post("/puzzles/seed1/start", json={"player": "other"}).status_code == 409
+        r = client.post(f"/puzzles/{run_id}/result", json={"survived": True, "kills": 2})
+        assert r.status_code == 200 and r.json()["solved"]
+        assert client.get("/players/tom").json()["attempts"] == 1
+        assert client.post(f"/puzzles/{run_id}/result", json={"survived": True, "kills": 2}).status_code == 404
+        assert client.post("/puzzles/seed1/start", json={"player": "other"}).status_code == 200
+        assert client.post(f"/puzzles/{run_id}/result", json={"survived": True, "kills": 2}).status_code == 404
+        assert client.get("/players/other").json()["attempts"] == 0
+
+
+def test_unsaved_death_result_is_accepted_without_adding_to_library(tmp_path):
+    from tests.test_cs2 import gsi
+    app, main, bridge, game = cs2_client(tmp_path)
+    deaths = tmp_path / "deaths"
+    deaths.mkdir()
+    (deaths / "death_1.json").write_text(json.dumps(make_puzzle("death_1")), encoding="utf-8")
+    with TestClient(app) as client:
+        gsi(client)
+        assert client.post("/deaths/death_1/start", json={"player": "tom"}).status_code == 200
+        run_id = bridge.sent[-1].split()[-1]
+        r = client.post(f"/puzzles/{run_id}/result", json={"survived": False, "kills": 3})
+        assert r.status_code == 200 and not r.json()["solved"]
+        assert [p["id"] for p in client.get("/puzzles").json()] == ["seed1"]
+
+
+def test_timed_out_attempt_allows_retry_and_rejects_late_result(tmp_path, monkeypatch):
+    import match_service.puzzle_routes as routes
+    from tests.test_cs2 import gsi
+    clock = [1000.0]
+    monkeypatch.setattr(routes.time, "monotonic", lambda: clock[0])
+    app, main, bridge, game = cs2_client(tmp_path)
+    with TestClient(app) as client:
+        gsi(client)
+        assert client.post("/puzzles/seed1/start", json={"player": "tom"}).status_code == 200
+        old_id = bridge.sent[-1].split()[-1]
+        clock[0] += 121
+        assert client.post("/puzzles/seed1/start", json={"player": "other"}).status_code == 200
+        assert client.post(f"/puzzles/{old_id}/result", json={"survived": True, "kills": 2}).status_code == 404
+        assert client.get("/players/other").json()["attempts"] == 0
+
+
+def test_failed_plugin_command_releases_the_attempt(tmp_path):
+    from tests.test_cs2 import gsi
+    app, main, bridge, game = cs2_client(tmp_path)
+    with TestClient(app) as client:
+        gsi(client)
+        bridge.fail_with = OSError("offline")
+        assert client.post("/puzzles/seed1/start", json={"player": "tom"}).status_code == 409
+        bridge.fail_with = None
+        assert client.post("/puzzles/seed1/start", json={"player": "tom"}).status_code == 200
+
+
+def test_attempt_status_distinguishes_manual_results_and_completed_game(tmp_path):
+    from tests.test_cs2 import gsi
+    app, main, bridge, game = cs2_client(tmp_path)
+    with TestClient(app) as client:
+        gsi(client)
+        started = client.post("/puzzles/seed1/start", json={"player": "tom"}).json()
+        run_id = started["attempt_id"]
+        assert client.get(f"/puzzle-attempts/{run_id}").json()["state"] == "pending"
+        client.post("/puzzles/seed1/result", json={"player": "tom", "survived": True, "kills": 2})
+        assert client.get(f"/puzzle-attempts/{run_id}").json()["state"] == "pending"
+        client.post(f"/puzzles/{run_id}/result", json={"survived": False, "kills": 1})
+        state = client.get(f"/puzzle-attempts/{run_id}").json()
+        assert state["state"] == "finished" and not state["result"]["solved"]
