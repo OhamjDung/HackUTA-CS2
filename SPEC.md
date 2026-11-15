@@ -1412,6 +1412,13 @@ voice delivery has been verified.
 
 ### 9.6 Replay puzzles (added 2026-11-15, Tom with Claude)
 
+- **Recorder and completion fix (2026-11-15, Tom/Codex):** the recorder now appends a zero-health
+  sample when any recorded player dies, preserving their death before the human's rewind window
+  is saved. Finishing an attempt prints its outcome in the player's chat and restores the puzzle
+  cvars and quota mode. The C# suite passes 69 tests and CloneDirector builds. These changes have
+  not yet been loaded and tested in CS2. Giving bots the recorded players' actual names remains
+  open; the bot base takes names from its packed profiles and post-join renaming did not stick.
+
 - **Attempt result delivery (2026-11-15, user/Codex):** the service copies a puzzle with a unique temporary game ID so the unchanged plugin callback identifies the attempt. One attempt can run at a time; it expires after 120 seconds, and a late or duplicate callback is rejected. The practice page polls `GET /puzzle-attempts/{attempt_id}` and shows the game result, or a timeout. An unsaved death retry returns a result without adding it to the library or player ratings. Completed results stay in service memory for five minutes; a service restart loses pending and completed status. Manual library results still use the original result endpoint. MatchBridge only confirms command delivery, so loading is not confirmed until a result arrives. Tested with service fakes and frontend typecheck; not exercised in CS2 or a browser.
 
 
@@ -1464,16 +1471,31 @@ CS2PracticeMod (MIT, CounterStrikeSharp), the library follows Lichess's puzzle m
      10 s, "finished: survived=True kills=0 need=2 solved=False" (nobody was playing). Not yet watched
      from the player's view; whether the bots follow their tracks has not been checked by eye.
   3. `clone_add` in CloneDirector used `GetPlayers()` too and now uses `AllPlayers()`. MatchBridge's
-     `bots()` (`MatchBridge.cs` 152) still uses `GetPlayers()` and returned `[]` with 9 bots in the game;
-     the service's extra-bot cleanup reads `status` instead, but anything that relies on `bots()` will see
-     no bots. MatchBridge is not changed (Ashirwad owns the service). Play-tab clone matches not re-run.
+     bot lookup also switched to entity enumeration and builds successfully. Its live clone-join check
+     still needs a test.
   4. **Open (2026-11-15):** (a) the bots keep their random bot-base names, not the recorded players'
      names. A rename after joining did not stick in an earlier test (section 3); the proven route is a
      `botprofile.vpk` entry per name plus `bot_add_ct "<name>"`, which would need entries for all 20 pro
      names and puzzle mode adding bots by name instead of by quota. Not built. (b) Only the broky seed
      puzzle ran. The donk seed puzzle and saved death puzzles were not run: CS2 was on an empty map at
      the time. Death files saved before the `AllPlayers()` fix hold only the human (1 player).
-     (c) The running service still has the old "Practice in CS2" code until it is restarted from this branch.
+  5. **Later run (2026-11-15, Codex):** started the updated clone service on port 8001 and restarted
+     CS2 with its callback pointed to that port. Both seed puzzle start endpoints returned `sent` and
+     each reported `survived=true`, zero kills and `solved=false`. The donk puzzle was visible in
+     CS2 at Jungle with its objective shown. The frontend library listed both puzzles. This run used
+     the start endpoint directly; button-to-game and active play remain to be confirmed. MatchBridge's
+     clone enumeration and v2 matches have not been verified live.
+  6. **Action candidates (2026-11-15, Tom/Codex):** cut two 30-second puzzles from existing demos,
+     `pro_2393226_r9_donk` and `pro_2393024_r19_broky`. Five enemies are alive at the start of
+     each. In the recorded broky round, broky kills an opponent at 6.34 s and dies at 30 s. In
+     donk's round, opponents approach him within the first 10 s, and he kills one at 29.62 s.
+     These are positions and events read from the files, not a visibility or gameplay guarantee.
+     Both are listed by the running service and a seed-data regression check passes. The prior
+     seed files remain so older puzzle links and ratings continue to resolve. In one live broky
+     attempt, the service recorded the player's death, zero kills and `solved=false`; the player
+     confirmed an opponent was visible and could be engaged. A second start returned another
+     failed death result. Both starts used the service endpoint; the page button still needs a
+     live end-to-end check.
   The CloneDirector DLL in the game is the worktree build with fixes 1 and 2. The 05:17 build is backed up
   in `data/clonedirector-backup-0517/`.
 - **CloneDirector** (`PuzzleMode.cs`, `Core/Puzzles.cs`): keeps the last 15 s of every player (4 samples a
@@ -1494,11 +1516,9 @@ CS2PracticeMod (MIT, CounterStrikeSharp), the library follows Lichess's puzzle m
   (recorder, JSON round trip, interpolation, rules): 40 of 40. `tsc --noEmit` clean. In Chrome against a mock
   service on port 8001: the Puzzles tab, the library, a real pro puzzle with its replay and feedback, saving an
   attempt (1500 to 1488), and the popup appearing within seconds of a death file being dropped in.
-- **Not checked: anything in CS2.** `puzzle_load`; whether bots can be moved to the other side with
-  `ChangeTeam`; the restore (weapons, armor, health, position); the teleport playback; the hand-offs; the
-  result report; the death file written by a real death; "Practice in CS2" and "Retry last 10 s" end to end;
-  whether a 4-per-second track is fine enough for a fight. The plugin was copied into the game folder while
-  CS2 was running, so CS2 needs a restart before it runs this code.
+- **Still to check in CS2:** exact teleport paths, combat hand-offs, death file from a real death,
+  "Practice in CS2" and "Retry last 10 s" end to end, and whether a 4-per-second track is fine enough
+  for a fight. Both seed start requests and unsuccessful callbacks ran as described above.
 - **Not built:** reading a game state from POV video; streak and vote rewards beyond the counters; user
   accounts (a name kept in the browser stands in); recording demos of every match (`-Record tv` still
   untried).
@@ -1790,6 +1810,12 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-15, Tom (Codex): preserve bot-death samples in saved puzzle tracks and restore puzzle settings with a chat result when an attempt ends; 69 C# tests pass, live verification pending.
+
+- 2026-11-15, Tom (Codex): added 30-second donk and broky action puzzles from recorded rounds and verified seed data and a broky death callback; player visibility remains to check.
+
+- 2026-11-15, Tom (Codex): ran both seed puzzle start endpoints in private CS2 and observed two failed-attempt callbacks; visually confirmed the donk objective and location.
 
 - 2026-11-15, Tom (Codex): MatchBridge enumerates connected player controllers when checking clone joins; Release build passed, live CS2 check pending.
 

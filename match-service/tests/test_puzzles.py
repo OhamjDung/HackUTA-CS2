@@ -1,5 +1,6 @@
 import json
 from datetime import date
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -127,6 +128,16 @@ def test_seed_puzzles_are_listed_with_stats(client):
     assert rows[0]["rating"] == 1500 and rows[0]["need_kills"] == 2 and rows[0]["hero"] == "hero"
     assert client.get("/puzzles?tag=retake").json() and not client.get("/puzzles?tag=nope").json()
     assert client.get("/puzzles?sort=bad").status_code == 422
+
+
+def test_action_seed_puzzles_have_full_windows_and_combat():
+    seed_dir = Path(__file__).resolve().parents[1] / "seed_puzzles"
+    for puzzle_id in ("pro_2393226_r9_donk", "pro_2393024_r19_broky"):
+        puzzle = validate_puzzle(json.loads((seed_dir / f"{puzzle_id}.json").read_text(encoding="utf-8")))
+        assert puzzle.window_seconds == 30
+        hero = next(player for player in puzzle.players if player.hero)
+        assert any(event.type == "kill" and event.attacker == hero.name and event.t < 30 for event in puzzle.events)
+        assert len([player for player in puzzle.players if player.side != hero.side and player.start.health > 0]) >= 2
 
 
 def test_get_puzzle_includes_the_document_and_feedback(client):

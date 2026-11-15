@@ -81,6 +81,7 @@ public sealed partial class CloneDirectorPlugin
         double now = Server.CurrentTime;
         string? attackerName = e.Attacker is { IsValid: true } a && a.Slot != victim.Slot ? a.PlayerName : null;
         _recorder.AddEvent(now, "kill", attackerName, victim.PlayerName, ItemName(e.Weapon));
+        _recorder.MarkDeath(now, victim.Slot);
 
         if (_run is { Finished: false } run && _hero is not null)
         {
@@ -365,12 +366,11 @@ public sealed partial class CloneDirectorPlugin
         string text = run.Solved ? $"Solved: {run.Kills} kill(s), alive."
             : survived ? $"Alive, but {run.Kills} of {need} kill(s)."
             : "You died.";
-        if (_hero is { IsValid: true } hero) hero.PrintToChat($" [Puzzle] {text}");
+        if (_hero is { IsValid: true } hero) hero.PrintToChat($" [Puzzle] {text} Puzzle finished; normal settings restored.");
         Log($"Puzzle {puzzle.Id} finished: survived={survived} kills={run.Kills} need={need} solved={run.Solved}");
         string url = $"{_serviceUrl}/puzzles/{puzzle.Id}/result";
         string body = JsonSerializer.Serialize(new { survived, kills = run.Kills });
-        _driven.Clear();
-        _phase = PuzzlePhase.Idle;   // the recorded players play as normal bots from here
+        EndPuzzleMode();
         _ = Task.Run(async () =>
         {
             try { using var content = new StringContent(body, Encoding.UTF8, "application/json"); (await Http.PostAsync(url, content)).EnsureSuccessStatusCode(); }

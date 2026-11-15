@@ -158,6 +158,16 @@ public sealed class PuzzleRecorder
     public void AddEvent(double now, string type, string? attacker, string? victim, string? weapon) =>
         _events.Add((now, new PuzzleEventData { Type = type, Attacker = attacker, Victim = victim, Weapon = weapon }));
 
+    /// Preserve the death even though dead players are no longer sampled.
+    public void MarkDeath(double now, int slot)
+    {
+        if (!_rings.TryGetValue(slot, out var ring) || ring.Frames.Count == 0) return;
+        var last = ring.Frames[^1];
+        var sample = last.Sample;
+        ring.Frames.Add((now, new PuzzleSample { X = sample.X, Y = sample.Y, Z = sample.Z,
+            Yaw = sample.Yaw, Pitch = sample.Pitch, Hp = 0, Weapon = sample.Weapon }, last.Loadout));
+    }
+
     /// Cut the window ending at `now` for the player in `heroSlot`. Null when the hero has too little history.
     public PuzzleData? Build(double now, int heroSlot, string id, string title, string map, string created, double window,
                              double heroX, double heroY, double heroZ, double heroYaw, double heroPitch)
