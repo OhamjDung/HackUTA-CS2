@@ -37,6 +37,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | 3D Character Glitch-Swap Showcase (Nodes A1-A5, B1-B4, C1-C2) | Nikesh | COMPLETE & VERIFIED. Artist KTX2+Meshopt rigs integrated (5/5 gatekeeper PASS, 0.31MB); 5-character live sweep: mixer path, 1.85m framing, chromatic rim/HUD, KTX transcode clean, 0 errors, 0 refetches | `frontend/`, `frontend/scripts/chargen/` | 2026-11-14 |
 | Landing page visual pass: hero staging, light rig and character presence | Ashirwad | Done; merged to `main`. Handoff for Nikesh in section 9.3 ("FaZe home page: how it fits together"). Second pass after review: the arm-aim stance layer (`lib/posing.ts`, which pushed Mario's hand through his chest) is removed and each artist Idle clip plays untouched; `lib/presence.ts` adds only breath, a spine weight shift and a small head follow of the cursor (arms and legs never touched). Low hero camera, three-quarter turn, every character fitted to the same height (width-capped for Mario), rise-and-settle entrance. Light rig: warm key with shadows, two coloured back rims per character, top spot, contact shadow and colour pool; neutral tone mapping and a high-threshold bloom. Colour-reactive CSS backdrop and headline. Home page layout: brand lockup on the left (one-word "DOPPELGAMER" 14-segment LED sign drawn in SVG in `components/ui/HeroSign.tsx`, with a full-width chamfered D, closed-bowl R, faint unlit segments, glow and wall spill in the character colours, slight cursor parallax; "Clone anyone on any game." centred under it in the multicolour gradient; then the "Choose your bot" and "Watch demo" buttons). The character switcher (label, tabs, scan hint) is centred directly under the character (on phones too); the character is drawn 8% smaller and raised to leave room for it (`stageInput.anchorLift`, home page only); the "Choose your bot" arrow circle takes the live character colour; the "mixed-reality co-host" line is removed; the character is centred in the space between the lockup and the right-edge ruler, and the nav lockup on the home page shows only the FaZe mark (same 44 px) with a red halo and light sweep (`SiteNav wordmark={false}`; other pages unchanged). Key light follows the cursor, rims lift near the character, floor bounce light in the character colour. Checked in a browser against `next dev`: all 5 characters front and side at 1440x900, auto-cycle, Bots page, 375 px (no overflow), 0 new console errors. `tsc` clean; `next build` not run. | `frontend/lib/presence.ts`, `frontend/components/canvas/`, `frontend/components/ui/StageBackdrop.tsx`, `frontend/components/faze/FazeHome.tsx`, `frontend/components/ui/SiteNav.tsx`, `frontend/app/globals.css`, `frontend/lib/shaders/glitchPass.ts` | 2026-11-15 |
 | DoppelGamer dual-mode foundation + complete Odyssey experience | Nikesh (Codex) | Done in working tree; user will commit. Six public routes resolve explicit `mode=faze\|odyssey` on the server. Odyssey now implements the approved parchment/engraving composition, exact four-bot roster, persistent selection and feature dialogue, upload/legendary scene flows, semantic sample leaderboard, coherent play/studio placeholders and illustrated footer. Odyssey mounts zero canvases across all six routes. Production build, typecheck, 4 contract tests and 5/5 model verification pass; both-mode 12-route smoke and repeated switching passed with zero browser errors. | `frontend/lib/mode/`, `frontend/components/mode/`, `frontend/modes/odyssey/`, `frontend/public/images/odyssey/`, `frontend/tests/mode-contract.test.ts` | 2026-11-15 |
+| Odyssey depth and polish (layered art, motion, button depth) | Arjun (with Claude) | Done on branch `claude/odyssey-ui-depth-polish-fde81c`, not merged. The flat Odyssey PNGs are cut into transparent WebP layers (`scripts/odyssey-layers/split.py`) and every section animates: hero parallax, intro fly-ins, bot swap that rises out of the waves with typed dialogue, coin medallions with tilt, stacked scene cards, unrolling panels, footer ship and waves, ink wash on arrival; buttons have depth and press states. Checked in a browser against `next dev` (1270 px and 800 px wide, 375 px phone, every Odyssey route, bot switch, zero console errors); `tsc`, `next build` and the 4 mode tests pass. Reduced motion checked by removing the page's motion switch, not with the real system setting. FaZe pages not re-checked by eye (no shared file changed). See section 9.3, "Odyssey: how it fits together". | `frontend/modes/odyssey/`, `frontend/public/images/odyssey/layers/`, `frontend/scripts/odyssey-layers/` | 2026-11-15 |
 | Stand-in bots: built-in CS2-Bot-Improver pro bots used in place of clones until CloneDirector works | Ashirwad | In progress. `donk_v1` and `broky_v1` profiles use the `donk` and `broky` bots; not run in CS2 | `match-service/sample_clones/` | 2026-11-14 |
 | In-game similarity score: a bot's rounds in CS2 against the real player's held-back match (section 10.2) | Ashirwad | In progress. Scorer, map-area lookup and both held-back references written and tested; served as `GET /matches/{id}/score` and shown on the proof page (run against the mock in a browser); no real CS2 trace scored yet | `clone-pipeline/clone_pipeline/ingame.py`, `clone-pipeline/references/`, `match-service/match_service/scoring.py` | 2026-11-14 |
 | Side-by-side page, stand-in version (two synced panels; replay page content replaces it) | Ashirwad (live check by Codex) | In progress. Both live map panels drew bot positions from CS2. Replay played the donk stand-in and a recorded pro donk opening on one clock. The event list showed the service's halftime scoring error. | `match-service/demo/`, `match-service/match_service/replay.py` | 2026-11-14 |
@@ -463,6 +464,7 @@ One install of CS2-Bot-Improver gives the first four rows.
 | Stand-in bots | CS2-Bot-Improver's pro bot profiles and the `bot_add_ct "<name>"` blocks in its `Commands.txt` |
 | Style numbers for every professional | OpenCS2's ready-made index tables |
 | Character showcase viewer (5-model WebGPU hot-swap stage) | Written from zero: no template base exists for this design, and the architecture is prescribed by `frontend/AGENTS.md`. Frameworks: Next.js, three.js, React Three Fiber (all MIT, section 4.1) |
+| Odyssey layered art and motion | Layer cut-out: Pillow and NumPy (open source, HPND and BSD licences), run through `uv`. Motion: plain CSS plus small React hooks, the same approach as the FaZe home page; no animation library was added because CSS covers every effect used and FaZe already works this way. Written from zero on that base. |
 
 ### 4.3 Rejected
 
@@ -1267,6 +1269,42 @@ of the replay.
     stream."; both were left on purpose. On phones the fixed "MODEL CREDITS" label floats over
     scrolled content (it did before these changes).
 
+- **Odyssey: how it fits together (Arjun with Claude, 2026-11-15).** Paths are under `frontend/`.
+  - *Art layers.* `scripts/odyssey-layers/split.py` cuts each flat illustration into full-size transparent WebP
+    layers in `public/images/odyssey/layers/<picture>/`. It treats "darker than the paper" as ink (a colour key),
+    rebuilds the bare paper as `paper.webp`, and gives every ink pixel to exactly one layer by the rules in its
+    `PICTURES` table (region box plus "blue" or "black" ink), so the layers stacked at rest match the original
+    (mean error 1.6–3.7 out of 255, printed by the script). Portraits are split by radius into face and Greek-key
+    ring (`RING_SPLIT`, measured per portrait; Odysseus's ring sits closer to the centre). The footer wave band also
+    gets `band-strip.webp`, one 63 px repeat longer, for an endless loop. Rerun after any art change:
+    `uv run --with pillow --with numpy python scripts/odyssey-layers/split.py`. The original PNGs stay as the
+    script's source; the pages no longer load them (about 30 MB of PNG replaced by about 4.8 MB of WebP).
+  - *Stacks.* `Stack` in `modes/odyssey/OdysseyExperience.tsx` stacks a picture's layers. With `cover` it covers its
+    sized parent like `background-size: cover` (container query units), so `transform-origin` percentages in the CSS
+    are points on the picture.
+  - *Motion switch.* `useMotionSystem` sets `data-motion` on the page only when the visitor has not asked for
+    reduced motion; every entrance and loop in `OdysseyExperience.module.css` is scoped under it. One
+    IntersectionObserver marks `[data-reveal]` and `[data-stage]` elements `data-shown` on first view and pauses
+    loops in `[data-loop]` sections off screen. Pointer position and hero scroll go into CSS variables (`--px`,
+    `--py`, `--hero-p`); layers with a depth (`--d`) follow them.
+  - *Effects.* Hero: cursor and scroll parallax, waves bob, ship rocks, helmet floats, headline sharpens in.
+    Intro: Hermes and amphora slide in, olive branches sway, the border wipes in. Section titles: letters rise in,
+    rule grows. Roster: coin medallions tilt toward the cursor with a moving highlight; the selected one lifts and
+    its ring turns. Bot card: on a switch the old figure sinks behind its waves and the new one rises; the cloud pops
+    from its tail; the line types after the dots (screen readers get the full line at once). Scene cards: second card
+    peeking behind, lift, layer parallax on hover, sun turns, flags flutter. Panels unroll; the upload button takes
+    dropped files; a blue wax seal stamps the ready file. Leaderboard: tablet with depth, rows rise in, points count
+    up, row hover sweep, gold crown (a CSS mask, because ♛ is an emoji in some fonts). Footer: wave band loops, ship
+    sails and rocks, text sits under the band at any width. Arrival from FaZe or a fresh load: a blue ink wash
+    shrinks away (a timer removes it if the page loads in a background tab, where the animation never runs).
+  - *Buttons.* Main blue button is a tile on a darker base: lifts on hover with a gold shine, drops on press.
+    Outline button fills with ink. Nav links get a growing underline; the current page a small wave. The sound
+    button shows moving bars. The shared mode switch gets parchment colours inside Odyssey only (`.shell
+    :global(.mode-switch)`); `components/mode/` is unchanged, so FaZe is unaffected.
+  - *Left from the plan.* The hero ship's pennant does not ripple separately (it is part of the ship layer). The
+    speech cloud is a cut-out layer, not redrawn SVG, so it keeps the hand-drawn line. The mode switch has no sliding
+    highlight, because that needs a change to the shared component. Odyssey still mounts no `<canvas>`.
+
 **Independent QA (2026-11-14):** `tools/replay-qa/REPORT.md` records unresolved replay selection races, stale empty/error panels, play-page reload loss, narrow-screen overflow, unnamed playback controls, and proof-label limits. Synthetic tests also expose missing/corrupt/empty route handling, nonfinite coordinates, post-death samples and mock trace finalization/download placeholders. All twelve were fixed the same day (section 3, "Replay QA fixes"). QA owns only the report/harness; the service implementation remains with its owner and is not fixed by this report.
 
 ### 9.4 Sponsor services
@@ -1710,6 +1748,8 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-15, Arjun (with Claude): Odyssey depth and polish in `frontend/`. New `scripts/odyssey-layers/split.py` cuts the flat Odyssey art into WebP layers; the Odyssey page now animates each section and its buttons have depth (section 9.3, "Odyssey: how it fits together"). Fixed on the way: footer text no longer overlaps the wave band on narrower windows; the roster uses a group role instead of a list role without list items. Checked in a browser against `next dev`; `tsc`, `next build` and the mode tests pass.
 
 - 2026-11-15, Ashirwad: merged the landing page work (`task/frontend-polish`) into `main` and added a handoff for Nikesh in section 9.3 ("FaZe home page: how it fits together"): file map, how colour and layout flow, tuning values, rules (no limb posing, shared `/bots` stage, glow `filter`), and what is still open.
 

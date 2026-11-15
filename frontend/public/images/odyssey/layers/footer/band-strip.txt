@@ -1,0 +1,1 @@
+period=63 usable=1512 width=1575 height=65 y0=685
