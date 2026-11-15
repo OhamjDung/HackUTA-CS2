@@ -3,10 +3,11 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSelectedBot, useSessionUploads } from '@/app/providers';
 import { CURATED_SCENES } from '@/lib/bots';
 import { useModeHref } from '@/components/mode/ModeLink';
+import { call } from '@/lib/puzzles';
 
 export type ScenesTab = 'upload' | 'famous';
 
@@ -16,6 +17,39 @@ const TABS: { id: ScenesTab; label: string; hint: string }[] = [
 ];
 
 const ACCEPT = '.dem,.mp4,.mov,.webm,.mkv';
+type RecordedScene = { id: string; title: string; map: string; duration: number; players: string[]; kills: number };
+
+function RecordedScenes() {
+  const [scenes, setScenes] = useState<RecordedScene[]>([]);
+  const [status, setStatus] = useState('Loading recorded scenes…');
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    call<RecordedScene[]>('/scenes').then(data => { setScenes(data); setStatus(data.length ? '' : 'No recorded scenes are available.'); })
+      .catch(() => setStatus('Connect to the match service to load recorded scenes.'));
+  }, []);
+  async function watch(id: string) {
+    setBusy(true); setStatus('Preparing CS2…');
+    try {
+      await call(`/scenes/${encodeURIComponent(id)}/start`, { method: 'POST' });
+      setStatus('Scene sent to CS2. Switch to the game to spectate.');
+    } catch (e) { setStatus(e instanceof Error ? e.message : String(e)); }
+    finally { setBusy(false); }
+  }
+  return <section className="mt-[32px]" aria-label="Recorded scenes">
+    <h2 className="text-[26px] font-bold text-white">Recorded CS2 moments</h2>
+    <p className="mt-2 text-sm text-[#B8B8C2]">Watch every recorded player from spectator mode in CS2. These scenes reconstruct movement and deaths; they are not full match video.</p>
+    <div className="mt-5 grid gap-5 sm:grid-cols-2 min-[1200px]:grid-cols-4">
+      {scenes.map(scene => <button key={scene.id} type="button" disabled={busy} onClick={() => void watch(scene.id)}
+        className="rounded-xl border border-white/[0.16] bg-[#131316] p-5 text-left text-white hover:border-white/50 disabled:opacity-50">
+        <span className="block text-xs font-bold uppercase tracking-wider text-[#B8B8C2]">{scene.map.replace('de_', '')} · {scene.duration}s · {scene.kills} recorded kills</span>
+        <span className="mt-2 block text-xl font-bold">{scene.title}</span>
+        <span className="mt-2 block text-sm text-[#B8B8C2]">{scene.players.join(', ')}</span>
+        <span className="mt-4 block font-bold">Watch in CS2 →</span>
+      </button>)}
+    </div>
+    {status && <p role="status" className="mt-4 text-sm text-[#B8B8C2]">{status}</p>}
+  </section>;
+}
 
 const arrow = (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
@@ -131,11 +165,7 @@ export default function ScenesView({ initialTab }: { initialTab: ScenesTab }) {
           </div>
         </section>
       ) : (
-        <section className="mt-[32px]" aria-label="Famous games">
-          <SceneGrid title={famousTitle} scenes={famous} botId={bot.id} />
-          {others.length > 0 && <SceneGrid title="Other games" scenes={others} botId={bot.id} muted />}
-          <p className="mt-[18px] text-[12.5px] text-[#9E9EA8]">Curated set · preview</p>
-        </section>
+        <RecordedScenes />
       )}
     </div>
   );

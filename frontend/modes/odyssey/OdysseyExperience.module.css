@@ -687,6 +687,11 @@
   background: linear-gradient(#fff1cf99, #fff1cf), url('/images/odyssey/layers/hero/paper.webp') center / cover;
 }
 .setupGrid { max-width: 1080px; margin: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; padding: 20px; }
+.poseidonForm { display: grid; gap: 12px; width: min(100%, 480px); }
+.poseidonForm label { display: grid; gap: 6px; font-weight: 700; }
+.poseidonForm input, .poseidonForm select { width: 100%; border: 1px solid var(--blue); border-radius: 4px; background: #fffaf0; padding: 10px; color: var(--ink); }
+.poseidonForm button:disabled { opacity: .55; cursor: wait; }
+.poseidonForm p { margin: 0; }
 .setupGrid article {
   display: flex;
   align-items: center;

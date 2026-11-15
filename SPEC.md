@@ -26,6 +26,11 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 
 | Part | Owner | State | Where | Updated |
 |---|---|---|---|---|
+| Poseidon death commentary | Tom (Codex) | Implemented. Supplied god voice configured in local ignored `.env`; service restarted and ElevenLabs voice lookup returned 200. 23 coach tests pass against fakes; live Gemini, synthesis and in-game playback for Poseidon not checked. | `match-service/match_service/coach.py` | 2026-11-15 |
+| Poseidon match setup | Tom (Codex) | Implemented and installed on Tom's PC: profile and aggressive native bot entry installed with archive backup; Odyssey play screen submits a private Mirage match. Typecheck and 8 Odyssey tests pass; actual match and damage hook not run. | `clones/poseidon.json`, `frontend/modes/odyssey/OdysseyExperience.tsx` | 2026-11-15 |
+| Spectator scenes from recorded matches | Tom (Codex) | In progress. FaZe Scenes lists four recorded Mirage windows; code adds scene launch and all-player spectator track playback. Plugin builds, 77 existing core tests, 35 puzzle tests and 36 backend/coach tests pass; spectator mode has not been installed or run in CS2, and does not reconstruct shots or grenades. | `clone-director/PuzzleMode.cs`, `match-service/match_service/puzzle_routes.py`, `frontend/components/scenes/ScenesView.tsx` | 2026-11-15 |
+| Self-clone upload preview | Tom (Codex) | Done in code. Play page demo-file picker is a frontend preview only; nothing is uploaded or trained. Browser flow not checked. | `frontend/components/play/MatchControls.tsx` | 2026-11-15 |
+| Optional death-coach trash talk | Tom (Codex) | Done in code. Play page enables a per-match roast tone via a separate coach route; normal advice remains default. 22 coach tests pass against fakes; no live game or browser test. | `frontend/components/play/MatchControls.tsx`, `match-service/match_service/coach.py` | 2026-11-15 |
 | Play page model catalogue | Tom (Codex) | Done in code. Shows all models returned by the service, with unavailable entries disabled and explained; offline state no longer presents placeholder bots in Play vs bot. Typecheck and mode tests pass; live catalogue and browser flow not checked. | `frontend/components/play/MatchControls.tsx` | 2026-11-15 |
 | Windows launcher service port | Tom (Codex) | In progress. Aligning the website's service URL with the launcher's selected port; live restart not checked. | `start-everything.ps1` | 2026-11-15 |
 | MatchBridge clone detection | Tom (Codex) | Done in worktree; Release build passes. Uses connected player-controller entities to find bots, as CloneDirector does; not run in CS2. | `match-service/plugin/MatchBridge/` | 2026-11-15 |
@@ -92,7 +97,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Similarity search (MongoDB Atlas) | Unassigned | Not started | Not decided | 2026-11-14 |
 | Hosting on Vultr, domain from GoDaddy Registry | Unassigned | Not started | Not decided | 2026-11-14 |
 | DEV article | Unassigned | Not started | Not decided | 2026-11-14 |
-| Odyssey authored bot roster: Poseidon, Odysseus, Menelaus, Telemachus | Arjun (Codex) | Implemented, not deployed/live-validated. Four matching UI IDs,14 mapped quirks each, distinct native difficulty presets, scoped Poseidon damage immunity and Odysseus1.08x enemy damage. Release build clean;77 C# tests,10 tool tests pass; service suite148 pass/1 known Windows symlink failure. Deployment recipe checked against the start script; voices/trash talk remain Tom's work. | `clones/ODYSSEY.md`, `clones/{poseidon,odysseus,menelaus,telemachus}.json`, `clone-director/OdysseyMode.cs`, section6.5 | 2026-11-15 |
+| Odyssey authored bot roster: Poseidon, Odysseus, Menelaus, Telemachus | Arjun (Codex) | Implemented, not live-validated. Poseidon profile and native entry installed on Tom's PC 2026-11-15; the other three profiles are not deployed. Four matching UI IDs, 14 mapped quirks each, distinct native difficulty presets, scoped Poseidon damage immunity and Odysseus 1.08x enemy damage. Release build clean; 77 C# tests, 10 tool tests pass; service suite 148 pass/1 known Windows symlink failure. | `clones/ODYSSEY.md`, `clones/{poseidon,odysseus,menelaus,telemachus}.json`, `clone-director/OdysseyMode.cs`, section6.5 | 2026-11-15 |
 
 ### 0.3 Things this spec does not know yet
 
@@ -500,6 +505,7 @@ One install of CS2-Bot-Improver gives the first four rows.
 | Character showcase viewer (5-model WebGPU hot-swap stage) | Written from zero: no template base exists for this design, and the architecture is prescribed by `frontend/AGENTS.md`. Frameworks: Next.js, three.js, React Three Fiber (all MIT, section 4.1) |
 | Odyssey layered art and motion | Layer cut-out: Pillow and NumPy (open source, HPND and BSD licences), run through `uv`. Motion: plain CSS plus small React hooks, the same approach as the FaZe home page; no animation library was added because CSS covers every effect used and FaZe already works this way. Written from zero on that base. |
 | Death coach (Gemini advice, chat, voice) | Written from zero: no existing open-source CS2 coach reads CloneDirector's death files. Calls the documented REST APIs (Gemini `generateContent`, ElevenLabs `text-to-speech/{voice_id}/stream`) with `httpx`, no SDK; playback with `sounddevice` (MIT). Reuses `feedback.py` and CloneDirector's death recorder (section 9.6). |
+| Spectator scenes | Reuses the existing replay-puzzle pipeline and its CS2PracticeMod (MIT) restore pattern (section 9.6); all-player spectator playback extends CloneDirector's existing implementation. |
 
 Odyssey gameplay starting point (6.5): existing CloneDirector profiles, purchase/quirk/game-sense rules
 and `add_clone_bot_entries.py`, built on the already selected CS2-Bot-Controller/CS2-Smarter-Bot bases.
@@ -723,6 +729,11 @@ start and save the segment at round end. These segments are already in the playb
 who plays ten rounds has a route library at the end.
 
 ### 6.5 Odyssey authored personas (2026-11-15)
+
+Poseidon's native entry and CloneDirector profile were installed on Tom's PC with the old VPK backed up
+under ignored `data/`. His Odyssey Play screen can start a private Mirage Wingman match against him using
+the existing `/matches` API. Other Odyssey play screens and scene selection remain previews. CS2 was
+closed for installation; in-game aggression and damage immunity remain unverified.
 
 The current UI's exact four IDs are `poseidon`, `odysseus`, `menelaus`, `telemachus`. Each has14
 authored character quirks and existing profile/driver compatibility; `source: user`, `model: null`,
@@ -1292,7 +1303,7 @@ of the replay.
 
 ### 9.3 Web pages
 
-The FaZe `/play` page offers bot-vs-bot and play-vs-bot setup using the match service at `NEXT_PUBLIC_API_URL` (default `http://localhost:8000`), including its clone catalogue, existing matches, stop, scores, events, inline position paths and a link to the demo replay/position viewer. It shows all clones returned by the service, disabling and explaining those marked unavailable; an offline Play vs bot page asks the user to connect instead of showing placeholder choices. Browser mock checked both v2 clones and match reload before this catalogue change; the revised catalogue and a real CS2 match remain unchecked.
+The FaZe `/play` page offers bot-vs-bot and play-vs-bot setup using the match service at `NEXT_PUBLIC_API_URL` (default `http://localhost:8000`), including its clone catalogue, existing matches, stop, scores, events, inline position paths and a link to the demo replay/position viewer. It shows all clones returned by the service, disabling and explaining those marked unavailable; an offline Play vs bot page asks the user to connect instead of showing placeholder choices. Play vs bot includes a frontend-only self-clone preview: the `.dem` picker holds the selected file in the browser only, with no upload or clone creation. Browser mock checked both v2 clones and match reload before these changes; the revised catalogue, preview and a real CS2 match remain unchecked.
 
 - **Lobby page and match page.** Owned by teammates, built against the match service.
 - **Demo pages (`match-service/demo/`, Ashirwad).** Bare-minimum versions of each feature for the
@@ -1521,6 +1532,18 @@ voice delivery has been verified.
 
 ### 9.6 Replay puzzles (added 2026-11-15, Tom with Claude)
 
+**Spectator scenes (in progress).** FaZe Scenes lists the four committed Mirage puzzle windows from the
+Spirit–Falcons and FaZe–Inner Circle recordings. `GET /scenes` lists those available; `POST
+/scenes/{id}/start` reserves the existing puzzle runner and sends `scene_load` with a copied track file.
+CloneDirector moves the human to spectator and assigns a bot to each recorded player, disables ordinary
+bot movement, teleports bots along tracks, and removes them at recorded death samples. It restores changed
+cvars afterward and returns completion through the existing attempt callback without changing ratings.
+This is a movement/death reconstruction, not demo video: shots, actual kill attribution, grenade effects,
+and real player names on CS2 bots are not reconstructed. Scene selection, bot quota, spectator camera,
+completion callback and visual fidelity have not been tested in a live game; the new plugin must be
+deployed and the service restarted before the feature is available. Existing puzzle and match APIs remain
+unchanged. The FaZe page is wired; Odyssey's scenes are still placeholders.
+
 - **Recorder and completion fix (2026-11-15, Tom/Codex):** the recorder now appends a zero-health
   sample when any recorded player dies, preserving their death before the human's rewind window
   is saved. Finishing an attempt prints its outcome in the player's chat and restores the puzzle
@@ -1688,6 +1711,21 @@ ElevenLabs Instant Voice Clone. `match-service/match_service/coach.py`.
 6. **Routes (additions; the Server API is unchanged).** `GET /coach` (status and the last advice),
    `POST /coach/deaths/{id}` (coach a saved death again), `POST /coach/puzzles/{id}` (coach a library or
    seed puzzle's death; works without CS2, for trying the voice).
+
+**Optional trash talk.** Play vs bot defaults to normal advice and offers an opt-in trash-talk checkbox.
+After creating a match, the frontend calls `PUT /coach/matches/{id}/style` with `trash_talk`; it reports
+failure if the setting could not be applied. The setting is held in service memory for that match and
+defaults to advice for other matches and after a service restart. Gemini is prompted to roast gameplay;
+if Gemini is unavailable the coach uses a short canned jab followed by rule-based advice. A death in the
+brief interval between match creation and applying the setting can receive normal advice. The route and
+prompt are tested against fakes, not a live match.
+
+**Poseidon commentary.** When Poseidon is the chosen speaker, the death coach uses a Poseidon-specific
+prompt asking for a godlike gameplay roast and one grounded tip, regardless of the generic trash-talk
+setting. On Gemini failure, a canned godlike jab precedes the existing rule-based advice. The supplied
+voice ID is configured locally as `ELEVENLABS_VOICE_POSEIDON`; no voice ID or API key is needed in code.
+The voice-selection and prompt behavior were tested against fakes; an ElevenLabs voice lookup returned
+200, but synthesis and playback were not tested in a live match.
 
 **Voice permission.** Pro player voices follow section 9.5 and AGENTS.md section 8: use a player's voice
 only with that player's authorization. Section 9.5's rule of
@@ -1975,9 +2013,12 @@ demo. A released product would need each player's or team's permission.
 
 ## 19. Change log
 
+- 2026-11-15, Tom (Codex): installed Poseidon's profile and aggressive native bot entry with a backup, connected his Odyssey match setup and configured god-voice roast/advice commentary; 8 Odyssey and 23 fake-coach tests pass; no live match run.
+- 2026-11-15, Tom (Codex): implemented FaZe recorded-scene selection and a spectator track playback path; built the plugin and ran 77 core, 35 puzzle and 36 backend/coach tests, but did not deploy or run it in CS2.
 - 2026-11-15, Nikesh (with Claude): removed the Smash Bros curated scenes ("Last-stock comeback", "Edgeguard drill") from the FaZe Scenes page: dropped from `CURATED_SCENES` in `frontend/lib/bots.ts` and from the valid scene ids in `frontend/lib/mode/contract.ts`. `components/scenes/ScenesView.tsx` now shows the CS2 moments as the main set when the selected bot's game has no curated scenes (Sparg0), instead of an empty "Smash Bros moments" section. The Sparg0 bot itself is unchanged. Checked: `tsc`, `test:mode` 4/4; browser Scenes > Famous games with donk and with Sparg0.
 - 2026-11-15, Nikesh (with Claude): FaZe Puzzles Create tab restyled, UI only (`frontend/components/puzzles/CreatePuzzle.tsx`); same fields, buttons and service calls. Both panels get numbered headers (01 From your last death, 02 From footage) and size to their content; the empty saved-deaths state is a three-step card; footage player rows show a numbered side-coloured badge, the name, a CT / T switch (same two choices as the old select), a labelled offset in seconds and a styled file picker that shows the chosen file and size; compact not-finished note; Add player / Remove last / Upload footage and the drafts list restyled. Checked: `tsc`; browser at 1440 and 375 px offline (side switch, add / remove player, file pick). Not checked: the saved-death state (needs a real death from the match service), `next build`.
 - 2026-11-15, Nikesh (with Claude): FaZe Puzzles library page restyled, UI only (`frontend/components/puzzles/PuzzleLibrary.tsx`, `frontend/app/puzzles/page.tsx`); same data, calls and controls, none added or removed. One-line title; underlined Library / Create tabs; puzzle of the day as a large map-picture card (map chips, description, Play puzzle) beside the rating card (shows "Unrated" until the first attempt, Playing as, streak / best streak / solved) and the next-for-your-rating card; "Puzzle library" with the theme filter as a dropdown (same themes), source pills and sort; library cards with the map picture (Mirage, Dust II, Inferno), title, map / tags / band / rating and the solved and vote counts; restyled recent attempts. Checked: `tsc`, `test:mode` 4/4; browser at 1440 px against a local mock (new player and player with history) and at 375 px offline. Not run: real match service, `next build`.
+- 2026-11-15, Tom (Codex): added opt-in per-match death-coach trash talk and a frontend-only self-clone demo-file preview; coach tests pass against fakes, live UI and CS2 not checked.
 - 2026-11-15, Tom (Codex): updated Play to show all service-reported models, explain unavailable entries and distinguish an offline or empty catalogue; frontend typecheck and 4 mode tests pass, live UI not checked.
 - 2026-11-15, Tom (Codex): aligned the Windows launcher's website service URL with its selected port; live restart not checked.
 - 2026-11-15, Nikesh (with Claude): FaZe Play page match setup redesigned (`frontend/components/play/MatchControls.tsx`, layout only; the match-service calls, checks and the live match panel are unchanged). Underlined "Bot vs bot / Play vs bot" tabs; numbered steps 01 opponents (CT/T cards with player photo, "Change bot" select), 02 map (Mirage, Dust II, Inferno picture cards; Inferno image `frontend/components/img/inferno.webp` supplied by Nikesh), 03 match rules (mode, and rounds tied to the mode); a match preview card with the map picture, matchup, Start match and status; and a "Watch an existing match" row with a Watch button. Defaults are now broky_v1 (CT) vs donk_v1 (T). Offline, the cards show broky vs donk placeholders and Start is disabled ("Match service offline. Reconnect to start."). Checked: `tsc`, `test:mode` 4/4; browser at 1440 and 375 px offline, and against a local mock service (clone list, change bot, map and mode selection, Start match sent `{"map":"de_mirage","mode":"wingman","clones":[broky_v1 CT, donk_v2 T]}`, existing-match list). Not run: real match service, CS2, `next build`.

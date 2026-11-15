@@ -183,7 +183,9 @@ def add_puzzle_routes(app: FastAPI, settings: Settings, backend) -> PuzzleStore:
         if active_attempt and active_attempt["run_id"] == puzzle_id:
             attempt = dict(active_attempt)
             puzzle = attempt["puzzle"]
-            if attempt["library"]:
+            if attempt.get("scene"):
+                result = {"finished": True}
+            elif attempt["library"]:
                 result = store.record_attempt(puzzle.id, attempt["player"], body.survived, body.kills)
             else:
                 result = {"solved": is_solved(puzzle, body.survived, body.kills),
@@ -213,7 +215,7 @@ def add_puzzle_routes(app: FastAPI, settings: Settings, backend) -> PuzzleStore:
         except ValueError as exc:
             raise HTTPException(422, str(exc))
 
-    async def launch(puzzle, player: str, *, library: bool = True) -> dict:
+    async def launch(puzzle, player: str, *, library: bool = True, scene: bool = False) -> dict:
         """Reserve the game and use a unique copied id to correlate its callback."""
         if backend.name != "cs2" or not hasattr(backend, "plugin_command"):
             raise HTTPException(409, "Practice in CS2 needs MATCH_BACKEND=cs2 with CloneDirector. "
@@ -221,13 +223,15 @@ def add_puzzle_routes(app: FastAPI, settings: Settings, backend) -> PuzzleStore:
         if not settings.game_puzzle_dir:
             raise HTTPException(409, "PUZZLE_GAME_DIR is not set: the service does not know where "
                                      "CloneDirector reads puzzles from")
+        if scene and backend.busy():
+            raise HTTPException(409, "A match is running. Stop it before watching a scene.")
         expire_attempt()
         if active_attempt:
             raise HTTPException(409, "Another puzzle attempt is still running. Wait for it to finish or time out.")
         run_id = "run_" + uuid.uuid4().hex
         path = settings.game_puzzle_dir / f"{run_id}.json"
         active_attempt.update({"run_id": run_id, "puzzle": puzzle, "player": player,
-                               "library": library, "path": path,
+                               "library": library, "scene": scene, "path": path,
                                "deadline": time.monotonic() + attempt_timeout})
         try:
             settings.game_puzzle_dir.mkdir(parents=True, exist_ok=True)
@@ -236,7 +240,7 @@ def add_puzzle_routes(app: FastAPI, settings: Settings, backend) -> PuzzleStore:
             path.write_text(json.dumps(copy), encoding="utf-8")
             if hasattr(backend, "prepare_puzzle"):
                 await backend.prepare_puzzle(puzzle.map, puzzle.hero().side)
-            reply = await backend.plugin_command(f"puzzle_load {run_id}")
+            reply = await backend.plugin_command(f"{'scene_load' if scene else 'puzzle_load'} {run_id}")
         except (RuntimeError, OSError, asyncio.TimeoutError) as exc:
             if active_attempt.get("run_id") == run_id:
                 clear_attempt()
@@ -247,6 +251,24 @@ def add_puzzle_routes(app: FastAPI, settings: Settings, backend) -> PuzzleStore:
     async def puzzle_start(puzzle_id: str, body: StartBody):
         """Play the puzzle in CS2."""
         return await launch(puzzle_or_404(puzzle_id), body.player)
+
+    @app.get("/scenes")
+    async def list_scenes():
+        ids = ("pro_2393226_r9_donk", "pro_2393024_r19_broky", "pro_2393226_r7_donk", "pro_2393024_r4_broky")
+        scenes = []
+        for scene_id in ids:
+            try:
+                p = store.load(scene_id)
+            except (NotFound, ValueError):
+                continue
+            scenes.append({"id": p.id, "title": p.title, "map": p.map, "duration": p.window_seconds,
+                           "players": [player.name for player in p.players],
+                           "kills": sum(e.type == "kill" for e in p.events)})
+        return scenes
+
+    @app.post("/scenes/{scene_id}/start")
+    async def start_scene(scene_id: str):
+        return await launch(puzzle_or_404(scene_id), "spectator", library=False, scene=True)
 
     @app.get("/players/{player}")
     async def get_player(player: str):

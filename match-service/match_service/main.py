@@ -347,6 +347,8 @@ def create_app(settings: Settings | None = None, channel: ConsoleChannel | None 
     async def coach_say(commands: list[str]) -> None:
         await backend.clone_ch.send(commands)
 
+    coach_styles: dict[str, str] = {}
+
     def coach_match() -> dict | None:
         """The running match's clones and the person's team, so the coach speaks in the right voice."""
         live = [r for r in matches.values() if r.active]
@@ -354,7 +356,7 @@ def create_app(settings: Settings | None = None, channel: ConsoleChannel | None 
             return None
         players = live[-1].match.players
         human = next((p.team for p in players if not p.is_clone), None)
-        return {"human_team": human,
+        return {"human_team": human, "coach_style": coach_styles.get(live[-1].match.match_id, "advice"),
                 "clones": [{"clone_id": p.clone_id, "team": p.team} for p in players if p.is_clone]}
 
     coach = Coach(settings.coach, settings.death_dir, lambda: http["client"],
@@ -374,6 +376,17 @@ def create_app(settings: Settings | None = None, channel: ConsoleChannel | None 
     async def coach_status():
         """Whether the coach is on, which parts have keys, and the last advice it gave."""
         return coach.status()
+
+    @app.put("/coach/matches/{match_id}/style")
+    async def set_coach_style(match_id: str, body: dict):
+        record = get_record(match_id)
+        if not record.active:
+            raise HTTPException(409, "Match is no longer active")
+        style = body.get("style")
+        if style not in ("advice", "trash_talk"):
+            raise HTTPException(422, "style must be advice or trash_talk")
+        coach_styles[match_id] = style
+        return {"style": style}
 
     @app.post("/coach/deaths/{death_id}")
     async def coach_death(death_id: str):

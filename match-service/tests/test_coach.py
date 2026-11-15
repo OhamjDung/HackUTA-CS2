@@ -129,6 +129,33 @@ def test_gemini_failure_falls_back_to_rules(tmp_path):
     assert r["source"] == "rules" and said
 
 
+def test_trash_talk_uses_match_style_and_roasts_even_without_gemini(tmp_path):
+    client, calls = fake_apis()
+    s = CoachSettings(gemini_api_key="g-key", voice=False, chat=False)
+    coach = Coach(s, tmp_path, lambda: client, None, FakeSink(),
+                  match=lambda: {"human_team": "CT", "clones": [], "coach_style": "trash_talk"})
+    asyncio.run(coach.coach(make_puzzle()))
+    body = json.loads(calls[0].content)
+    assert "roast" in body["systemInstruction"]["parts"][0]["text"].lower()
+
+    no_key = Coach(CoachSettings(voice=False, chat=False), tmp_path, lambda: client, None, FakeSink(),
+                   match=lambda: {"human_team": "CT", "clones": [], "coach_style": "trash_talk"})
+    result = asyncio.run(no_key.coach(make_puzzle()))
+    assert result["text"].startswith("Nice try")
+
+
+def test_match_coach_style_is_scoped_and_validated(tmp_path):
+    settings = Settings(puzzle_dir=tmp_path / "p", death_dir=tmp_path / "d", coach=CoachSettings(enabled=True))
+    with TestClient(create_app(settings)) as client:
+        body = {"map": "de_mirage", "mode": "wingman", "players": [{"steam_id": "76561198000000000", "team": "CT"}],
+                "clones": [{"clone_id": "donk_v1", "team": "T"}]}
+        match_id = client.post("/matches", json=body).json()["match_id"]
+        assert client.put(f"/coach/matches/{match_id}/style", json={"style": "trash_talk"}).status_code == 200
+        assert client.get("/coach").json()["match"]["coach_style"] == "trash_talk"
+        assert client.put(f"/coach/matches/{match_id}/style", json={"style": "other"}).status_code == 422
+        assert client.put("/coach/matches/missing/style", json={"style": "advice"}).status_code == 404
+
+
 def test_gemini_text_cannot_inject_console_commands(tmp_path):
     client, _ = fake_apis(gemini_text='Nice try"; quit; say "pwned\nkill')
     said = []
@@ -252,6 +279,17 @@ def test_the_matched_players_voice_is_used_for_speech_and_chat(tmp_path):
     assert json.loads(json.loads(gem.content)["contents"][0]["parts"][0]["text"])["speaking_as"]["player"] == "broky"
     assert eleven.url.path == "/v1/text-to-speech/voice-broky/stream"
     assert said[0].startswith("say [broky AI] ")
+
+
+def test_poseidon_uses_god_voice_and_roast_with_advice(tmp_path):
+    client, calls = fake_apis()
+    s = CoachSettings(gemini_api_key="g", elevenlabs_api_key="e", voices={"poseidon": "god-voice"})
+    match = {"human_team": "CT", "clones": [{"clone_id": "poseidon", "team": "T"}]}
+    result = asyncio.run(Coach(s, tmp_path, lambda: client, None, FakeSink(), match=lambda: match).coach(make_puzzle()))
+    assert result["voice_id"] == "god-voice" and result["voice"]
+    prompt = json.loads(calls[0].content)["systemInstruction"]["parts"][0]["text"].lower()
+    assert "poseidon" in prompt and "roast" in prompt and "advice" in prompt
+    assert calls[1].url.path.endswith('/god-voice/stream')
 
 
 def test_no_voice_for_the_player_and_no_default_stays_quiet(tmp_path):

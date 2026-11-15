@@ -62,6 +62,18 @@ SYSTEM_PROMPT = (
     "of that pro player, the player's teammate or opponent in this match as stated: talk like a teammate on "
     "comms (teammate) or as the opponent who just watched them (opponent), but never claim to be the real person."
 )
+TRASH_TALK_PROMPT = (
+    "You are an AI opponent in a private Counter-Strike 2 practice match. The player opted in to trash talk. "
+    "Roast their gameplay brutally and creatively in one or two short sentences, grounded in the supplied death "
+    "facts. Keep it about their in-game decisions and skill; do not invent events or claim to be a real person. "
+    "Plain text only, no lists or quotation marks, under 200 characters."
+)
+POSEIDON_PROMPT = (
+    "You are Poseidon, a fictional wrathful sea god and an AI opponent in a private Counter-Strike 2 match. "
+    "The player just died: deliver a savage, witty roast of their gameplay in your imperious godlike voice, "
+    "then give one concrete piece of advice based on the supplied facts. Use ocean or divine imagery naturally. "
+    "Do not invent events. One or two short sentences, under 200 characters, plain text without quotation marks."
+)
 
 # Other names the keys are often saved under; the first one set is used.
 ALIASES = {
@@ -374,14 +386,21 @@ class Coach:
         async with self._lock:
             findings = feedback_for(puzzle)
             summary = death_summary(puzzle, findings)
-            speaker = speaker_for(puzzle, self.match(), self.s.voices)
+            match = self.match()
+            trash_talk = bool(match and match.get("coach_style") == "trash_talk")
+            speaker = speaker_for(puzzle, match, self.s.voices)
             if speaker:
                 summary["speaking_as"] = speaker
             source, text = "rules", fallback_advice(findings)
+            poseidon = bool(speaker and speaker["player"] == "poseidon")
+            if poseidon:
+                text = "The sea claims another fool. " + text
+            elif trash_talk:
+                text = "Nice try. " + text
             if self.s.gemini_api_key:
                 try:
                     t0 = time.monotonic()
-                    if written := await self.ask_gemini(summary):
+                    if written := await self.ask_gemini(summary, trash_talk=trash_talk, poseidon=poseidon):
                         source, text = "gemini", written
                     log.info("coach: Gemini answered in %.1f s", time.monotonic() - t0)
                 except (httpx.HTTPError, asyncio.TimeoutError, ValueError, KeyError) as exc:
@@ -405,9 +424,9 @@ class Coach:
                      time.monotonic() - started, text, f" | errors: {result['errors']}" if result["errors"] else "")
             return result
 
-    async def ask_gemini(self, summary: dict) -> str:
+    async def ask_gemini(self, summary: dict, trash_talk: bool = False, poseidon: bool = False) -> str:
         body: dict = {
-            "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+            "systemInstruction": {"parts": [{"text": POSEIDON_PROMPT if poseidon else TRASH_TALK_PROMPT if trash_talk else SYSTEM_PROMPT}]},
             "contents": [{"role": "user", "parts": [{"text": json.dumps(summary, separators=(",", ":"))}]}],
             "generationConfig": {"maxOutputTokens": 200},
         }

@@ -13,8 +13,8 @@ type TracePlayer = { name: string; team: string; clone_id?: string; path: number
 type Trace = { source: string; live_round: number | null; rounds: { round: number; players: TracePlayer[] }[] };
 type Event = { event: string; sent_at: string; data: unknown };
 type Summary = { match_id: string; status: string; players: string[] };
-async function api<T>(path: string, body?: unknown): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, body === undefined ? undefined : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+async function api<T>(path: string, body?: unknown, method = "POST"): Promise<T> {
+  const res = await fetch(`${API_URL}${path}`, body === undefined ? undefined : { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const data = await res.json().catch(() => null);
   if (!res.ok) throw new Error(Array.isArray(data?.detail) ? data.detail.map((x: { msg?: string } | string) => typeof x === "string" ? x : x.msg).join(", ") : data?.detail || res.statusText);
   return data as T;
@@ -54,6 +54,9 @@ export default function MatchControls() {
   const [matches, setMatches] = useState<Summary[]>([]);
   const [ct, setCt] = useState(""); const [t, setT] = useState("");
   const [side, setSide] = useState("CT"); const [steam, setSteam] = useState("");
+  const [trashTalk, setTrashTalk] = useState(false);
+  const [coachNotice, setCoachNotice] = useState("");
+  const [gameFile, setGameFile] = useState<File | null>(null);
   const [enemies, setEnemies] = useState<string[]>([]); const [mates, setMates] = useState<string[]>([]);
   const [map, setMap] = useState("de_mirage"); const [mode, setMode] = useState("wingman");
   const [id, setId] = useState(""); const [match, setMatch] = useState<Match | null>(null); const [events, setEvents] = useState<Event[]>([]);
@@ -84,7 +87,7 @@ export default function MatchControls() {
   }, [id]);
   function attach(next: string) { setMatch(null); setEvents([]); setTrace(null); setId(next); const url = new URL(window.location.href); url.searchParams.set("match", next); history.replaceState(null, "", url); }
   async function start() {
-    setError("");
+    setError(""); setCoachNotice("");
     if (kind === "watch" && ct === t) { setError("Choose a different clone for each side."); return; }
     if (kind === "play" && !/^7656119\d{10}$/.test(steam.trim())) { setError("Enter your 17-digit Steam ID."); return; }
     if (kind === "play" && !enemies.length) { setError("Choose at least one opponent."); return; }
@@ -92,7 +95,12 @@ export default function MatchControls() {
     try {
       const body = kind === "watch" ? { map, mode, players: [], clones: [{ clone_id: ct, team: "CT" }, { clone_id: t, team: "T" }] }
         : { map, mode, players: [{ steam_id: steam.trim(), team: side }], clones: [...enemies.map(clone_id => ({ clone_id, team: side === "CT" ? "T" : "CT" })), ...mates.filter(x => !enemies.includes(x)).map(clone_id => ({ clone_id, team: side }))] };
-      const result = await api<{ match_id: string }>("/matches", body); attach(result.match_id); void api<Summary[]>("/matches").then(setMatches).catch(() => {});
+      const result = await api<{ match_id: string }>("/matches", body); attach(result.match_id);
+      if (kind === "play" && trashTalk) {
+        try { await api(`/coach/matches/${encodeURIComponent(result.match_id)}/style`, { style: "trash_talk" }, "PUT"); }
+        catch { setCoachNotice("Match started, but trash talk could not be enabled. The coach will use normal advice."); }
+      }
+      void api<Summary[]>("/matches").then(setMatches).catch(() => {});
     } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
   }
   async function stop() { setBusy(true); try { await api(`/matches/${encodeURIComponent(id)}/stop`, {}); const m = await api<Match>(`/matches/${encodeURIComponent(id)}`); setMatch(m); } catch (e) { setError((e as Error).message); } finally { setBusy(false); } }
@@ -169,6 +177,19 @@ export default function MatchControls() {
           {offline && <p className="text-sm text-[#B8B8C2]">Connect to the match service to load the bot catalogue.</p>}
           {catalogueLoaded && !roster.length && <p className="text-sm text-[#B8B8C2]">The match service returned no bots.</p>}
           <div className="space-y-2"><p className="text-[14px] font-semibold text-[#B8B8C2]">Teammates (optional)</p><div className="flex flex-wrap gap-3">{roster.map(c => chip(c, mates, setMates))}</div></div>
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/[0.14] bg-[#18181c] p-4">
+            <input type="checkbox" checked={trashTalk} onChange={e => setTrashTalk(e.target.checked)} className="mt-1 h-4 w-4 accent-[#e4002b]" />
+            <span><span className="block font-bold">Trash talk</span><span className="block text-sm text-[#B8B8C2]">{trashTalk ? "Bots roast your gameplay after you die." : "Off: get normal advice after you die."}</span></span>
+          </label>
+          <div className="space-y-3 rounded-xl border border-white/[0.14] bg-[#18181c] p-4">
+            <div><p className="font-bold">Clone yourself <span className="ml-2 text-xs font-medium text-[#B8B8C2]">Coming soon</span></p>
+              <p className="mt-1 text-sm text-[#B8B8C2]">Choose a CS2 demo file to preview the flow. Cloning and file uploads are not available yet.</p></div>
+            <label className="inline-flex cursor-pointer rounded-full border border-white/40 px-4 py-2 text-sm font-bold hover:border-white">
+              Choose demo file<input type="file" accept=".dem" className="sr-only" onChange={e => setGameFile(e.target.files?.[0] ?? null)} />
+            </label>
+            {gameFile && <p className="break-all text-sm text-[#B8B8C2]">Selected: {gameFile.name} (not uploaded)</p>}
+            <div><button type="button" disabled className="rounded-full bg-white/20 px-4 py-2 text-sm font-bold text-white/50">Create my clone</button></div>
+          </div>
         </div>}
 
         <div className="space-y-4">
@@ -218,6 +239,7 @@ export default function MatchControls() {
             <span className="absolute right-2 grid h-10 w-10 place-items-center rounded-full bg-black/10 transition group-enabled:group-hover:translate-x-0.5" aria-hidden>→</span>
           </button>
           <p role={status ? "alert" : undefined} className={`min-h-[20px] text-[14px] ${status && !offline ? "text-red-300" : "text-[#B8B8C2]"}`}>{status}</p>
+          {coachNotice && <p role="alert" className="text-sm text-red-300">{coachNotice}</p>}
         </div>
       </aside>
     </div>

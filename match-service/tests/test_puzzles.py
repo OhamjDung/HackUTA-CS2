@@ -237,6 +237,21 @@ def cs2_client(tmp_path, **extra):
     return app, main, bridge, game
 
 
+def test_spectator_scene_uses_all_tracks_and_does_not_record_an_attempt(tmp_path):
+    from tests.test_cs2 import gsi
+    app, main, bridge, game = cs2_client(tmp_path)
+    with TestClient(app) as client:
+        gsi(client)
+        response = client.post('/scenes/seed1/start')
+        assert response.status_code == 200, response.text
+        run_id = response.json()['attempt_id']
+        assert bridge.sent[-1] == f'scene_load {run_id}'
+        assert len(json.loads((game / f'{run_id}.json').read_text())['players']) == len(make_puzzle()['players'])
+        assert client.post('/puzzles/seed1/start', json={'player': 'tom'}).status_code == 409
+        assert client.post(f'/puzzles/{run_id}/result', json={'survived': True, 'kills': 0}).status_code == 200
+        assert client.get('/players/spectator').json()['attempts'] == 0
+
+
 def test_start_copies_the_puzzle_and_sends_puzzle_load_through_the_plugin(tmp_path):
     from tests.test_cs2 import gsi
     app, main, bridge, game = cs2_client(tmp_path)

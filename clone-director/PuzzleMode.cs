@@ -22,7 +22,7 @@ public sealed partial class CloneDirectorPlugin
     private static readonly Regex PuzzleIdPattern = new("^[A-Za-z0-9_-]{1,64}$");
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(3) };
     // Cvars a puzzle changes; their values are put back by puzzle_stop.
-    private static readonly string[] PuzzleCvars = ["mp_ignore_round_win_conditions", "mp_freezetime", "mp_limitteams", "mp_autoteambalance", "bot_quota"];
+    private static readonly string[] PuzzleCvars = ["mp_ignore_round_win_conditions", "mp_freezetime", "mp_limitteams", "mp_autoteambalance", "bot_quota", "bot_stop"];
 
     private readonly PuzzleRecorder _recorder = new();
     private readonly Dictionary<string, int> _savedCvars = [];
@@ -36,6 +36,7 @@ public sealed partial class CloneDirectorPlugin
     private PuzzleData? _puzzle;
     private PuzzleRun? _run;
     private CCSPlayerController? _hero;
+    private bool _scene;
     private float _phaseDeadline, _runStart;
 
     private void PuzzleLoad()
@@ -44,6 +45,7 @@ public sealed partial class CloneDirectorPlugin
         _deathDir = Environment.GetEnvironmentVariable("CLONE_DIRECTOR_DEATH_DIR") ?? Path.Combine(ModuleDirectory, "deaths");
         _serviceUrl = (Environment.GetEnvironmentVariable("CLONE_DIRECTOR_SERVICE_URL") ?? "http://127.0.0.1:8000").TrimEnd('/');
         AddCommand("puzzle_load", "puzzle_load <id>: replay a saved moment; you play the hero", PuzzleLoadCommand);
+        AddCommand("scene_load", "scene_load <id>: watch all recorded players", SceneLoadCommand);
         AddCommand("puzzle_stop", "Leave puzzle mode and put the changed cvars back", PuzzleStopCommand);
         AddCommand("puzzle_status", "Say what puzzle mode is doing", PuzzleStatusCommand);
     }
@@ -139,6 +141,7 @@ public sealed partial class CloneDirectorPlugin
 
     private void PuzzleOnHurt(EventPlayerHurt e)
     {
+        if (_scene) return;
         if (_run is not { Finished: false } run) return;
         foreach (var c in new[] { e.Userid, e.Attacker })
             if (c is not null && _driven.TryGetValue(c.Slot, out var data)) run.HandOff(data.Name);
@@ -147,6 +150,12 @@ public sealed partial class CloneDirectorPlugin
     // ---- commands ----------------------------------------------------------------------------------
 
     private void PuzzleLoadCommand(CCSPlayerController? player, CommandInfo command)
+        => LoadMoment(player, command, scene: false);
+
+    private void SceneLoadCommand(CCSPlayerController? player, CommandInfo command)
+        => LoadMoment(player, command, scene: true);
+
+    private void LoadMoment(CCSPlayerController? player, CommandInfo command, bool scene)
     {
         if (!ConsoleOnly(player, command)) return;
         if (command.ArgCount != 2 || !PuzzleIdPattern.IsMatch(command.GetArg(1))) { command.ReplyToCommand("Usage: puzzle_load <id>"); return; }
@@ -157,7 +166,7 @@ public sealed partial class CloneDirectorPlugin
         if (data.Map != Server.MapName) { command.ReplyToCommand($"[CloneDirector] Puzzle is for {data.Map}; this is {Server.MapName}."); return; }
         var hero = AllPlayers().FirstOrDefault(IsPuzzleHuman);
         if (hero is null) { command.ReplyToCommand("[CloneDirector] No human player is in the game. Join the match first."); return; }
-        StartPuzzle(data, hero);
+        StartPuzzle(data, hero, scene);
         command.ReplyToCommand($"[CloneDirector] Puzzle {data.Id}: preparing bots, then the round restarts. {PuzzleStatus()}");
     }
 
@@ -183,21 +192,22 @@ public sealed partial class CloneDirectorPlugin
 
     // ---- starting a puzzle -------------------------------------------------------------------------
 
-    private void StartPuzzle(PuzzleData data, CCSPlayerController hero)
+    private void StartPuzzle(PuzzleData data, CCSPlayerController hero, bool scene = false)
     {
         EndPuzzleMode(restoreCvars: false);
         foreach (var b in _bots.Values) b.Session.Release("puzzle");   // clones must not fight the recorded players
         _bots.Clear(); _waiting.Clear(); _pending = null;
         foreach (var name in PuzzleCvars)
             if (!_savedCvars.ContainsKey(name) && CvarAsInt(name) is int value) _savedCvars[name] = value;
-        _puzzle = data; _hero = hero; _run = null; _driven.Clear(); _recorder.Clear();
-        int others = data.Players.Count - 1;
+        _puzzle = data; _hero = hero; _scene = scene; _run = null; _driven.Clear(); _recorder.Clear();
+        int others = data.Players.Count - (scene ? 0 : 1);
         // Bots come from the bot quota (random bots). They are moved to the sides the puzzle needs next.
         _savedQuotaMode ??= ConVar.Find("bot_quota_mode")?.StringValue;
         // "normal": bot_quota is the number of bots. In "fill" (the bot base's setting) it counts the human too.
         foreach (var cmd in new[] { "mp_ignore_round_win_conditions 1", "mp_freezetime 0", "mp_limitteams 0", "mp_autoteambalance 0", "bot_quota_mode normal", $"bot_quota {others}" })
             Server.ExecuteCommand(cmd);
-        hero.ChangeTeam(data.Hero.Side == "T" ? CsTeam.Terrorist : CsTeam.CounterTerrorist);
+        if (scene) Server.ExecuteCommand("bot_stop 1");
+        hero.ChangeTeam(scene ? CsTeam.Spectator : data.Hero.Side == "T" ? CsTeam.Terrorist : CsTeam.CounterTerrorist);
         _phase = PuzzlePhase.FillingBots;
         _phaseDeadline = Server.CurrentTime + 25;
     }
@@ -213,7 +223,7 @@ public sealed partial class CloneDirectorPlugin
 
     private void EndPuzzleMode(bool restoreCvars = true)
     {
-        _phase = PuzzlePhase.Idle; _run = null; _puzzle = null; _hero = null; _driven.Clear();
+        _phase = PuzzlePhase.Idle; _run = null; _puzzle = null; _hero = null; _scene = false; _driven.Clear();
         if (!restoreCvars) return;
         if (_savedQuotaMode is { } mode && Regex.IsMatch(mode, "^[a-z]{1,16}$"))
             Server.ExecuteCommand($"bot_quota_mode {mode}");
@@ -246,7 +256,7 @@ public sealed partial class CloneDirectorPlugin
     {
         if (_puzzle is null) { _phase = PuzzlePhase.Idle; return; }
         var bots = AllPlayers().Where(IsPuzzleBot).ToList();
-        int needed = _puzzle.Players.Count - 1;
+        int needed = _puzzle.Players.Count - (_scene ? 0 : 1);
         if (bots.Count != needed)
         {
             if (Server.CurrentTime > _phaseDeadline)
@@ -261,8 +271,8 @@ public sealed partial class CloneDirectorPlugin
         // How many bots each side needs. A bot already on a side that still needs one stays; the rest move.
         var need = new Dictionary<string, int>
         {
-            ["CT"] = _puzzle.Players.Count(p => !p.Hero && p.Side == "CT"),
-            ["T"] = _puzzle.Players.Count(p => !p.Hero && p.Side == "T")
+            ["CT"] = _puzzle.Players.Count(p => (_scene || !p.Hero) && p.Side == "CT"),
+            ["T"] = _puzzle.Players.Count(p => (_scene || !p.Hero) && p.Side == "T")
         };
         var movers = new List<CCSPlayerController>();
         foreach (var bot in bots)
@@ -292,19 +302,19 @@ public sealed partial class CloneDirectorPlugin
             if (_phase != PuzzlePhase.WaitingRound || _puzzle != data || _hero is not { IsValid: true } hero) return;
             var bots = AllPlayers().Where(p => IsPuzzleBot(p) && p.TeamNum is 2 or 3).OrderBy(p => p.Slot).ToList();
             _driven.Clear();
-            foreach (var other in data.Players.Where(p => !p.Hero))
+            foreach (var other in data.Players.Where(p => _scene || !p.Hero))
             {
                 var bot = bots.FirstOrDefault(b => Side(b.TeamNum) == other.Side && !_driven.ContainsKey(b.Slot));
                 if (bot is null) { Log($"Puzzle: no bot on {other.Side} for {other.Name}; skipped."); continue; }
                 _driven[bot.Slot] = other;
                 RestorePlayer(bot, other);
             }
-            RestorePlayer(hero, data.Hero);
+            if (!_scene) RestorePlayer(hero, data.Hero);
             _run = new PuzzleRun(data);
             _runStart = Server.CurrentTime;
             _recorder.Clear();
             _phase = PuzzlePhase.Running;
-            hero.PrintToChat($" [Puzzle] {data.Title}: survive {data.WindowSeconds:0} s and get {PuzzleRules.NeededKills(data.Original.Kills)} kill(s).");
+            hero.PrintToChat(_scene ? $" [Scene] {data.Title}: spectating recorded movement." : $" [Puzzle] {data.Title}: survive {data.WindowSeconds:0} s and get {PuzzleRules.NeededKills(data.Original.Kills)} kill(s).");
             Log($"Puzzle {data.Id} running with {_driven.Count} recorded players.");
         });
     }
@@ -345,16 +355,17 @@ public sealed partial class CloneDirectorPlugin
             var pawn = c?.PlayerPawn.Value;
             if (c is null || !c.IsValid || !c.PawnIsAlive || pawn is null || !pawn.IsValid) continue;
             var at = PuzzleMath.At(data.Track, t);
+            if (_scene && at.Last.Hp <= 0) { c.CommitSuicide(false, true); continue; }
             // A recorded player stops following its track when its recorded self died, when the hero is
             // close enough to fight (not a line-of-sight test), or after damage or a nearby shot (events above).
             var me = pawn.AbsOrigin;
             bool heroClose = heroPos is not null && me is not null && data.Side != _puzzle.Hero.Side &&
                 Combat.EnemyClose(me.X, me.Y, me.Z, heroPos.X, heroPos.Y, heroPos.Z);
-            if (at.Last.Hp <= 0 || heroClose) { run.HandOff(data.Name); continue; }
+            if (!_scene && (at.Last.Hp <= 0 || heroClose)) { run.HandOff(data.Name); continue; }
             pawn.Teleport(new Vector((float)at.X, (float)at.Y, (float)at.Z), new QAngle((float)at.Pitch, (float)at.Yaw, 0),
                 new Vector((float)at.Vx, (float)at.Vy, (float)at.Vz));
         }
-        if (t >= _puzzle.WindowSeconds) FinishPuzzle(_hero.IsValid && _hero.PawnIsAlive);
+        if (t >= _puzzle.WindowSeconds) FinishPuzzle(_scene || (_hero.IsValid && _hero.PawnIsAlive));
     }
 
     private void FinishPuzzle(bool survived)
@@ -363,7 +374,7 @@ public sealed partial class CloneDirectorPlugin
         run.Finish(survived);
         var puzzle = _puzzle;
         int need = PuzzleRules.NeededKills(puzzle.Original.Kills);
-        string text = run.Solved ? $"Solved: {run.Kills} kill(s), alive."
+        string text = _scene ? "Scene finished." : run.Solved ? $"Solved: {run.Kills} kill(s), alive."
             : survived ? $"Alive, but {run.Kills} of {need} kill(s)."
             : "You died.";
         if (_hero is { IsValid: true } hero) hero.PrintToChat($" [Puzzle] {text} Puzzle finished; normal settings restored.");

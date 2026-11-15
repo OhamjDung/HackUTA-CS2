@@ -6,6 +6,7 @@ import { useSessionUploads } from '@/app/providers';
 import ModeLink from '@/components/mode/ModeLink';
 import ModeSwitch from '@/components/mode/ModeSwitch';
 import HeroSign from '@/components/ui/HeroSign';
+import { call } from '@/lib/puzzles';
 import styles from './OdysseyExperience.module.css';
 import { useOdysseyMusic } from './useOdysseyMusic';
 
@@ -549,7 +550,24 @@ function Play({ selectedId }: { selectedId: OdysseyBotId }) {
   const search = useSearchParams();
   const id = BOT_IDS.has(search.get('bot') as OdysseyBotId) ? search.get('bot') as OdysseyBotId : selectedId;
   const bot = BOTS.find((item) => item.id === id)!;
+  const [steam, setSteam] = useState('');
+  const [side, setSide] = useState<'CT' | 'T'>('CT');
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState('');
   const scene = search.get('scene') === 'legendary' ? 'Legendary trial' : search.get('scene') === 'upload' ? 'Your uploaded game' : 'Quick challenge';
+  async function startPoseidon(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!/^7656119\d{10}$/.test(steam.trim())) { setNotice('Enter your 17-digit Steam ID.'); return; }
+    setBusy(true); setNotice('Starting your private match…');
+    try {
+      const result = await call<{ match_id: string }>('/matches', { method: 'POST', json: {
+        map: 'de_mirage', mode: 'wingman', players: [{ steam_id: steam.trim(), team: side }],
+        clones: [{ clone_id: 'poseidon', team: side === 'CT' ? 'T' : 'CT' }],
+      } });
+      setNotice(`Match ${result.match_id} started. Switch to CS2 to play.`);
+    } catch (error) { setNotice(error instanceof Error ? error.message : String(error)); }
+    finally { setBusy(false); }
+  }
   return <section className={styles.setup}>
     <PageIntro n="04" eyebrow="Prepare for glory" title="Enter the arena" />
     <div className={styles.setupGrid}>
@@ -558,10 +576,15 @@ function Play({ selectedId }: { selectedId: OdysseyBotId }) {
         <div><small>Challenger</small><h2>{bot.name}</h2><p>{bot.role}</p><ModeLink href="/bots" className={styles.inkLink}>Change legend</ModeLink></div>
       </article>
       <article data-reveal style={cssVars({ '--i': 1 })} {...tilt}>
-        <div><small>Scene</small><h2>{scene}</h2><p>The match service is not connected to this frontend yet.</p><ModeLink href="/scenes" className={styles.inkLink}>Change scene</ModeLink></div>
+        <div><small>Scene</small><h2>{scene}</h2><p>{id === 'poseidon' ? 'Poseidon plays a private Wingman match on Mirage. Scene selection is a preview.' : 'The match service is not connected to this frontend yet.'}</p><ModeLink href="/scenes" className={styles.inkLink}>Change scene</ModeLink></div>
       </article>
       <div className={styles.setupAction} data-reveal style={cssVars({ '--i': 2 })}>
-        <ModeLink href={`/studio?bot=${bot.id}${search.get('scene') ? `&scene=${search.get('scene')}` : ''}`} className={styles.blueButton}>Enter studio <span>→</span></ModeLink>
+        {id === 'poseidon' ? <form onSubmit={startPoseidon} className={styles.poseidonForm}>
+          <label>Your Steam ID<input value={steam} onChange={e => setSteam(e.target.value)} inputMode="numeric" placeholder="7656119…" /></label>
+          <label>Your side<select value={side} onChange={e => setSide(e.target.value as 'CT' | 'T')}><option value="CT">Counter-Terrorist</option><option value="T">Terrorist</option></select></label>
+          <button type="submit" className={styles.blueButton} disabled={busy}>{busy ? 'Starting…' : 'Play against Poseidon'} <span>→</span></button>
+          {notice && <p role="status">{notice}</p>}
+        </form> : <ModeLink href={`/studio?bot=${bot.id}${search.get('scene') ? `&scene=${search.get('scene')}` : ''}`} className={styles.blueButton}>Enter studio <span>→</span></ModeLink>}
       </div>
     </div>
   </section>;
