@@ -3,16 +3,23 @@
 @tailwind utilities;
 
 :root {
-  --bg-studio: #faf9f6;
-  --ink-primary: #111111;
-  --ink-muted: #555552;
-  --ink-subtle: #8e8e8a;
-  --border-hairline: #e5e4df;
-  --pill-inactive: #dcdcd6;
+  /* Dark studio (black) */
+  --bg-studio: #000000;
+  --ink-primary: #f4f3ef;
+  --ink-muted: #a3a39d;
+  --ink-subtle: #6f6f6a;
+  --border-hairline: #1f1f1e;
+  --pill-inactive: #333331;
   --accent-brand: #ff3b1d;
+  /* Raised surfaces / outlines on black */
+  --surface: #0d0d0d;
+  --surface-hover: #161615;
+  --outline: #343432;
+  color-scheme: dark;
 
   /* Layout rhythm (matches the 1536×1024 reference) */
   --gutter: clamp(20px, 5.2vw, 80px);
+  --hub-gutter: clamp(20px, 3.45vw, 53px);
 }
 
 html,
@@ -33,6 +40,27 @@ body {
 @media (max-width: 899px) {
   .stage-h-full {
     height: auto;
+  }
+}
+
+/* Bots hub: charcoal studio. Scoped token overrides lift muted copy, outlines and
+   hairlines for contrast on charcoal; the radial glow sits behind the 3D stage. */
+.hub-charcoal {
+  --ink-primary: #f7f7f5;
+  --ink-muted: #a6a6ad;
+  --ink-subtle: #8e8e96;
+  --border-hairline: #2a2a30;
+  --outline: rgba(255, 255, 255, 0.22);
+  --surface: #18181c;
+  --surface-hover: #202026;
+  background-color: #0d0d0f;
+  background-image: radial-gradient(45% 48% at 50% 42%, #202024 0%, #131316 55%, #0d0d0f 100%);
+}
+
+/* Roster stage on top (divider at 76vh), scenes/leaderboard deck in the bottom 24vh. */
+@media (min-width: 1024px) {
+  .hub-top {
+    height: clamp(600px, 76svh, 900px);
   }
 }
 

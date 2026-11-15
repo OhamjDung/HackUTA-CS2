@@ -7,7 +7,8 @@ import { CloseIcon, MenuIcon, ScopeIcon } from './icons';
 
 interface TopNavProps {
   thermalActive: boolean;
-  onToggleThermal: () => void;
+  /** Press-and-hold setter: true on pointer down, false on release. */
+  onThermalHold: (on: boolean) => void;
   characters: CharacterConfig[];
   activeId: CharacterId;
   onSelect: (id: CharacterId) => void;
@@ -52,7 +53,7 @@ function linkify(line: string, keyPrefix: string) {
 
 export default function TopNav({
   thermalActive,
-  onToggleThermal,
+  onThermalHold,
   characters,
   activeId,
   onSelect,
@@ -108,7 +109,12 @@ export default function TopNav({
         <nav className="flex items-center gap-6 min-[900px]:gap-11" aria-label="Primary">
           <button
             type="button"
-            onClick={onToggleThermal}
+            onPointerDown={(e) => {
+              if (e.button === 0) onThermalHold(true);
+            }}
+            onPointerUp={() => onThermalHold(false)}
+            onPointerLeave={() => onThermalHold(false)}
+            onContextMenu={(e) => e.preventDefault()}
             aria-pressed={thermalActive}
             className="hidden cursor-pointer items-center gap-3 text-[15px] font-medium tracking-[-0.01em] text-ink transition-opacity hover:opacity-70 sm:flex"
           >
@@ -131,7 +137,7 @@ export default function TopNav({
               aria-expanded={menuOpen}
               aria-haspopup="true"
               aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-ink text-white transition-transform hover:scale-105"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-ink text-studio transition-transform hover:scale-105"
             >
               {menuOpen ? <CloseIcon /> : <MenuIcon />}
             </button>
@@ -139,7 +145,7 @@ export default function TopNav({
             {menuOpen && (
               <div
                 role="menu"
-                className="absolute right-0 top-12 w-64 rounded-2xl border border-hairline bg-white p-2 text-[14px] shadow-[0_18px_40px_-18px_rgba(17,17,17,0.25)]"
+                className="absolute right-0 top-12 w-64 rounded-2xl border border-outline bg-surface p-2 text-[14px] shadow-[0_18px_40px_-18px_rgba(0,0,0,0.9)]"
               >
                 <p className="px-3 pb-1 pt-2 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-subtle">
                   Character
@@ -154,7 +160,7 @@ export default function TopNav({
                       onSelect(c.id);
                       setMenuOpen(false);
                     }}
-                    className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-studio"
+                    className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-surface-hover"
                   >
                     <span className="font-mono text-[12px] text-ink-subtle">0{i + 1}</span>
                     <span className="flex-1 font-medium">{c.displayName}</span>
@@ -162,19 +168,38 @@ export default function TopNav({
                   </button>
                 ))}
                 <div className="my-2 h-px bg-hairline" />
-                <MenuToggle label="Thermal scope" on={thermalActive} onClick={onToggleThermal} />
+                <button
+                  type="button"
+                  role="menuitemcheckbox"
+                  aria-checked={thermalActive}
+                  onPointerDown={() => onThermalHold(true)}
+                  onPointerUp={() => onThermalHold(false)}
+                  onPointerLeave={() => onThermalHold(false)}
+                  onContextMenu={(e) => e.preventDefault()}
+                  className="flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left hover:bg-surface-hover"
+                >
+                  <span className="font-medium">Thermal scope (hold)</span>
+                  <span
+                    className={`relative h-5 w-9 rounded-full transition-colors ${thermalActive ? 'bg-ink' : 'bg-pill'}`}
+                    aria-hidden
+                  >
+                    <span
+                      className={`absolute top-0.5 h-4 w-4 rounded-full transition-transform ${thermalActive ? 'translate-x-[18px] bg-studio' : 'translate-x-0.5 bg-ink-muted'}`}
+                    />
+                  </span>
+                </button>
                 <MenuToggle label="Auto-cycle (6s)" on={autoPlay} onClick={onToggleAutoPlay} />
                 <button
                   type="button"
                   onClick={openCredits}
-                  className="mt-1 flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left font-medium hover:bg-studio"
+                  className="mt-1 flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left font-medium hover:bg-surface-hover"
                 >
                   Model credits
                   <span aria-hidden className="text-ink-subtle">→</span>
                 </button>
                 <a
                   href={STUDIO_URL}
-                  className="mt-1 block rounded-lg px-3 py-2 font-medium hover:bg-studio sm:hidden"
+                  className="mt-1 block rounded-lg px-3 py-2 font-medium hover:bg-surface-hover sm:hidden"
                 >
                   Enter studio
                 </a>
@@ -195,9 +220,9 @@ export default function TopNav({
             type="button"
             aria-label="Close model credits"
             onClick={() => setCreditsOpen(false)}
-            className="absolute inset-0 cursor-default bg-ink/40"
+            className="absolute inset-0 cursor-default bg-black/70"
           />
-          <div className="relative max-h-[80vh] w-full max-w-lg overflow-auto rounded-2xl border border-hairline bg-white p-6 shadow-[0_24px_60px_-24px_rgba(17,17,17,0.35)]">
+          <div className="relative max-h-[80vh] w-full max-w-lg overflow-auto rounded-2xl border border-outline bg-surface p-6 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.9)]">
             <div className="mb-3 flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-[20px] font-bold tracking-[-0.02em] text-ink">Model credits</h2>
@@ -209,7 +234,7 @@ export default function TopNav({
                 type="button"
                 onClick={() => setCreditsOpen(false)}
                 aria-label="Close"
-                className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-ink text-white transition-transform hover:scale-105"
+                className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-ink text-studio transition-transform hover:scale-105"
               >
                 <CloseIcon />
               </button>
@@ -243,7 +268,7 @@ function MenuToggle({ label, on, onClick }: { label: string; on: boolean; onClic
       role="menuitemcheckbox"
       aria-checked={on}
       onClick={onClick}
-      className="flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left hover:bg-studio"
+      className="flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left hover:bg-surface-hover"
     >
       <span className="font-medium">{label}</span>
       <span
@@ -251,7 +276,7 @@ function MenuToggle({ label, on, onClick }: { label: string; on: boolean; onClic
         aria-hidden
       >
         <span
-          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${on ? 'translate-x-[18px]' : 'translate-x-0.5'}`}
+          className={`absolute top-0.5 h-4 w-4 rounded-full transition-transform ${on ? 'translate-x-[18px] bg-studio' : 'translate-x-0.5 bg-ink-muted'}`}
         />
       </span>
     </button>

@@ -17,6 +17,8 @@ module.exports = {
         hairline: "var(--border-hairline)",
         pill: "var(--pill-inactive)",
         brand: "var(--accent-brand)",
+        surface: { DEFAULT: "var(--surface)", hover: "var(--surface-hover)" },
+        outline: "var(--outline)",
       },
       fontFamily: {
         sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],

@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { RenderPipeline, WebGPURenderer } from 'three/webgpu';
+import { PMREMGenerator, RenderPipeline, WebGPURenderer } from 'three/webgpu';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { pass } from 'three/tsl';
 import { AssetManager } from '@/lib/AssetManager';
 import { createStageOutput } from '@/lib/shaders/glitchPass';
@@ -148,7 +149,9 @@ export default function CharacterCanvas({ activeId, onBackendReady }: CharacterC
           const renderer = new WebGPURenderer({
             canvas,
             antialias: true,
-            alpha: false,
+            // Transparent canvas: the stage output carries coverage alpha so the
+            // page's CSS backdrop shows through (see glitchPass).
+            alpha: true,
             powerPreference: 'high-performance',
           } as ConstructorParameters<typeof WebGPURenderer>[0]);
           await renderer.init();
@@ -165,6 +168,19 @@ export default function CharacterCanvas({ activeId, onBackendReady }: CharacterC
           // the size explicitly (later resizes flow through the subscription).
           state.gl.setPixelRatio(state.viewport.dpr);
           state.gl.setSize(state.size.width, state.size.height, true);
+          // Studio IBL: RoomEnvironment reflections give PBR surfaces specular
+          // depth without tinting the black DOM backdrop (background stays null).
+          // PMREM degrades gracefully — if the backend can't bake it, lights still carry the look.
+          try {
+            // Node-based PMREM (three/webgpu): the classic THREE.PMREMGenerator uses
+            // ShaderMaterial, which WebGPURenderer cannot compile.
+            const pmrem = new PMREMGenerator(state.gl as unknown as WebGPURenderer);
+            state.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+            (state.scene as THREE.Scene & { environmentIntensity?: number }).environmentIntensity = 1.0;
+            pmrem.dispose();
+          } catch (err) {
+            console.warn('[viewer] PMREM environment skipped:', err);
+          }
           state.camera.lookAt(...STAGE_CAMERA.target);
           const backend = (state.gl as unknown as { backend?: { isWebGPUBackend?: boolean } }).backend;
           const backendName = backend?.isWebGPUBackend ? 'webgpu' : 'webgl2';
