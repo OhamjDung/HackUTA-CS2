@@ -29,7 +29,9 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Research: which bots, dataset, and model to build on | Arjun | Done | Sections 4, 7, 8 | 2026-11-14 |
 | This spec and the agent rules | Arjun | Done | `SPEC.md`, `AGENTS.md`, `CLAUDE.md` | 2026-11-14 |
 | Match service, mock version (Server API with a fake CS2 server) | Ashirwad | Done | `match-service/` | 2026-11-14 |
-| Match service, real version (starts and controls a real CS2 match) | Unassigned | Not started | `match-service/` | 2026-11-14 |
+| Match service, real version (starts and controls a real CS2 match) | Ashirwad | In progress | `match-service/` | 2026-11-14 |
+| Stand-in bots: built-in CS2-Bot-Improver pro bots used in place of clones until CloneDirector works | Ashirwad | In progress | `match-service/sample_clones/` | 2026-11-14 |
+| Side-by-side page, stand-in version (two synced panels; replay page content replaces it) | Ashirwad | Not started | Not decided | 2026-11-14 |
 | Lobby page | Tom (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | Match page | Nikesh (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
 | CS2 with the bot base installed on the demo laptop | Unassigned | Not started | Demo laptop | 2026-11-14 |
@@ -122,6 +124,8 @@ Checked on 2026-11-14.
 - Adding a custom entry to the bot personality file.
 - Running or training CS-NET v4 on this project's data.
 - Every time estimate in section 11.
+- Sending console commands to CS2 from the match service (network console or a small plugin).
+- Recording a bot match to a `.dem` file on the laptop and serving it at `demo_url`.
 
 When you run one of these, move it up and record the result here.
 
@@ -237,6 +241,7 @@ Treat the measured value as an estimate.
 | `nades` | Paths to this clone's grenade data files |
 | `source_games` | Which recordings the clone was built from |
 | `similarity` | The scores from section 10 |
+| `stand_in_bot` | Name of a built-in CS2-Bot-Improver bot that plays this clone until CloneDirector works. Removed once `clone_add` is in use. |
 
 Large files (route segments, grenade data, model weights) stay outside the profile. The profile
 holds paths to them.
@@ -519,6 +524,10 @@ The same steps run on the clone's own recorded match, to produce the clone's sid
 3. It turns on match recording, and serves the recording file at `demo_url` when the match ends.
 4. Its endpoints and messages stay the same, as the mock's README promises.
 
+**Stand-in phase (Ashirwad, in progress).** Until CloneDirector exists, the real version adds each
+clone's `stand_in_bot` with CS2's standard add-bot command instead of `clone_add`. The lobby, the
+endpoints and the events do not change when `clone_add` replaces it.
+
 How the service sends console commands to CS2 is not decided and not tested. The owner of the real
 version decides.
 
@@ -766,7 +775,8 @@ demo. A released product would need each player's or team's permission.
 4. **Is broky on FaZe's November 2026 lineup?**
 5. **Project name and domain name.**
 6. **A license file for this repository.**
-7. **How the real match service sends commands to CS2.**
+7. **How the real match service sends commands to CS2.** Ashirwad is testing CS2's network console
+   first, then a small CounterStrikeSharp plugin if that fails.
 
 ## 17. After the hackathon
 
@@ -797,6 +807,9 @@ demo. A released product would need each player's or team's permission.
 
 Newest first. One line per change: date, who, what changed.
 
+- 2026-11-14, Ashirwad: claimed the real match service; added stand-in bots and a stand-in
+  side-by-side page to the status board; proposed the `stand_in_bot` profile field; ignored
+  personal agent instruction files in `.gitignore`.
 - 2026-11-14, Arjun (with Claude): first version of this spec. Added the status board, the
   generating model plan, and the agent rules in `AGENTS.md` and `CLAUDE.md`.
 - 2026-11-14, Ashirwad: added the mock match service in `match-service/` (commit `6e009f1`).

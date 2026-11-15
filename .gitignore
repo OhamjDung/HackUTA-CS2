@@ -15,3 +15,7 @@ __pycache__/
 .env.*
 data/
 checkpoints/
+
+# Personal agent instruction files (the shared one at the repo root stays tracked)
+CLAUDE.md
+CLAUDE.local.md
