@@ -7,11 +7,13 @@
 //   client: auth <token>          plugin: ok | denied
 //   client: <console command>     plugin: ok     (the command runs on the game's next frame)
 //   client: matchbridge_ping      plugin: pong
+//   client: matchbridge_bots      plugin: [{"name":"donk","team":3}, ...]   (one JSON line; 2 = T, 3 = CT)
 // It also adds the console command `matchbridge_jointeam <1|2|3>`, which moves the human player
 // at this PC to spectator (1), T (2) or CT (3).
 //
 // Written from zero: no existing CounterStrikeSharp plugin did this (SPEC.md section 4.2).
-// Not yet built or run in CS2.
+// Not yet built or run in CS2. CloneDirector needs it: its commands are refused from a player's
+// console (netcon), and commands this plugin runs come from the server console.
 
 using System.Net;
 using System.Net.Sockets;
@@ -121,16 +123,42 @@ public sealed class MatchBridgePlugin : BasePlugin
                         await writer.WriteLineAsync("pong");
                         continue;
                     }
+                    if (command == "matchbridge_bots")
+                    {
+                        await writer.WriteLineAsync(await ListBots(ct));
+                        continue;
+                    }
                     // Game functions must run on the main thread; NextFrame queues the command there.
                     Server.NextFrame(() => Server.ExecuteCommand(command));
                     await writer.WriteLineAsync("ok");
                 }
             }
         }
-        catch (Exception ex) when (ex is IOException or OperationCanceledException or ObjectDisposedException)
+        catch (Exception ex) when (ex is IOException or OperationCanceledException or ObjectDisposedException or TimeoutException)
         {
             // The match service closed the connection, or the plugin is unloading.
         }
+    }
+
+    // Game state can only be read on the main thread, so queue the read there and wait for it.
+    private static async Task<string> ListBots(CancellationToken ct)
+    {
+        var result = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        Server.NextFrame(() =>
+        {
+            try
+            {
+                var bots = Utilities.GetPlayers()
+                    .Where(p => p is { IsValid: true, IsBot: true, IsHLTV: false })
+                    .Select(p => new { name = p.PlayerName, team = (int)p.TeamNum });
+                result.TrySetResult(JsonSerializer.Serialize(bots));
+            }
+            catch (Exception ex)
+            {
+                result.TrySetResult($"error {ex.Message}");
+            }
+        });
+        return await result.Task.WaitAsync(TimeSpan.FromSeconds(3), ct);
     }
 
     private void OnJoinTeam(CCSPlayerController? caller, CommandInfo info)

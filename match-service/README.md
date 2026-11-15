@@ -125,6 +125,7 @@ powershell -ExecutionPolicy Bypass -File .\start-cs2.ps1                  # netc
 powershell -ExecutionPolicy Bypass -File .\start-cs2.ps1 -Console rcon    # RCON
 powershell -ExecutionPolicy Bypass -File .\start-cs2.ps1 -Console plugin  # MatchBridge
 powershell -ExecutionPolicy Bypass -File .\start-cs2.ps1 -Record tv       # try GOTV recording
+powershell -ExecutionPolicy Bypass -File .\start-cs2.ps1 -Bots clone      # CloneDirector clones
 ```
 
 It finds the CS2 folder through Steam (or pass `-Cs2Dir "<folder>"`), installs the game state
@@ -162,11 +163,27 @@ then copy `plugin/MatchBridge/bin/Release/net8.0/MatchBridge.dll` and a `matchbr
 | `CS2_CONSOLE_PASSWORD` | not set | RCON password, or the MatchBridge token |
 | `GSI_TOKEN` | `change-me` | Must match `token` in the game state config file |
 | `CS2_RECORD` | `off` | `off` or `tv` (GOTV; not tried in CS2) |
+| `CS2_BOTS` | `stand_in` | `stand_in` or `clone` (CloneDirector through MatchBridge) |
+| `CS2_PLUGIN_PORT`, `CS2_PLUGIN_TOKEN` | 27100, `CS2_CONSOLE_PASSWORD` | MatchBridge, for clone mode |
+| `CS2_CLONE_JOIN_SECONDS` | 20 | How long to wait for every clone bot to join |
 | `CS2_DEMO_DIR` | not set | Folder where CS2 saves `match_<id>.dem`; served at `demo_url` |
 | `CS2_MAP_LOAD_SECONDS` | 90 | How long to wait for CS2 to report the map before failing |
 | `CS2_RESTART_SECONDS` | 2 | How long to ignore game state after `mp_restartgame 1` |
 | `WARMUP_SECONDS` | 5 | Time in `ready` before the match goes live |
 | `SERVER_IP`, `SERVER_PORT` | `127.0.0.1`, 27015 | What goes in `server` and `join_link` |
+
+**Clones played by CloneDirector (`CS2_BOTS=clone`).** By default (`stand_in`) each clone is
+played by its `stand_in_bot`. With `clone`, Arjun's CloneDirector plugin (`clone-director/`) plays
+it from the data-built profile in `../clones`: the service sends `bot_kick`, then
+`clone_add <clone_id> <t|ct>` for each clone, then asks MatchBridge for the bot list
+(`matchbridge_bots`) every 0.5 s until each clone's bot, named after its personality
+(`stand_in_bot`, else `display_name`), is on its team. If one is missing after
+`CS2_CLONE_JOIN_SECONDS` (20) the match fails with the clone ids. CloneDirector refuses commands
+from a player's console, and netcon is the player's console, so `clone_add` goes through the
+MatchBridge plugin even when everything else uses netcon. Clone mode needs both plugins installed
+and supports `de_mirage` only (CloneDirector's limit). In `start-cs2.ps1`: `-Bots clone`. **Not run
+in CS2**; tested against fakes only. The bot-list check shows a bot with the right name on the right
+team, not that CloneDirector attached to it (its `clone_list` output can't be read back).
 
 **Recording (`CS2_RECORD`).** `off` by default: nothing is recorded and `demo_url` is `null`.
 `tv` records with GOTV: `tv_enable 1` before the map, `tv_record match_<id>` at the start,

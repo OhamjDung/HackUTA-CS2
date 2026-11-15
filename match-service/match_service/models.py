@@ -14,7 +14,8 @@ ROUNDS_TO_WIN: dict[str, int] = {"competitive": 13, "wingman": 9}
 
 
 class Clone(BaseModel):
-    clone_id: str
+    # Goes into `clone_add <clone_id>`, so only plain ids are allowed.
+    clone_id: str = Field(pattern=r"^[A-Za-z0-9_.-]{1,64}$")
     display_name: str
     source: Literal["user", "pro"]
     # Built-in CS2-Bot-Improver bot that plays this clone until CloneDirector works (SPEC.md 5.4).

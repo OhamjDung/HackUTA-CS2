@@ -29,7 +29,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Research: which bots, dataset, and model to build on | Arjun | Done | Sections 4, 7, 8 | 2026-11-14 |
 | This spec and the agent rules | Arjun | Done | `SPEC.md`, `AGENTS.md`, `CLAUDE.md` | 2026-11-14 |
 | Match service, mock version (Server API with a fake CS2 server) | Ashirwad | Done | `match-service/` | 2026-11-14 |
-| Match service, real version (starts and controls a real CS2 match) | Ashirwad | In progress. Runs in CS2 on Tom's PC over netcon: map, stand-in bots, team names, `ready` then `live`. Recording is off by default (`CS2_RECORD`); `tv` recording and scores through `/gsi` not yet seen in CS2 | `match-service/match_service/backends/cs2.py` | 2026-11-14 |
+| Match service, real version (starts and controls a real CS2 match) | Ashirwad | In progress. Runs in CS2 on Tom's PC over netcon: map, stand-in bots, team names, `ready` then `live`. Recording is off by default (`CS2_RECORD`); `tv` recording and scores through `/gsi` not yet seen in CS2. Clone mode (`CS2_BOTS=clone`, CloneDirector through MatchBridge) written; tested against fakes only | `match-service/match_service/backends/cs2.py` | 2026-11-14 |
 | Stand-in bots: built-in CS2-Bot-Improver pro bots used in place of clones until CloneDirector works | Ashirwad | In progress. `donk_v1` and `broky_v1` profiles use the `donk` and `broky` bots; not run in CS2 | `match-service/sample_clones/` | 2026-11-14 |
 | Side-by-side page, stand-in version (two synced panels; replay page content replaces it) | Ashirwad | Not started | Not decided | 2026-11-14 |
 | Lobby page | Tom (named in `match-service/README.md`) | Unknown. Owner: please update. | Not in the repo yet | 2026-11-14 |
@@ -138,7 +138,9 @@ Checked on 2026-11-14.
   (`match-service/tests/test_channels.py`, 5 tests, all pass). This checks the Python side only.
 - Console safety: every channel refuses commands with a newline or `;` before connecting, and
   profiles with an unsafe `stand_in_bot` are skipped (`match-service/tests/test_safety.py`, 6
-  tests). All 34 match service tests pass. Tom ran the 26 earlier tests on Windows: they pass with
+  tests). Clone mode against a fake game, CloneDirector and MatchBridge, using the real
+  `clones/` profiles (`match-service/tests/test_clones.py`, 7 tests). All 42 match service tests
+  pass. Tom ran the 26 earlier tests on Windows: they pass with
   `uv run python -m pytest` (Application Control blocks `uv run pytest` there).
 
 - CloneDirector Release build with .NET SDK 10.0.404 and CounterStrikeSharp.API 1.0.378:
@@ -181,6 +183,8 @@ Checked on 2026-11-14.
 - Building MatchBridge (never compiled), CounterStrikeSharp loading it, `Server.NextFrame` running
   the commands, and `matchbridge_jointeam` moving the player.
 - `tv_record` / `tv_stoprecord` recording a Bot Mode game (`CS2_RECORD=tv`).
+- Clone mode in CS2: MatchBridge's `matchbridge_bots`, CloneDirector accepting `clone_add` from
+  MatchBridge (it refuses a player's console, so not from netcon), and the clone bots joining.
 - What CS2 sends to `/gsi` on a map change. (Game state does arrive; see above.)
 - `jointeam` behaving as the service expects. (`mp_teamname_1`/`_2` and `bot_add_ct "<name>"`
   worked in Tom's run.)
@@ -395,8 +399,9 @@ and routes. These bot creation and purchase assumptions still need an in-game ch
 | `clone_routes <recorded, generated, or off>` | Chooses which segments the clones play |
 | `clone_record <on or off>` | Planned, not implemented. Records human players' routes (section 6.4). Low priority. |
 
-The commands are server-console only. The real match service (section 9.2) still adds stand-in
-bots; switching it to `clone_add` remains its owner's integration task. `clone_routes` stops
+The commands are server-console only. The real match service (section 9.2) adds stand-in bots by
+default; with `CS2_BOTS=clone` it sends `clone_add` through the MatchBridge plugin instead (not
+run in CS2). `clone_routes` stops
 current playback and applies the chosen source next round. `clone_record` is not implemented.
 
 ### 6.4 Cloning users while they play (low priority)
@@ -667,6 +672,14 @@ setup steps.
   match_<id>`, `tv_stoprecord`), served at `demo_url` from `CS2_DEMO_DIR`; not tried in CS2. The
   player's own `record` is never sent, because over netcon it froze and once crashed CS2 (section 3).
 - `GET /health` reports whether the console answers and when game state last arrived.
+- `CS2_BOTS` picks who plays a clone. `stand_in` (default) adds its `stand_in_bot`. `clone` sends
+  `clone_add <clone_id> <t|ct>` to CloneDirector and reads profiles from `clones/`. CloneDirector
+  refuses commands from a player's console, which is what netcon is, so these commands go through
+  MatchBridge (server console). The service then polls MatchBridge's `matchbridge_bots` until each
+  clone's bot (named after `stand_in_bot`, else `display_name`) is on its team, and fails the match
+  after 20 s otherwise. That shows a bot with the right name, not CloneDirector's attachment.
+  `de_mirage` only. `start-cs2.ps1 -Bots clone` installs MatchBridge and sets this up.
+- `clone_id` and `stand_in_bot` must be plain names; profiles that break this are skipped.
 
 netcon works in CS2 Bot Mode (Tom's run, 2026-11-14); RCON and the plugin stay as fallbacks.
 - At match start the service sends `mp_warmup_end` and `mp_restartgame 1`, then ignores
@@ -951,6 +964,9 @@ demo. A released product would need each player's or team's permission.
 
 Newest first. One line per change: date, who, what changed.
 
+- 2026-11-14, Ashirwad: match service clone mode (`CS2_BOTS=clone`): `clone_add` to CloneDirector
+  through MatchBridge, wait for each clone bot via the new `matchbridge_bots`, `de_mirage` only;
+  start script `-Bots clone`. 42 tests pass against fakes; not run in CS2.
 - 2026-11-14, Ashirwad: the match service no longer sends `record` (it froze CS2 in Tom's run).
   New `CS2_RECORD` setting: `off` by default (`demo_url` null) or `tv` (GOTV; untried). Start script
   gets `-Record`. 34 tests pass.

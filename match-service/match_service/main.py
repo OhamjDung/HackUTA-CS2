@@ -35,7 +35,16 @@ def make_channel(settings: Settings) -> ConsoleChannel:
     raise ValueError(f"Unknown CS2_CONSOLE {settings.cs2_console!r}; use 'netcon', 'rcon' or 'plugin'")
 
 
-def create_app(settings: Settings | None = None, channel: ConsoleChannel | None = None) -> FastAPI:
+def make_clone_channel(settings: Settings) -> ConsoleChannel | None:
+    """The MatchBridge channel for CloneDirector commands, when it isn't the main channel."""
+    if settings.cs2_bots != "clone" or settings.cs2_console == "plugin":
+        return None
+    token = settings.cs2_plugin_token or settings.cs2_console_password
+    return PluginChannel(settings.cs2_console_host, settings.cs2_plugin_port, token)
+
+
+def create_app(settings: Settings | None = None, channel: ConsoleChannel | None = None,
+               clone_channel: ConsoleChannel | None = None) -> FastAPI:
     settings = settings or Settings.from_env()
     matches: dict[str, MatchRecord] = {}
     http: dict[str, httpx.AsyncClient] = {}
@@ -54,7 +63,7 @@ def create_app(settings: Settings | None = None, channel: ConsoleChannel | None 
         backend = MockBackend(settings, emit)
     elif settings.backend == "cs2":
         channel = channel or make_channel(settings)
-        backend = Cs2Backend(settings, emit, channel)
+        backend = Cs2Backend(settings, emit, channel, clone_channel or make_clone_channel(settings))
     else:
         raise ValueError(f"Unknown MATCH_BACKEND {settings.backend!r}; use 'mock' or 'cs2'")
 

@@ -6,14 +6,18 @@ How it talks to the game:
 - Events come back through CS2's Game State Integration (GSI): CS2 POSTs JSON with the map phase
   and team scores to this service's /gsi endpoint. The config file is in gsi/ in this folder.
 
-Until the CloneDirector plugin exists, each clone is played by its `stand_in_bot`: a built-in
-CS2-Bot-Improver bot added with `bot_add_ct "<name>"` / `bot_add_t "<name>"` (SPEC.md 9.2).
-
-None of the CS2 side of this file has been run against a real game yet (SPEC.md section 3).
+Who plays each clone (CS2_BOTS):
+- `stand_in` (default): its `stand_in_bot`, a built-in CS2-Bot-Improver bot added with
+  `bot_add_ct "<name>"` / `bot_add_t "<name>"`. Ran in CS2 on Tom's PC (SPEC.md section 3).
+- `clone`: Arjun's CloneDirector plugin, with `clone_add <clone_id> <t|ct>`. CloneDirector refuses
+  commands from a player's console, and netcon is the player's console, so these go through the
+  MatchBridge plugin (`clone_channel`). The service then asks MatchBridge for the bot list until
+  each clone's bot (named after its personality) is on its team. Not run in CS2.
 """
 
 import asyncio
 import logging
+from collections import Counter
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
@@ -38,14 +42,19 @@ def map_name(gsi: dict) -> str | None:
 class Cs2Backend:
     name = "cs2"
 
-    def __init__(self, settings: Settings, emit: Emit, channel: ConsoleChannel):
+    def __init__(self, settings: Settings, emit: Emit, channel: ConsoleChannel,
+                 clone_channel: ConsoleChannel | None = None):
         if settings.cs2_record not in ("off", "tv"):
             raise ValueError(f"CS2_RECORD must be off or tv, not {settings.cs2_record!r}")
+        if settings.cs2_bots not in ("stand_in", "clone"):
+            raise ValueError(f"CS2_BOTS must be stand_in or clone, not {settings.cs2_bots!r}")
         self.s = settings
         self.emit = emit
         self.ch = channel
+        # Where clone_add goes: the MatchBridge plugin (the same channel when CS2_CONSOLE=plugin).
+        self.clone_ch = clone_channel or channel
         self.current: MatchRecord | None = None
-        self.stand_ins: dict[str, str] = {}  # clone_id -> bot name, for the current match
+        self.bot_names: dict[str, str] = {}  # clone_id -> bot name, for the current match
         # True once the service has ended warmup and restarted the game. Before that, CS2 may already
         # report `live` (Bot Mode can skip warmup), but those rounds aren't the match.
         self.started = False
@@ -61,6 +70,10 @@ class Cs2Backend:
         errors = []
         if len(body.players) > 1:
             errors.append("The cs2 backend allows at most one human player: the person at the CS2 machine")
+        if self.s.cs2_bots == "clone":
+            if body.clones and body.map != "de_mirage":
+                errors.append("CloneDirector supports de_mirage only")
+            return errors
         missing = [c.clone_id for c in body.clones if c.clone_id in clones and not clones[c.clone_id].stand_in_bot]
         if missing:
             errors.append(f"No stand_in_bot in the profile of: {', '.join(missing)}")
@@ -69,7 +82,9 @@ class Cs2Backend:
     def start(self, record: MatchRecord, clones: dict[str, Clone]) -> None:
         self.current = record
         self.started = False
-        self.stand_ins = {p.clone_id: clones[p.clone_id].stand_in_bot
+        # CloneDirector names the bot after the personality: stand_in_bot, else display_name.
+        self.bot_names = {p.clone_id: clones[p.clone_id].stand_in_bot or (
+                              clones[p.clone_id].display_name if self.s.cs2_bots == "clone" else None)
                           for p in record.match.players if p.is_clone}
         record.task = asyncio.create_task(self._run(record))
 
@@ -99,14 +114,23 @@ class Cs2Backend:
             console = {"reachable": True, "echoed": "match-service-check" in out, "output": out[-500:]}
         except (OSError, asyncio.TimeoutError) as exc:
             console = {"reachable": False, "error": str(exc)}
-        return {
+        result = {
             "backend": self.name,
+            "bots": self.s.cs2_bots,
             "console": {"kind": self.s.cs2_console, "host": self.s.cs2_console_host,
                         "port": self.s.console_port(), **console},
             "gsi": {"last_update": self.gsi_at, "map": map_name(self.gsi),
                     "phase": (self.gsi.get("map") or {}).get("phase")},
             "current_match": self.current.match.match_id if self.busy() else None,
         }
+        if self.s.cs2_bots == "clone" and self.clone_ch is not self.ch:
+            try:
+                ok = await self.clone_ch.query("matchbridge_ping") == "match-service-check"
+                result["clone_console"] = {"kind": "plugin", "port": self.s.cs2_plugin_port, "reachable": ok}
+            except (OSError, asyncio.TimeoutError) as exc:
+                result["clone_console"] = {"kind": "plugin", "port": self.s.cs2_plugin_port,
+                                           "reachable": False, "error": str(exc)}
+        return result
 
     async def handle_gsi(self, payload: dict) -> None:
         """Apply one game state update from CS2."""
@@ -167,9 +191,10 @@ class Cs2Backend:
             "bot_quota 0",
             "bot_kick",
         ]
-        for p in m.players:
-            if p.is_clone:
-                commands.append(f'bot_add_{p.team.lower()} "{self.stand_ins[p.clone_id]}"')
+        if self.s.cs2_bots == "stand_in":
+            for p in m.players:
+                if p.is_clone:
+                    commands.append(f'bot_add_{p.team.lower()} "{self.bot_names[p.clone_id]}"')
         humans = [p for p in m.players if not p.is_clone]
         commands.append(f"jointeam {JOINTEAM[humans[0].team] if humans else 1}")
         try:
@@ -178,6 +203,8 @@ class Cs2Backend:
             return await self._fail(record, str(exc))
         except (OSError, asyncio.TimeoutError) as exc:
             return await self._fail(record, f"Lost the CS2 console while adding bots ({exc!r})")
+        if self.s.cs2_bots == "clone" and (error := await self._add_clones(m)):
+            return await self._fail(record, error)
 
         m.server = Server(ip=self.s.server_ip, port=self.s.base_port)
         m.join_link = f"steam://connect/{self.s.server_ip}:{self.s.base_port}"
@@ -198,6 +225,36 @@ class Cs2Backend:
         await asyncio.sleep(self.s.restart_seconds)
         self.started = True
         # From here, game state updates (handle_gsi) move the match to live, count rounds, and end it.
+
+    async def _add_clones(self, m) -> str | None:
+        """Send clone_add for each clone, then wait until each one's bot is on its team.
+
+        CloneDirector says a sent clone_add doesn't prove the bot attached. A new bot with the
+        personality's name on the right team, right after bot_kick, is the closest check MatchBridge
+        can give; CloneDirector's own `clone_list` output can't be read back. Returns an error or None.
+        """
+        clones = [p for p in m.players if p.is_clone]
+        if not clones:
+            return None
+        want = Counter((self.bot_names[p.clone_id], JOINTEAM[p.team]) for p in clones)
+        try:
+            await self.clone_ch.send([f"clone_add {p.clone_id} {p.team.lower()}" for p in clones])
+            loop = asyncio.get_running_loop()
+            deadline = loop.time() + self.s.clone_join_seconds
+            while True:
+                have = Counter((b.get("name"), b.get("team")) for b in await self.clone_ch.bots())
+                missing = want - have
+                if not missing:
+                    return None
+                if loop.time() >= deadline:
+                    break
+                await asyncio.sleep(0.5)
+        except (OSError, asyncio.TimeoutError) as exc:
+            return (f"Can't reach the MatchBridge plugin for CloneDirector ({exc!r}). Is MatchBridge installed, "
+                    "and does CS2_PLUGIN_TOKEN (or CS2_CONSOLE_PASSWORD) match its token?")
+        late = sorted({p.clone_id for p in clones if (self.bot_names[p.clone_id], JOINTEAM[p.team]) in missing})
+        return (f"These clones did not join within {self.s.clone_join_seconds:.0f} s: {', '.join(late)}. "
+                "Check the CloneDirector lines in the CS2 console, or run clone_list there.")
 
     async def _advance_score(self, record: MatchRecord, target: Score) -> None:
         m = record.match

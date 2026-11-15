@@ -45,6 +45,13 @@ class Settings:
     cs2_record: str = "off"
     map_load_seconds: float = 90.0
     restart_seconds: float = 2.0  # wait after mp_restartgame before trusting game state
+    # Who plays a clone. `stand_in`: the built-in bot named in `stand_in_bot`. `clone`: Arjun's
+    # CloneDirector plugin (`clone_add`), which takes commands from the server console only, so
+    # those commands go through the MatchBridge plugin even when everything else uses netcon.
+    cs2_bots: str = "stand_in"
+    cs2_plugin_port: int = 27100
+    cs2_plugin_token: str = ""  # empty: use cs2_console_password
+    clone_join_seconds: float = 20.0  # how long to wait for every clone bot to join
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -68,6 +75,10 @@ class Settings:
             cs2_record=env.get("CS2_RECORD", cls.cs2_record),
             map_load_seconds=float(env.get("CS2_MAP_LOAD_SECONDS", cls.map_load_seconds)),
             restart_seconds=float(env.get("CS2_RESTART_SECONDS", cls.restart_seconds)),
+            cs2_bots=env.get("CS2_BOTS", cls.cs2_bots),
+            cs2_plugin_port=int(env.get("CS2_PLUGIN_PORT", cls.cs2_plugin_port)),
+            cs2_plugin_token=env.get("CS2_PLUGIN_TOKEN", cls.cs2_plugin_token),
+            clone_join_seconds=float(env.get("CS2_CLONE_JOIN_SECONDS", cls.clone_join_seconds)),
         )
 
 

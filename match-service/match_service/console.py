@@ -12,6 +12,7 @@ Everything in the service goes through `send` and `query`, so switching changes 
 """
 
 import asyncio
+import json
 from typing import Protocol
 
 # A newline or `;` ends a console command, so a value containing one could run a second command.
@@ -170,13 +171,39 @@ class PluginChannel:
         reply = await self._exchange(["matchbridge_ping"])
         return "match-service-check" if reply == "pong" else reply
 
+    async def bots(self) -> list[dict]:
+        """The bots in the game: [{"name": "donk", "team": 3}, ...] (team 2 = T, 3 = CT)."""
+        reply = await self._exchange(["matchbridge_bots"])
+        try:
+            bots = json.loads(reply)
+        except json.JSONDecodeError as exc:
+            raise ConnectionError(f"MatchBridge sent an unexpected bot list: {reply[:200]!r}") from exc
+        return [b for b in bots if isinstance(b, dict)]
+
 
 class RecordingChannel:
-    """Keeps every command instead of sending it. For tests and for working without CS2."""
+    """Keeps every command instead of sending it. For tests and for working without CS2.
 
-    def __init__(self):
+    It also acts as a fake MatchBridge: `clone_add <id> <t|ct>` adds a bot named
+    `personalities[id]` to the list `bots()` returns, the way CloneDirector would.
+    """
+
+    def __init__(self, personalities: dict[str, str] | None = None):
         self.sent: list[str] = []
         self.fail_with: Exception | None = None
+        self.personalities = personalities or {}
+        self.bot_list: list[dict] = []
+        self._seen = 0  # how many sent commands bots() has looked at
+
+    async def bots(self) -> list[dict]:
+        if self.fail_with:
+            raise self.fail_with
+        for c in self.sent[self._seen:]:
+            word, *args = c.split()
+            if word == "clone_add" and args[0] in self.personalities:
+                self.bot_list.append({"name": self.personalities[args[0]], "team": 2 if args[1] == "t" else 3})
+        self._seen = len(self.sent)
+        return list(self.bot_list)
 
     async def send(self, commands: list[str]) -> None:
         if self.fail_with:

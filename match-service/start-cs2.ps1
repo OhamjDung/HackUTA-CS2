@@ -23,6 +23,12 @@
   off (default): no match recording, demo_url is null. tv: record with GOTV (tv_record); not yet
   tried in CS2. The player's own `record` is never used: over netcon it froze CS2 and once crashed it.
 
+.PARAMETER Bots
+  stand_in (default): each clone is played by the built-in bot named in its stand_in_bot.
+  clone: each clone is played by Arjun's CloneDirector plugin with the data-built profiles in
+  ..\clones. Also installs MatchBridge, because CloneDirector refuses commands from netcon.
+  CloneDirector itself must be installed first (clone-director\README.md). Not run in CS2.
+
 .PARAMETER Console
   How to send commands to CS2: netcon (default; needs -netconport 2121 in CS2's launch options),
   rcon (needs rcon_password in CS2), or plugin (the MatchBridge plugin).
@@ -36,7 +42,9 @@ param(
     [int]$Port = 8000,
     [string]$Listen = "127.0.0.1",
     [ValidateSet("off", "tv")]
-    [string]$Record = "off"
+    [string]$Record = "off",
+    [ValidateSet("stand_in", "clone")]
+    [string]$Bots = "stand_in"
 )
 
 $ErrorActionPreference = "Stop"
@@ -100,6 +108,34 @@ if ($firstInstall) {
 
 # --- Console channel --------------------------------------------------------------------------
 if (-not $ConsolePassword) { $ConsolePassword = $Token }
+
+function Install-MatchBridge {
+    $project = Join-Path $here "plugin\MatchBridge"
+    $dll = Join-Path $project "bin\Release\net8.0\MatchBridge.dll"
+    if (Get-Command dotnet -ErrorAction SilentlyContinue) {
+        Write-Host "Building the MatchBridge plugin..."
+        dotnet build $project -c Release | Out-Host
+        if ($LASTEXITCODE -ne 0) { Write-Host "Plugin build failed." -ForegroundColor Red; exit 1 }
+    }
+    if (-not (Test-Path $dll)) {
+        Write-Host "MatchBridge.dll is not built, and the .NET SDK is not installed." -ForegroundColor Red
+        Write-Host "Install it with:  winget install Microsoft.DotNet.SDK.10   then run this script again."
+        Write-Host "(SDK 10 builds both MatchBridge and CloneDirector.)"
+        exit 1
+    }
+    $pluginsDir = Join-Path $csgo "addons\counterstrikesharp\plugins"
+    if (-not (Test-Path $pluginsDir)) {
+        Write-Host "CounterStrikeSharp is not installed in CS2 ($pluginsDir). Install CS2-Bot-Improver first." -ForegroundColor Red
+        exit 1
+    }
+    $target = Join-Path $pluginsDir "MatchBridge"
+    New-Item -ItemType Directory -Force -Path $target | Out-Null
+    Copy-Item $dll $target -Force
+    @{ port = 27100; token = $ConsolePassword } | ConvertTo-Json | Set-Content (Join-Path $target "matchbridge.json") -Encoding ASCII
+    Write-Host "MatchBridge plugin installed: $target"
+    Write-Host "Restart CS2 (or run  css_plugins reload MatchBridge  in its console) to load it." -ForegroundColor Yellow
+}
+
 switch ($Console) {
     "netcon" {
         Write-Host "Console: netcon. CS2's launch options must include  -netconport 2121"
@@ -108,32 +144,28 @@ switch ($Console) {
         Write-Host "Console: rcon. CS2's launch options must include  -usercon"
         Write-Host "and in CS2's console run:  rcon_password $ConsolePassword"
     }
-    "plugin" {
-        $project = Join-Path $here "plugin\MatchBridge"
-        $dll = Join-Path $project "bin\Release\net8.0\MatchBridge.dll"
-        if (Get-Command dotnet -ErrorAction SilentlyContinue) {
-            Write-Host "Building the MatchBridge plugin..."
-            dotnet build $project -c Release | Out-Host
-            if ($LASTEXITCODE -ne 0) { Write-Host "Plugin build failed." -ForegroundColor Red; exit 1 }
-        }
-        if (-not (Test-Path $dll)) {
-            Write-Host "MatchBridge.dll is not built, and the .NET SDK is not installed." -ForegroundColor Red
-            Write-Host "Install it with:  winget install Microsoft.DotNet.SDK.10   then run this script again."
-            Write-Host "(SDK 10 builds both MatchBridge and CloneDirector.)"
-            exit 1
-        }
-        $pluginsDir = Join-Path $csgo "addons\counterstrikesharp\plugins"
-        if (-not (Test-Path $pluginsDir)) {
-            Write-Host "CounterStrikeSharp is not installed in CS2 ($pluginsDir). Install CS2-Bot-Improver first." -ForegroundColor Red
-            exit 1
-        }
-        $target = Join-Path $pluginsDir "MatchBridge"
-        New-Item -ItemType Directory -Force -Path $target | Out-Null
-        Copy-Item $dll $target -Force
-        @{ port = 27100; token = $ConsolePassword } | ConvertTo-Json | Set-Content (Join-Path $target "matchbridge.json") -Encoding ASCII
-        Write-Host "MatchBridge plugin installed: $target"
-        Write-Host "Restart CS2 (or run  css_plugins reload MatchBridge  in its console) to load it." -ForegroundColor Yellow
+    "plugin" { Install-MatchBridge }
+}
+
+# --- Who plays the clones ---------------------------------------------------------------------
+if ($Bots -eq "clone") {
+    $clonesDir = Join-Path (Split-Path -Parent $here) "clones"
+    if ($Console -ne "plugin") {
+        Write-Host "Clone mode: CloneDirector only takes server-console commands, so clone_add goes through MatchBridge."
+        Install-MatchBridge
     }
+    $cloneDirector = Join-Path $csgo "addons\counterstrikesharp\plugins\CloneDirector"
+    if (-not (Test-Path $cloneDirector)) {
+        Write-Host "CloneDirector is not installed ($cloneDirector). See clone-director\README.md." -ForegroundColor Red
+        exit 1
+    }
+    $env:CS2_BOTS = "clone"
+    $env:CLONES_DIR = $clonesDir
+    $env:CS2_PLUGIN_TOKEN = $ConsolePassword
+    Write-Host "Clones: CloneDirector, profiles from $clonesDir (de_mirage only)."
+} else {
+    $env:CS2_BOTS = "stand_in"
+    Write-Host "Clones: stand-in bots."
 }
 
 # --- Start the service ------------------------------------------------------------------------
