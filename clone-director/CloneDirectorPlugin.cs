@@ -85,6 +85,10 @@ public sealed class CloneDirectorPlugin : BasePlugin
     private static bool ConsoleOnly(CCSPlayerController? player, CommandInfo command)
     {
         if (player is null) return true;
+        // On a listen server (Bot Mode: the game hosts the match) there is no separate server console.
+        // Commands a plugin runs with Server.ExecuteCommand, such as MatchBridge's, arrive attributed to
+        // the host player in slot 0. Seen on Tom's PC: without this, clone_add from MatchBridge was refused.
+        if (player.Slot == 0 && !player.IsBot) return true;
         command.ReplyToCommand("[CloneDirector] Use the server console.");
         return false;
     }

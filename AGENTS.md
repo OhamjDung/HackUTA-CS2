@@ -69,6 +69,12 @@ record the change in `SPEC.md`.
   asking.** The user closed them on purpose, and a low-memory PC can kill the service.
 - On Windows run tests with `uv run python -m pytest`; `uv run pytest` is blocked there.
 - `data/` is git-ignored. Recordings and audit files in it must be handed over by another route.
+- **Bot Mode files can revert.** If `game/csgo/gameinfo.gi` has no `addons/metamod` line, no plugin
+  loads and matches get no bots. Copy `backup/WithBots/gameinfo.gi` over it and restart CS2. Read
+  plugin errors in `addons/counterstrikesharp/logs/log-all<date>.txt`.
+- **One installed bot name per match.** The game refuses a second bot with a name already in use, so
+  two clones built on the same personality (`donk_v1` and `donkL` both use `donk`) cannot share a
+  match. Renaming the bot after it joins did not stick.
 - **Check free memory before a live run.** On Tom's PC the match service was killed for low memory
   once, and CS2 plus a full browser left under 2 GiB free. Ask the user to close heavy apps first.
 - **Live demo runs:** start the service with `.\start-cs2.ps1 -Record off`, then use

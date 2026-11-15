@@ -1494,6 +1494,11 @@ demo. A released product would need each player's or team's permission.
 
 Newest first. One line per change: date, who, what changed.
 
+- 2026-11-14, Tom (with Claude): first clone played in CS2. On a listen server CloneDirector refused
+  MatchBridge's commands (caller is the host in slot 0, not null); fixed in `CloneDirectorPlugin.cs`.
+  Then donkL attached and played a recorded donk route (TSpawn > PalaceAlley > TRamp). donk_v1 vs donkL
+  in one match fails: both need the bot `donk` and the game refuses a duplicate name; renaming did not
+  stick. C# tests could not run on Tom's PC (Application Control blocks the test DLL).
 - 2026-11-14, Arjun (with Claude): added `handoffs/tom-mvp-test.md`, Tom's step-by-step test of whether the MVP works on the demo PC.
 
 - 2026-11-14, Arjun (with Claude): added `handoffs/remaining-work.md`: remaining work, MVP critical path, and prompts. Notes that `donkL`/`brokyL` are not yet offered by the match service.
