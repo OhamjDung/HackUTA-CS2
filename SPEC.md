@@ -26,6 +26,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 
 | Part | Owner | State | Where | Updated |
 |---|---|---|---|---|
+| MatchBridge clone detection | Tom (Codex) | Done in worktree; Release build passes. Uses connected player-controller entities to find bots, as CloneDirector does; not run in CS2. | `match-service/plugin/MatchBridge/` | 2026-11-15 |
 | MatchBridge Release compilation | Arjun (Codex) | Done. Builds with .NET SDK 10.0.404, zero warnings/errors; targets net8.0. In-game loading and clone commands still untested. | `match-service/plugin/MatchBridge/` | 2026-11-14 |
 | Research: which bots, dataset, and model to build on | Arjun | Done | Sections 4, 7, 8 | 2026-11-14 |
 | This spec and the agent rules | Arjun | Done | `SPEC.md`, `AGENTS.md`, `CLAUDE.md` | 2026-11-14 |
@@ -1782,6 +1783,8 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-15, Tom (Codex): MatchBridge enumerates connected player controllers when checking clone joins; Release build passed, live CS2 check pending.
 
 - 2026-11-15, Tom (with Claude): "Practice in CS2" fixed and made one click. `puzzle_load` really goes to MatchBridge now (`plugin_command` used `query()`, which only pinged), and the service loads the puzzle's map and joins the hero's team first when CS2 is elsewhere (`Cs2Backend.prepare_puzzle`, `CS2_PUZZLE_SETTLE_SECONDS`). 4 new tests; 105 of 106 match service tests pass on Tom's PC (the failure is the symlink test). In CS2 two more CloneDirector bugs were fixed: a Bool cvar crash in `puzzle_load`, and `Utilities.GetPlayers()` not returning bots (now an entity lookup, `AllPlayers()`). The broky seed puzzle then ran: 9 recorded players, finished after 10 s. Not yet watched from the player's view (section 9.6).
 - 2026-11-15, Tom (Claude): added clones `donk_v2`/`broky_v2` (v1 routes and buys, LF quirks, full-strength original bot entry) and rule-based game sense in CloneDirector (`Core/GameSense.cs`, `GameSenseMode.cs`): hand-off when an enemy is heard (footstep, gunfire, reload events) or seen (the game's spotted-by mask), grenade-safe hand-off, route variety, quiet walking at the player's own slow-movement rate. All rules are off for earlier clones. 68 C# tests pass (28 new, incl. loading the real v2/LF/v1 profiles); not run in CS2. Feasibility audit of the Round 4 neural model in `.plans/` (6.5 s per prediction on an RTX 3050, about 2.1 s on an A100; 0 of 18 generated paths passed the map check).

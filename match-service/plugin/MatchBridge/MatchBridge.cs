@@ -148,8 +148,8 @@ public sealed class MatchBridgePlugin : BasePlugin
         {
             try
             {
-                var bots = Utilities.GetPlayers()
-                    .Where(p => p is { IsValid: true, IsBot: true, IsHLTV: false })
+                var bots = Utilities.FindAllEntitiesByDesignerName<CCSPlayerController>("cs_player_controller")
+                    .Where(p => p is { IsValid: true, IsBot: true, IsHLTV: false } && p.Connected == PlayerConnectedState.Connected)
                     .Select(p => new { name = p.PlayerName, team = (int)p.TeamNum });
                 result.TrySetResult(JsonSerializer.Serialize(bots));
             }
