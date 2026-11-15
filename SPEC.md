@@ -312,6 +312,11 @@ Checked on 2026-11-14.
   new tests in `tests/test_settle.py` pass: the extra bot is kicked by name before the quota is set,
   nothing is kicked when the clone's bot is missing or a name is unusual, and two clones set the quota
   to 2. The game is a fake in these tests. `clone-director/tools`: 3 tests pass.
+  CloneDirector: Release build with zero warnings/errors and 31 C# tests pass, using
+  `-p:BotControllerApiPath=<game>\csgo\addons\counterstrikesharp\shared\BotControllerApi\BotControllerApi.dll`
+  (`clone-director/README.md`); a plain `dotnet test` fails because `clone-director/libs/` is empty.
+  The tests cover the 900-unit distance rule only, not the plugin inside CS2. The `--loop` value:
+  uvicorn 0.54.0's `Config` resolved it to the Windows selector loop; the service was not started.
 - Every GitHub repository in section 4 exists. Stars, licenses, and update dates come from GitHub.
 - The OpenCS2 counts in section 7 come from queries against its index tables.
 - The match service's cs2 backend, against a fake console and hand-written game state updates
@@ -384,9 +389,6 @@ Checked on 2026-11-14.
   `DEATH` log line, and `donkL2`/`brokyL2` joining with human aim. The code comments say the random
   extra bot and the `WinError 64` stop were seen on Tom's PC; the fixes were not confirmed there by
   the agent that committed them.
-- The CloneDirector C# build and tests after the 2026-11-15 changes. `dotnet test` on Tom's PC stops
-  at the missing `clone-director/libs/BotControllerApi.dll`, so `EnemyContactUsesThreeDimensionalDistance`
-  and the earlier 30 tests were not run on this code.
 - Scoring the bot positions collected in a real CS2 match against the held-back reference.
 - CounterStrikeSharp loading MatchBridge, `Server.NextFrame` running
   the commands, and `matchbridge_jointeam` moving the player.
@@ -631,7 +633,7 @@ $2,000-3,999 force, and $4,000 or more full. These are unvalidated approximation
 equipment-value labels. Only routes matching side, source, and buy type are eligible. Route-label
 shares are renormalized over eligible labels, then the nearest starting position is selected.
 Enemy shots within 1,200 engine distance units stop playback, without a visibility check. Damage
-dealt or taken also stops it. Added 2026-11-15 (Tom, not built or run): a living enemy within 900
+dealt or taken also stops it. Added 2026-11-15 (Tom, built and unit-tested, not run in CS2): a living enemy within 900
 units stops playback with the reason `enemy close` (`Combat.EnemyContactRadius`; 3D distance, no
 visibility check, so it also fires through walls; a starting value to tune), because a route never
 looks at enemies and a clone could die before a shot or damage stopped it. Each clone death writes a
@@ -1585,7 +1587,9 @@ demo. A released product would need each player's or team's permission.
 
 ## 19. Change log
 
-- 2026-11-15, Tom (with Claude): added clones `donkL2`/`brokyL2`, which now carry Round 3 step 1 (human aim bot entries, no restlessness or crouch rule). **`donkL`/`brokyL` are put back on purpose** to five rules and plain bot entries, so versions can be compared. CloneDirector: route playback stops when an enemy is within 900 units, and each clone death writes a `DEATH` log line (not built or run; C# does not build on Tom's PC). Match service: removes the bot base's random extra bot when a match has one clone, and `start-cs2.ps1` uses the selector event loop so a reset connection cannot stop the service answering. 77 of 78 match service tests pass on Tom's PC (the failure is the symlink test), 3 tool tests pass; nothing confirmed in CS2 by this agent. AGENTS.md section 7 gained four rules.
+- 2026-11-15, Tom (with Claude): correction to the entry below. CloneDirector does build on Tom's PC when `BotControllerApiPath` points at the installed controller DLL: Release build clean, 31 C# tests pass (one new). Status row, section 3 and AGENTS.md section 7 corrected. Still nothing confirmed in CS2.
+
+- 2026-11-15, Tom (with Claude): added clones `donkL2`/`brokyL2`, which now carry Round 3 step 1 (human aim bot entries, no restlessness or crouch rule). **`donkL`/`brokyL` are put back on purpose** to five rules and plain bot entries, so versions can be compared. CloneDirector: route playback stops when an enemy is within 900 units, and each clone death writes a `DEATH` log line (not run in CS2). Match service: removes the bot base's random extra bot when a match has one clone, and `start-cs2.ps1` uses the selector event loop so a reset connection cannot stop the service answering. 77 of 78 match service tests pass on Tom's PC (the failure is the symlink test), 3 tool tests pass; nothing confirmed in CS2 by this agent. AGENTS.md section 7 gained four rules.
 
 - 2026-11-15, Arjun (Codex): completed both Round4 development runs on A100-40GB (800 total updates), verified/downloaded adapters and source hashes, and preserved all iteration results. Path/tempo/limits improve but turning regresses for both; neither promoted or final-tested. Published detailed next-stage plan and Tom prompt. 60 tests pass,5 optional Open3D skips.
 

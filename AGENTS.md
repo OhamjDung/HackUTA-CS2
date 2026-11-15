@@ -91,9 +91,10 @@ record the change in `SPEC.md`.
   already watched; add `donkL2` next to `donkL`. Add the id to `COPIES` in
   `add_clone_bot_entries.py` (and to `HUMAN_AIM_IDS` if it gets human aim), then run the tool again.
 - **Known test limits on Tom's PC (2026-11-15).** `test_generated.py::test_path_traversal_is_refused`
-  fails with `WinError 1314` (symlinks need a Windows privilege); it is not a regression. The
-  CloneDirector C# tests do not build there (`clone-director/libs/BotControllerApi.dll` is missing), so
-  say "not run" for C# changes.
+  fails with `WinError 1314` (symlinks need a Windows privilege); it is not a regression. A
+  plain `dotnet test` in `clone-director/` fails because `libs/` is empty: pass
+  `-p:BotControllerApiPath=<game>\csgo\addons\counterstrikesharp\shared\BotControllerApi\BotControllerApi.dll`
+  (`clone-director/README.md`). With it the build and the C# tests run.
 
 ## 8. Voices
 
