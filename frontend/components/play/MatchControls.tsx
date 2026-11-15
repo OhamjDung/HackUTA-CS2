@@ -7,7 +7,7 @@ import inferno from "@/components/img/inferno.webp";
 import mirage from "@/components/img/De_mirage_cs2.webp";
 import { API_URL } from "@/lib/puzzles";
 
-type Clone = { clone_id: string; display_name: string; label?: string; playable?: boolean };
+type Clone = { clone_id: string; display_name: string; label?: string; playable?: boolean; reason?: string | null };
 type Match = { match_id: string; status: string; round: number; score: { CT: number; T: number }; players: { display_name: string; team: string; is_clone: boolean }[]; error?: string; join_link?: string };
 type TracePlayer = { name: string; team: string; clone_id?: string; path: number[][]; died_at?: number | null };
 type Trace = { source: string; live_round: number | null; rounds: { round: number; players: TracePlayer[] }[] };
@@ -50,6 +50,7 @@ const chevron: React.CSSProperties = { backgroundImage: "url(\"data:image/svg+xm
 export default function MatchControls() {
   const [kind, setKind] = useState<"watch" | "play">("watch");
   const [clones, setClones] = useState<Clone[]>([]);
+  const [catalogueLoaded, setCatalogueLoaded] = useState(false);
   const [matches, setMatches] = useState<Summary[]>([]);
   const [ct, setCt] = useState(""); const [t, setT] = useState("");
   const [side, setSide] = useState("CT"); const [steam, setSteam] = useState("");
@@ -61,7 +62,7 @@ export default function MatchControls() {
   const [watchPick, setWatchPick] = useState("");
   useEffect(() => {
     api<Clone[]>("/clones").then(all => {
-      const available = all.filter(c => c.playable !== false); setClones(available);
+      const available = all.filter(c => c.playable !== false); setClones(all); setCatalogueLoaded(true);
       setCt(available.find(c => c.clone_id === "broky_v1")?.clone_id ?? available[0]?.clone_id ?? "");
       const enemy = available.find(c => c.clone_id === "donk_v1")?.clone_id ?? available[1]?.clone_id ?? available[0]?.clone_id ?? "";
       setT(enemy); setEnemies(enemy ? [enemy] : []);
@@ -95,8 +96,9 @@ export default function MatchControls() {
     } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
   }
   async function stop() { setBusy(true); try { await api(`/matches/${encodeURIComponent(id)}/stop`, {}); const m = await api<Match>(`/matches/${encodeURIComponent(id)}`); setMatch(m); } catch (e) { setError((e as Error).message); } finally { setBusy(false); } }
-  const offline = !clones.length;
-  const roster = offline ? PLACEHOLDER_CLONES : clones;
+  const offline = !catalogueLoaded;
+  const hasPlayable = clones.some(c => c.playable !== false);
+  const roster = clones;
   const byId = (cid: string) => roster.find(c => c.clone_id === cid);
   const ctClone = offline ? PLACEHOLDER_CLONES[0] : byId(ct);
   const tClone = offline ? PLACEHOLDER_CLONES[1] : byId(t);
@@ -105,7 +107,7 @@ export default function MatchControls() {
   const toggle = (selected: string[], change: (x: string[]) => void, cid: string) => change(selected.includes(cid) ? selected.filter(x => x !== cid) : [...selected, cid]);
   const enemyNames = enemies.map(e => cloneName(byId(e))).join(" & ") || "your opponents";
   const title = kind === "watch" ? `${cloneName(ctClone)} vs ${cloneName(tClone)}` : `You vs ${enemyNames}`;
-  const status = offline && error.startsWith("Match service unavailable") ? "Match service offline. Reconnect to start." : error;
+  const status = offline && error.startsWith("Match service unavailable") ? "Match service offline. Start it and refresh this page." : error || (catalogueLoaded && !hasPlayable ? "No playable bots are available from the match service." : "");
 
   /** CT / T opponent card. "Change bot" is a native select laid over the link, so it stays keyboard and screen-reader friendly. */
   const opponent = (team: "CT" | "T", c: Clone | undefined, value: string, change: (x: string) => void) => {
@@ -122,7 +124,7 @@ export default function MatchControls() {
         <label className="relative mt-2 inline-flex w-fit items-center gap-1.5 text-[14px] font-bold text-white hover:text-[#ff4d63]">
           Change bot <span aria-hidden>↗</span>
           <select aria-label={`Change ${team === "CT" ? "Counter-Terrorist" : "Terrorist"} bot`} className="absolute inset-0 cursor-pointer opacity-0" value={value} disabled={offline} onChange={e => change(e.target.value)}>
-            {clones.map(x => <option key={x.clone_id} value={x.clone_id}>{x.display_name} ({x.clone_id}){x.label ? ` / ${x.label}` : ""}</option>)}
+            {clones.map(x => <option key={x.clone_id} value={x.clone_id} disabled={x.playable === false}>{x.display_name} ({x.clone_id}){x.label ? ` / ${x.label}` : ""}{x.playable === false ? ` — unavailable${x.reason ? `: ${x.reason}` : ""}` : ""}</option>)}
           </select>
         </label>
       </div>
@@ -132,10 +134,10 @@ export default function MatchControls() {
   /** Bot chip for Play vs bot (opponents / teammates). */
   const chip = (c: Clone, selected: string[], change: (x: string[]) => void) => {
     const on = selected.includes(c.clone_id); const photo = photoFor(c);
-    return <button key={c.clone_id} type="button" aria-pressed={on} disabled={offline} onClick={() => toggle(selected, change, c.clone_id)}
+    return <button key={c.clone_id} type="button" aria-pressed={on} disabled={offline || c.playable === false} title={c.reason || undefined} onClick={() => toggle(selected, change, c.clone_id)}
       className={`flex items-center gap-3 rounded-xl border p-2 pr-4 text-left transition ${on ? "border-[#e4002b] bg-[#e4002b]/10" : "border-white/[0.14] bg-[#18181c] hover:border-white/40"} disabled:opacity-60`}>
       {photo ? <img src={photo} alt="" className="h-11 w-11 rounded-lg object-cover object-top" /> : <span className="grid h-11 w-11 place-items-center rounded-lg bg-white/10 font-bold">{cloneName(c).slice(0, 1).toUpperCase()}</span>}
-      <span><span className="block font-bold">{c.display_name}</span><span className="block text-[12px] text-[#B8B8C2]">{c.clone_id}</span></span>
+      <span><span className="block font-bold">{c.display_name}</span><span className="block text-[12px] text-[#B8B8C2]">{c.clone_id}</span>{c.playable === false && <span className="block text-[12px] text-[#B8B8C2]">Unavailable{c.reason ? `: ${c.reason}` : ""}</span>}</span>
     </button>;
   };
 
@@ -164,6 +166,8 @@ export default function MatchControls() {
               <input className={selectBox} placeholder="7656119…" inputMode="numeric" value={steam} onChange={e => setSteam(e.target.value)} /></label>
           </div>
           <div className="space-y-2"><p className="text-[14px] font-semibold text-[#B8B8C2]">Opponents</p><div className="flex flex-wrap gap-3">{roster.map(c => chip(c, enemies, setEnemies))}</div></div>
+          {offline && <p className="text-sm text-[#B8B8C2]">Connect to the match service to load the bot catalogue.</p>}
+          {catalogueLoaded && !roster.length && <p className="text-sm text-[#B8B8C2]">The match service returned no bots.</p>}
           <div className="space-y-2"><p className="text-[14px] font-semibold text-[#B8B8C2]">Teammates (optional)</p><div className="flex flex-wrap gap-3">{roster.map(c => chip(c, mates, setMates))}</div></div>
         </div>}
 
@@ -208,7 +212,7 @@ export default function MatchControls() {
             <p className="font-bold">{kind === "watch" ? "You will watch this match." : "You will play this match."}</p>
             <p className="flex items-center gap-1.5 text-[#B8B8C2]"><svg width="14" height="16" viewBox="0 0 14 16" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden><rect x="1.5" y="7" width="11" height="8" rx="1.5" /><path d="M4 7V4.8a3 3 0 0 1 6 0V7" /></svg>Private match</p>
           </div>
-          <button type="button" disabled={busy || offline} onClick={start}
+          <button type="button" disabled={busy || offline || !hasPlayable} onClick={start}
             className="group relative flex h-14 w-full items-center justify-center rounded-full bg-white text-[18px] font-bold text-black transition hover:bg-[#f2f2f4] disabled:bg-white/60 disabled:text-black/60">
             {busy ? "Starting…" : "Start match"}
             <span className="absolute right-2 grid h-10 w-10 place-items-center rounded-full bg-black/10 transition group-enabled:group-hover:translate-x-0.5" aria-hidden>→</span>

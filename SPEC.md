@@ -26,6 +26,8 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 
 | Part | Owner | State | Where | Updated |
 |---|---|---|---|---|
+| Play page model catalogue | Tom (Codex) | Done in code. Shows all models returned by the service, with unavailable entries disabled and explained; offline state no longer presents placeholder bots in Play vs bot. Typecheck and mode tests pass; live catalogue and browser flow not checked. | `frontend/components/play/MatchControls.tsx` | 2026-11-15 |
+| Windows launcher service port | Tom (Codex) | In progress. Aligning the website's service URL with the launcher's selected port; live restart not checked. | `start-everything.ps1` | 2026-11-15 |
 | MatchBridge clone detection | Tom (Codex) | Done in worktree; Release build passes. Uses connected player-controller entities to find bots, as CloneDirector does; not run in CS2. | `match-service/plugin/MatchBridge/` | 2026-11-15 |
 | MatchBridge Release compilation | Arjun (Codex) | Done. Builds with .NET SDK 10.0.404, zero warnings/errors; targets net8.0. In-game loading and clone commands still untested. | `match-service/plugin/MatchBridge/` | 2026-11-14 |
 | Research: which bots, dataset, and model to build on | Arjun | Done | Sections 4, 7, 8 | 2026-11-14 |
@@ -1290,7 +1292,7 @@ of the replay.
 
 ### 9.3 Web pages
 
-The FaZe `/play` page offers bot-vs-bot and play-vs-bot setup using the match service at `NEXT_PUBLIC_API_URL` (default `http://localhost:8000`), including its playable clone catalogue, existing matches, stop, scores, events, inline position paths and a link to the demo replay/position viewer. Browser mock checked both v2 clones and match reload; a real CS2 match remains unchecked.
+The FaZe `/play` page offers bot-vs-bot and play-vs-bot setup using the match service at `NEXT_PUBLIC_API_URL` (default `http://localhost:8000`), including its clone catalogue, existing matches, stop, scores, events, inline position paths and a link to the demo replay/position viewer. It shows all clones returned by the service, disabling and explaining those marked unavailable; an offline Play vs bot page asks the user to connect instead of showing placeholder choices. Browser mock checked both v2 clones and match reload before this catalogue change; the revised catalogue and a real CS2 match remain unchecked.
 
 - **Lobby page and match page.** Owned by teammates, built against the match service.
 - **Demo pages (`match-service/demo/`, Ashirwad).** Bare-minimum versions of each feature for the
@@ -1700,7 +1702,8 @@ on the service, never in the game process.
 free memory and `gameinfo.gi` (restores it from `backup\WithBots` when the metamod line is gone and CS2 is
 closed), then opens the match service (`start-cs2.ps1 -Bots clone -Record off`) in its own window, starts
 CS2 with `-steam -insecure -netconport 2121 -usercon` if it is not running, and opens the website on port
-3000. `start-cs2.ps1` now sets `MATCH_LOG_FILE` to `data\logs\match-service-<time>.log`: the service's
+3000. The website process receives `NEXT_PUBLIC_API_URL` pointing to the launcher's selected service
+port; an already-running website must be restarted to receive a changed value. `start-cs2.ps1` now sets `MATCH_LOG_FILE` to `data\logs\match-service-<time>.log`: the service's
 own log lines (coach decisions and timings, Gemini/ElevenLabs request URLs and status codes; never keys)
 go there and to the console. `match-service\collect-logs.ps1` zips the newest service logs, the last
 lines of the newest CounterStrikeSharp logs, the newest death files, `/health`, `/coach`, `/matches`, the
@@ -1971,6 +1974,9 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-15, Tom (Codex): updated Play to show all service-reported models, explain unavailable entries and distinguish an offline or empty catalogue; frontend typecheck and 4 mode tests pass, live UI not checked.
+- 2026-11-15, Tom (Codex): aligned the Windows launcher's website service URL with its selected port; live restart not checked.
 
 - 2026-11-15, Nikesh (with Claude): FaZe Play page match setup redesigned (`frontend/components/play/MatchControls.tsx`, layout only; the match-service calls, checks and the live match panel are unchanged). Underlined "Bot vs bot / Play vs bot" tabs; numbered steps 01 opponents (CT/T cards with player photo, "Change bot" select), 02 map (Mirage, Dust II, Inferno picture cards; Inferno image `frontend/components/img/inferno.webp` supplied by Nikesh), 03 match rules (mode, and rounds tied to the mode); a match preview card with the map picture, matchup, Start match and status; and a "Watch an existing match" row with a Watch button. Defaults are now broky_v1 (CT) vs donk_v1 (T). Offline, the cards show broky vs donk placeholders and Start is disabled ("Match service offline. Reconnect to start."). Checked: `tsc`, `test:mode` 4/4; browser at 1440 and 375 px offline, and against a local mock service (clone list, change bot, map and mode selection, Start match sent `{"map":"de_mirage","mode":"wingman","clones":[broky_v1 CT, donk_v2 T]}`, existing-match list). Not run: real match service, CS2, `next build`.
 - 2026-11-15, Ashirwad: four bots in Tom's two-clone match: the extra-bot cleanup now also runs 2, 6 and 15 s after `mp_restartgame` and logs what it sees and kicks (section 9.2). 151 service tests pass against a fake game; not run in CS2. Also recorded the coach's first live run (death recorder, Gemini and chat work; ElevenLabs key rejected).

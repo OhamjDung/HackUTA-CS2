@@ -31,7 +31,7 @@ param(
     [ValidateSet("clone", "stand_in")]
     [string]$Bots = "clone",
     [string]$Cs2Dir = "",
-    [int]$Port = 8000
+    [int]$Port = 8001
 )
 $ErrorActionPreference = "Stop"
 $repo = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -236,7 +236,7 @@ if ($NoGame) {
 # --- 7. website --------------------------------------------------------------------------------------
 Step "Starting the website (new window)"
 $launch = "-NoExit", "-ExecutionPolicy", "Bypass", "-Command",
-        "Set-Location '$frontend'; `$host.UI.RawUI.WindowTitle = 'Website'; npm run dev"
+        "Set-Location '$frontend'; `$host.UI.RawUI.WindowTitle = 'Website'; `$env:NEXT_PUBLIC_API_URL = 'http://localhost:$Port'; npm run dev"
 Start-Process powershell -ArgumentList $launch
 if (Wait-Http "http://localhost:3000" 120) { Start-Process "http://localhost:3000" } else { Warn "The website did not answer within 2 minutes; read the 'Website' window." }
 
