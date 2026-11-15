@@ -15,7 +15,7 @@ public sealed class OdysseySettings
         string expected = id switch
         {
             "poseidon" => "impossible", "odysseus" => "superhuman",
-            "menelaus" => "medium", "telemachus" => "easy", _ => ""
+            "menelaus" or "melantho" => "medium", "telemachus" => "easy", _ => ""
         };
         if (Version != 1 || expected.Length == 0 || Difficulty != expected ||
             Invulnerable != (id == "poseidon") || !double.IsFinite(DamageMultiplier) ||
@@ -26,7 +26,7 @@ public sealed class OdysseySettings
 
 public static class Odyssey
 {
-    public static bool IsPersona(string id) => id is "poseidon" or "odysseus" or "menelaus" or "telemachus";
+    public static bool IsPersona(string id) => id is "poseidon" or "odysseus" or "menelaus" or "telemachus" or "melantho";
     public sealed record DamageDecision(bool Block, float Damage);
 
     // Called BEFORE application, so a lethal shot cannot kill Poseidon before a health refill.

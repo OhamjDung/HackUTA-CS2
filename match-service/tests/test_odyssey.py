@@ -7,7 +7,7 @@ from match_service.drivers import describe
 from match_service.models import Clone
 
 
-@pytest.mark.parametrize('name', ['poseidon', 'odysseus', 'menelaus', 'telemachus'])
+@pytest.mark.parametrize('name', ['poseidon', 'odysseus', 'menelaus', 'telemachus', 'melantho'])
 def test_odyssey_requires_director_and_never_claims_generated_routes(name):
     profile = json.loads((Path(__file__).resolve().parents[2] / 'clones' / (name+'.json')).read_text())
     clone = Clone.model_validate(profile)

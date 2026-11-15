@@ -35,7 +35,7 @@ from pathlib import Path
 # existing bot entry -> the clone ids that get a copy of it
 COPIES = {"donk": ["donk_v1", "donkL", "donkL2", "donkLF", "donk_v2"],
           "broky": ["broky_v1", "brokyL", "brokyL2", "brokyLF", "broky_v2"]}
-ODYSSEY_IDS = ("poseidon", "odysseus", "menelaus", "telemachus")
+ODYSSEY_IDS = ("poseidon", "odysseus", "menelaus", "telemachus", "melantho")
 COPIES["donk"] += list(ODYSSEY_IDS)
 # the copies that get human aim settings; the others stay plain copies of the original entry
 HUMAN_AIM_IDS = {"donkL2", "brokyL2", "donkLF", "brokyLF"}
@@ -50,7 +50,7 @@ def odyssey_settings(root=None):
     """Read the same authored numbers documented in the clone profiles; fail on missing config.
 
     These overrides apply even with --plain: that option resets human-aim limits for L2/LF only.
-    Never silently create all four difficulties as identical copies of the pro template.
+    Never silently create all personas as identical copies of the pro template.
     """
     root = Path(root) if root is not None else Path(__file__).resolve().parents[2] / "clones"
     result = {}

@@ -3,7 +3,7 @@
 When the person at the CS2 PC dies in a match with an Odyssey bot (clones/ODYSSEY.md), the death coach
 (coach.py) speaks as that character: a roast in character when the bot is their opponent, a teasing word
 when it is their teammate, then one concrete tip. Tom built this for Poseidon first; this table gives all
-four characters the same treatment. Adding a character is one entry here.
+characters the same treatment. Adding a character is one entry here.
 
 Voices: `voice_id` is the character's built-in ElevenLabs voice. `ELEVENLABS_VOICE_<CLONE_ID>` in
 match-service/.env overrides it (Poseidon's voice is set that way on Tom's PC). A character with neither
@@ -71,6 +71,13 @@ PERSONAS: dict[str, Persona] = {p.clone_id: p for p in (
         "how much you are still learning.",
         "Wait, I actually got you? ", "Father would have survived that. ",
         # Voice: none yet. Set ELEVENLABS_VOICE_TELEMACHUS, or fill voice_id here.
+    ),
+    Persona(
+        "melantho", "Melantho", "The Defiant",
+        "You are Melantho, a defiant and sharp-tongued fictional character in Odysseus's household. "
+        "Speak with pointed, confrontational wit toward intruders.",
+        "Another intruder sent packing. ", "Try to keep up, ally. ",
+        # Voice: none yet; set ELEVENLABS_VOICE_MELANTHO to enable speech.
     ),
 )}
 

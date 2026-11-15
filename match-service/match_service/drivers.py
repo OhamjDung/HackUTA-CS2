@@ -17,7 +17,7 @@ from .models import Clone, CloneInfo
 
 STAND_IN = "stand_in"
 CLONE_DIRECTOR = "clone_director"
-ODYSSEY = {"poseidon": "impossible", "odysseus": "superhuman", "menelaus": "medium", "telemachus": "easy"}
+ODYSSEY = {"poseidon": "impossible", "odysseus": "superhuman", "menelaus": "medium", "telemachus": "easy", "melantho": "medium"}
 
 
 def describe(clone: Clone, settings: Settings) -> CloneInfo:

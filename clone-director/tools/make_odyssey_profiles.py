@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-IDS = ("poseidon", "odysseus", "menelaus", "telemachus")
+IDS = ("poseidon", "odysseus", "menelaus", "telemachus", "melantho")
 
 DESIGNS = {
     "poseidon": dict(title="The Tempest", difficulty="impossible", trait="Wrathful, implacable sea god; overwhelming pressure rather than deception.",
@@ -30,6 +30,11 @@ DESIGNS = {
         focus=3., burst=9., single=.08, crouch=.70, jumps=6., quiet=.20, memory=1.,
         primary=("p90", "p90"), eco=("glock", "hkp2000"), force=("mac10", "mp9"),
         utility=["flashbang"], immune=False, damage=1.),
+    "melantho": dict(title="The Defiant", difficulty="medium", trait="Defiant and sharp-tongued; confrontational toward intruders and aligned with the suitors.",
+        skill=60, aggression=78, teamwork=50, reaction=.34, delay=.09, accel=11000., offset=.40,
+        focus=1.9, burst=6., single=.20, crouch=.35, jumps=3., quiet=.35, memory=2.,
+        primary=("ak47", "m4a1"), eco=("p250", "p250"), force=("mac10", "mp9"),
+        utility=["flashbang", "hegrenade"], immune=False, damage=1.),
 }
 
 # The interpretations are ours, not claims that Homer measured Counter-Strike habits.
@@ -47,6 +52,9 @@ TRAITS = {
     "telemachus": ["The hesitant challenger", "Seeks the company of allies", "Late recognition", "The unsteady first aim",
         "Checks before committing", "The enthusiastic spray", "The nervous crouch", "Restless travel", "Forgets stealth often",
         "The forgiving SMG", "Keeps the starting pistol", "A modest force buy", "One simple utility lesson", "Slowly finds his focus"],
+    "melantho": ["Defiant challenge", "Company of the suitors", "A measured response", "A sharp eye",
+        "A guarded commitment", "Sharp volleys", "Shifting stance", "A quick step", "Guarded approach",
+        "A household rifle", "A spare pistol", "A bold force buy", "Flash of defiance", "Armor before risk"],
 }
 
 
@@ -68,7 +76,7 @@ def make_profile(name):
         "odyssey.bot_profile.AimFocusOffsetScale", "odyssey.bot_profile.AttackDelay", "quirk_controls.shots_per_burst.value",
         "quirk_controls.crouched_shot_share.value", "quirk_controls.jumps_per_min.value", "game_sense.quiet_walk_share",
         "buy_plan.T.full.aliases", "buy_plan.T.eco.aliases", "buy_plan.T.force.aliases", "buy_plan.CT.full.aliases",
-        {"poseidon": "odyssey.invulnerable", "odysseus": "odyssey.damage_multiplier", "menelaus": "buy_plan.T.full.aliases",
+        {"poseidon": "odyssey.invulnerable", "odysseus": "odyssey.damage_multiplier", "menelaus": "buy_plan.T.full.aliases", "melantho": "buy_plan.T.full.aliases",
          "telemachus": "odyssey.bot_profile.AimFocusInitial"}[name]]
     effects = [f"Native aggression {d['aggression']}/100; pressure appetite, not a guaranteed path.",
         f"Native teamwork {d['teamwork']}/100; squad preference when teammates exist.",
@@ -86,6 +94,7 @@ def make_profile(name):
         {"poseidon": "Block incoming gameplay damage before application, including bullets, grenades, fall and C4. Not a giant health pool.",
          "odysseus": "Multiply outgoing enemy-player damage by 1.08; explicit fantasy advantage, not a learned pro rating.",
          "menelaus": "Primary then vesthelm before utility, both sides; a protected but normally killable veteran.",
+         "melantho": "Primary then vesthelm before utility, both sides; normal damage and health.",
          "telemachus": "AimFocusInitial 3.0: deliberately loose initial focus; no live confidence/learning system."}[name]]
     return dict(clone_id=name, display_name=name.title(), source="user", stand_in_bot=name, map="de_mirage",
         model=None, reaction_ms=round(d["reaction"]*1000), aim_skill=d["skill"]/100, aggression=d["aggression"]/100,

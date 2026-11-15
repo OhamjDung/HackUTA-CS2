@@ -1,7 +1,8 @@
 # Odyssey authored bots
 
-Four playable-profile IDs match the existing Odyssey UI exactly: `poseidon`, `odysseus`, `menelaus`,
-`telemachus` (the UI spelling). Titles: The Tempest, The Strategist, The Warlord, The Heir.
+Five authored profile IDs match the Odyssey UI: `poseidon`, `odysseus`, `menelaus`,
+`telemachus`, and `melantho`. The requested progression is Telemachus (easy), Melantho (medium),
+Odysseus (hardest of these three). Existing Poseidon and Menelaus are preserved.
 
 These are fictional, authored personas on the existing CloneDirector/native-bot stack. They have
 `source: user`, `model: null`, no source games and no recorded/generated opening routes. There was no
@@ -16,6 +17,7 @@ bot, these four included, is protected from killing itself (`SPEC.md` section 6.
 | Poseidon | Impossible |100 /0ms | Incoming gameplay damage blocked before application |
 | Odysseus | Superhuman |100 /100ms |8% extra outgoing damage to enemy players |
 | Menelaus | Medium |65 /320ms | Normal damage and health |
+| Melantho | Medium |60 /340ms | Normal damage and health; direct pressure |
 | Telemachus | Easy |20 /650ms | Normal damage and health |
 
 Skill/reaction/aim values are native bot-profile knobs, not measured ELO or achieved reaction times.
@@ -43,6 +45,9 @@ Homer supplies the traits; all CS2 habits and numerical choices below are our ga
   utility purchase preferences do not implement deception or specific smoke/flash lineups.
 - Menelaus's veteran kingship, comradeship and hospitality inform a steadfast rifle/support style.
   [Odyssey4](https://www.theoi.com/Text/HomerOdyssey4.html).
+- Melantho's sharp confrontation with the disguised Odysseus and her association with the suitors
+  inspire a direct, defiant persona; the combat settings are our invention, not claims about Homer.
+  [Odyssey 19](https://www.theoi.com/Text/HomerOdyssey19.html).
 - Telemachus's uncertainty and growth under mentorship inspire an earnest novice's hesitation and
   squad preference. His skill does not change dynamically during a match.
   [Odyssey3](https://www.theoi.com/Text/HomerOdyssey3.html).
@@ -60,8 +65,18 @@ audibility. Zero injected jumps/walk probability does not prohibit the native AI
 actions itself. Utility lists select purchases, not new utility decision logic. Purchases remain
 money-limited: one primary, then armor, then utility; no free guns or global money/difficulty cvars.
 
-Regenerate profiles with `python clone-director/tools/make_odyssey_profiles.py`; all four are
+Regenerate profiles with `python clone-director/tools/make_odyssey_profiles.py`; all five are
 deterministic and have 14 authored quirks each. Keep this design document aligned when changing values.
+
+## Melantho — The Defiant
+
+The medium preset has 14 individually described controls in `clones/melantho.json`. Her play style
+combines high native aggression (78), moderate team preference (50), 340 ms configured reaction,
+90 ms attack delay, medium aim offset (0.40), six-shot burst target and a 20% single-shot share,
+35% extra crouch probability, three added jumps/minute target, 35% quiet-walk probability,
+two-second hearing memory, rifle full buys, P250 eco buys, SMG force buys, flash/HE utility and armor.
+These are configured controls, not demonstrated gameplay outcomes. Normal damage and health apply.
+The coach has a written personality but no assigned voice; it falls back to chat until a voice is supplied.
 
 ## Installation and acceptance
 

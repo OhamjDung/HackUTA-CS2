@@ -311,7 +311,7 @@ import pytest  # noqa: E402
 from match_service.personas import PERSONAS  # noqa: E402
 
 
-@pytest.mark.parametrize("clone_id", ["poseidon", "odysseus", "menelaus", "telemachus"])
+@pytest.mark.parametrize("clone_id", ["poseidon", "odysseus", "menelaus", "telemachus", "melantho"])
 def test_every_odyssey_character_speaks_in_character(tmp_path, clone_id):
     coach, calls, said = odyssey_coach(tmp_path, clone_id, voices={clone_id: f"{clone_id}-voice"})
     result = asyncio.run(coach.coach(make_puzzle()))
@@ -356,7 +356,7 @@ def test_status_lists_which_characters_have_a_voice(tmp_path):
     coach = Coach(CoachSettings(voices={"poseidon": "god"}), tmp_path, lambda: None, None, FakeSink())
     chars = coach.status()["characters"]
     assert {k: v["voice"] for k, v in chars.items()} == \
-        {"poseidon": True, "odysseus": True, "menelaus": True, "telemachus": False}
+        {"poseidon": True, "odysseus": True, "menelaus": True, "telemachus": False, "melantho": False}
 
 
 def test_no_voice_for_the_player_and_no_default_stays_quiet(tmp_path):

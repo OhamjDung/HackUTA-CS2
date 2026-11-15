@@ -22,6 +22,10 @@ test('route-specific parameters survive only on routes that support them', () =>
   assert.equal(modeHref('/leaderboard', 'odyssey', incoming), '/leaderboard?mode=odyssey');
 });
 
+test('Melantho survives Odyssey navigation', () => {
+  assert.equal(modeHref('/play', 'odyssey', { bot: 'melantho' }), '/play?mode=odyssey&bot=melantho');
+});
+
 test('Odyssey boundary has no direct dependency on the WebGPU pipeline', async () => {
   const [home, odyssey] = await Promise.all([
     readFile(new URL('../app/page.tsx', import.meta.url), 'utf8'),
