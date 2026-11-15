@@ -1,5 +1,9 @@
 # Why the first identity adapter failed, and the predeclared plan for experiment 2
 
+> **Superseded where it conflicts (decided 2026-11-14).** Experiment 2 is Arjun's `clone-model/v2.py`
+> (SPEC section 8.9). Where section 5 below and v2 differ, v2 is followed as written. Sections 1-4
+> (the diagnosis of the first run) still stand.
+
 Date: 2026-11-14. Machine: a Mac, CPU only (PyTorch 2.15.0, Python 3.12). No model was trained,
 selected or promoted. Inputs: the first A100 run (prerelease `learned-clones-a100-v1`), its
 development review file, and the development rounds of the seven training matches.
@@ -198,6 +202,24 @@ there (the logits are divided by 1e-6 before top-p). The unknown row stays the e
 Regularization too strong: also ruled out (section 2).
 
 ## 5. Predeclared plan for experiment 2
+
+**Status: superseded where it conflicts with `v2.py`.** The two plans agree on the main fixes:
+identity at every decoder step and a loss that rewards own identity over another. Where they
+differ, v2 decides:
+
+| Point | This plan | Followed (v2) |
+|---|---|---|
+| Identities | 2 (donk, broky) | Every player in 2 or more non-held-back matches, about 10 |
+| Pull-back penalty | Kept at 0.001 | Removed |
+| Identity hidden at random | No | 15% of targets, with `guided_logits` for later generation |
+| Training length | Up to 3,000 updates, 4 runs (arms S and M, two learning rates) | Up to 2,000 steps, one run, patience 5 |
+| Checkpoint selection | Float32, all 756 development windows, worse of two players | "Who is it?" on 120 development windows (bfloat16 on GPU) |
+| Development gates G1-G3 | Required before the held-out test | Not used |
+| Held-out test and pass rule | SPEC 8.6 free-running path error, own below other and base | Likelihood "who is it?": true identity in the top 2 of 5 teammates for at least 60% of players |
+
+What this means for the result: a v2 pass shows the model tells players apart from their recorded
+moves. It is not the SPEC 8.6 path test and produces no playable paths. The held-out matches are
+still used once, after training, by v2. The text below is kept as a record of the alternative.
 
 Everything below is fixed before any run. Decisions use training and development data only. The
 held-out matches are evaluated once, at the end, on one configuration.

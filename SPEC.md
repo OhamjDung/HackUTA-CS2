@@ -54,7 +54,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Diagnosis of the failed neural identity model | Arjun (Claude) | Done. Adapters judged not usable: no change in 64% to 72% of test windows. Not offered as bots. | `clone-model/results/diagnosis-2026-11-14.md` | 2026-11-14 |
 | Second learned-identity experiment (`v2.py`): many identities, identity at every step, likelihood "who is it?" test | Arjun (Claude) | Blocked: the Colab session is a processor-only runtime, and the agent cannot change that setting. Arjun must pick a GPU runtime, then run the first cell once. Code written; 19 CPU tests pass (12 existing, 7 new). Pass rule fixed in the code before any run. No training has run and there is no result. | `clone-model/v2.py`, `clone-model/colab_train2.ipynb` | 2026-11-14 |
 | Claude continuation handoff | Arjun (Codex) | Done and consumed. Claude read it on 2026-11-14 and removed the folder, as its own instructions said. | removed (`handoffs/claude-continuation/`) | 2026-11-14 |
-| Continuation handoff (Arjun's remaining model and game work) | Ashirwad | Done. Map-geometry check, generated-path viewer, generated-route converter (candidates only) and adapter diagnosis with a plan for experiment 2 are on main; the in-game checks went to Tom as a message. Folder removed; context kept outside the repo. | Removed from the repo | 2026-11-14 |
+| Continuation handoff (Arjun's remaining model and game work) | Ashirwad | Done. Map-geometry check, generated-path viewer, generated-route converter (candidates only) and adapter diagnosis are on main (its experiment-2 plan is superseded by `v2.py` where they conflict); the in-game checks went to Tom as a message. Folder removed; context kept outside the repo. | Removed from the repo | 2026-11-14 |
 | Map-geometry check of generated review paths | Ashirwad | Done. Checks all 8 development cases: all 32 paths pass, real paths included; 15 of 24 generated paths mostly stand still. Automated check only; a person must still review paths. Not run in CS2. 12 CPU tests pass | `clone-model/map_review.py`, `clone-model/results/generated-path-map-review.md` | 2026-11-14 |
 | Generated-path playback candidates (8.5 steps 5-7, candidates only) | Ashirwad | In progress. Converter, gates and provenance written; 13 synthetic tests pass (30 pipeline tests). One real development case converted with a hand-made check file (no geometry check). Output is a candidate for a person to review, never promoted; not run in CS2 | `clone-pipeline/clone_pipeline/generated.py` | 2026-11-14 |
 | Offline weapon-role and habit audit | Ashirwad (Codex) | Done offline. Audited 141 build rounds, froze policy/method, then described 39 holdout rounds once. 11 audit and 27 pipeline tests pass; actual CLI candidates built from seven raw demos. All 141 same-input route files unchanged and readable by the service. Candidate review only; no CS2 or playable-clone promotion. | `tools/habit-audit/`, `clone-pipeline/`; ignored `data/habit-audit/` | 2026-11-14 |
@@ -226,7 +226,9 @@ Checked on 2026-11-14.
   median top-two logit gap (about 3.8) is far above the typical change (under 0.25), which is why
   greedy paths come out identical. Scaling the change helps only up to 2×. 25 clone-model tests pass
   (13 new). The report ends with a predeclared plan for experiment 2 (still Stage A: identity FiLM
-  at the decoder's per-tick inputs, a contrastive term, development gates, held-out test once).
+  at the decoder's per-tick inputs, a contrastive term, development gates, held-out test once). That plan is
+  superseded where it conflicts with `v2.py` (section 8.9): experiment 2 is v2 as written, and the report's
+  section 5 lists each point v2 decides.
 - Map-geometry check of the generated review paths (Ashirwad, 2026-11-14). `clone-model/map_review.py`
   ran on `Generated-path-review-dev.json` (SHA-256 `f247ddd8…`) against CS-NET's `de_mirage.obj` at
   `268dd21`, using CS-NET's Open3D ray casting. It tests every path for wall crossing, floor support,
@@ -1423,6 +1425,8 @@ demo. A released product would need each player's or team's permission.
 - HackUTA 2026 tracks and prizes: the organizers' slide deck
 
 ## 19. Change log
+
+- 2026-11-14, Ashirwad: decided experiment 2 is Arjun's `v2.py` as written (section 8.9). Marked the experiment-2 plan in `clone-model/results/adapter-diagnosis.md` as superseded where it conflicts, with a table of each point v2 decides (identities, penalty, selection, pass rule). No code changed; nothing run.
 
 - 2026-11-14, Ashirwad: checked merged main (73 match service, 11 replay edge, 47 pipeline, 44 model, 12 map-check and the habit-audit tests pass; C# not run here, no .NET on this Mac) and marked the continuation handoff done.
 
