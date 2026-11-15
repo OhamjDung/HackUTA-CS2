@@ -4,8 +4,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
-import { useSelectedBot } from '@/app/providers';
+import { useSelectedBot, useSessionUploads } from '@/app/providers';
 import { CURATED_SCENES } from '@/lib/bots';
+import { useModeHref } from '@/components/mode/ModeLink';
 
 export type ScenesTab = 'upload' | 'famous';
 
@@ -26,13 +27,17 @@ export default function ScenesView({ initialTab }: { initialTab: ScenesTab }) {
   const router = useRouter();
   const bot = useSelectedBot();
   const [tab, setTab] = useState<ScenesTab>(initialTab);
-  const [file, setFile] = useState<File | null>(null);
+  const uploads = useSessionUploads();
+  const file = uploads.faze;
+  const setFile = (next: File | null) => uploads.setUpload('faze', next);
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const famousHref = useModeHref('/scenes?tab=famous');
+  const uploadPlayHref = useModeHref(`/play?bot=${bot.id}&scene=upload`);
 
   const switchTab = (t: ScenesTab) => {
     setTab(t);
-    router.replace(`/scenes?tab=${t}`, { scroll: false });
+    router.replace(t === 'famous' ? famousHref : famousHref.replace('tab=famous', 'tab=upload'), { scroll: false });
   };
 
   const famous = CURATED_SCENES.filter((s) => s.game === bot.game);
@@ -113,7 +118,7 @@ export default function ScenesView({ initialTab }: { initialTab: ScenesTab }) {
             <button
               type="button"
               disabled={!file}
-              onClick={() => router.push(`/play?bot=${bot.id}&scene=upload`)}
+              onClick={() => router.push(uploadPlayHref)}
               className="group mt-[28px] flex h-[56px] w-full cursor-pointer items-center justify-between rounded-full bg-[#F5F4F0] pl-[26px] pr-[8px] text-[18px] font-bold text-[#111111] transition-opacity hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
             >
               {file ? `Play it vs ${bot.name}` : 'Upload a file to continue'}

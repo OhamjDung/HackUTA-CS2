@@ -12,6 +12,7 @@ import SiteNav from '@/components/ui/SiteNav';
 import { BOTS, GAME_FILTERS, type BotGame } from '@/lib/bots';
 import { GLITCH_DURATION_MS, GLITCH_SWAP_AT_MS } from '@/lib/constants';
 import { stageInput } from '@/lib/stageInput';
+import { useModeHref } from '@/components/mode/ModeLink';
 
 type Filter = 'all' | BotGame;
 
@@ -32,6 +33,7 @@ export default function BotsHub() {
   const roster = useMemo(() => BOTS.map((b) => ({ ...b, avatarUrl: avatars[b.id] })), [avatars]);
   const visibleBots = useMemo(() => roster.filter((b) => filter === 'all' || b.game === filter), [roster, filter]);
   const shown = BOTS.find((b) => b.id === shownId)!;
+  const playHref = useModeHref(`/play?bot=${shown.id}`);
 
   useEffect(() => {
     // This stage has no thermal scope; make sure a scope left open on another page is closed.
@@ -171,7 +173,7 @@ export default function BotsHub() {
             bot={shown}
             index={shownIndex}
             glitching={glitching}
-            onPlay={() => router.push(`/play?bot=${shown.id}`)}
+            onPlay={() => router.push(playHref)}
           />
         </div>
       </section>

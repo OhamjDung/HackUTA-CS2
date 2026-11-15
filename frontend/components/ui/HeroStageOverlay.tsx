@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import ModeLink from '@/components/mode/ModeLink';
 import { DEMO_URL } from '@/lib/constants';
 import type { CharacterConfig, CharacterId } from '@/types';
 import { ArrowUpRight } from './icons';
@@ -89,7 +89,7 @@ export default function HeroStageOverlay({
           </p>
 
           <div className="pointer-events-auto mt-[42px] flex flex-wrap gap-[14px] min-[900px]:flex-nowrap">
-            <Link
+            <ModeLink
               href="/bots"
               className="group flex h-[48px] shrink-0 items-center gap-[12px] whitespace-nowrap rounded-full bg-[#F5F4F0] pl-[21px] pr-[6px] text-[16px] font-bold tracking-[-0.01em] text-[#111111] transition-colors hover:bg-white"
             >
@@ -97,7 +97,7 @@ export default function HeroStageOverlay({
               <span className="flex h-[36px] w-[36px] items-center justify-center rounded-full bg-brand text-white transition-transform group-hover:rotate-45">
                 <ArrowUpRight size={16} strokeWidth={2} />
               </span>
-            </Link>
+            </ModeLink>
             <a
               href={DEMO_URL}
               className="flex h-[48px] shrink-0 items-center gap-[16px] whitespace-nowrap rounded-full border border-outline bg-transparent pl-[20px] pr-[19px] text-[16px] font-medium tracking-[-0.01em] text-ink transition-colors hover:border-ink"

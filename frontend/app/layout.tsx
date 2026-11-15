@@ -44,7 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en" className={`${inter.variable} ${mono.variable} ${led.variable}`}>
-      <body className="hub-charcoal min-h-screen font-sans text-ink antialiased">
+      <body className="min-h-screen font-sans antialiased">
         <Providers brand={brand}>{children}</Providers>
       </body>
     </html>

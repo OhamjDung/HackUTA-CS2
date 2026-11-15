@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import ModeLink from '@/components/mode/ModeLink';
 import type { Bot } from '@/lib/bots';
 import { ArrowUpRight } from '@/components/ui/icons';
 
@@ -60,13 +60,13 @@ export default function SelectedBotPanel({ bot, index, glitching, onPlay }: Sele
         </span>
       </button>
 
-      <Link
+      <ModeLink
         href={`/scenes?bot=${bot.id}`}
         className="mt-[26px] inline-flex items-center gap-[8px] border-b-[1.5px] border-ink pb-[3px] text-[18.5px] font-medium leading-none tracking-[-0.01em] text-ink"
       >
         Try a scene
         <ArrowUpRight size={17} strokeWidth={1.8} />
-      </Link>
+      </ModeLink>
     </div>
   );
 }

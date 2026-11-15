@@ -12,7 +12,15 @@ interface BotSelection {
 }
 const BotSelectionContext = createContext<BotSelection>({ selectedId: DEFAULT_BOT_ID, setSelectedId: () => {} });
 
-const STORAGE_KEY = 'doppelgamer.selectedBot';
+const STORAGE_KEY = 'doppelgamer.faze.selectedBot';
+const LEGACY_STORAGE_KEY = 'doppelgamer.selectedBot';
+
+interface SessionUploads {
+  faze: File | null;
+  odyssey: File | null;
+  setUpload: (mode: 'faze' | 'odyssey', file: File | null) => void;
+}
+const SessionUploadContext = createContext<SessionUploads>({ faze: null, odyssey: null, setUpload: () => {} });
 
 /**
  * App-wide state shared by every route:
@@ -23,11 +31,15 @@ const STORAGE_KEY = 'doppelgamer.selectedBot';
  */
 export default function Providers({ brand, children }: { brand: BrandAssets; children: React.ReactNode }) {
   const [selectedId, setSelected] = useState(DEFAULT_BOT_ID);
+  const [uploads, setUploads] = useState<Pick<SessionUploads, 'faze' | 'odyssey'>>({ faze: null, odyssey: null });
 
   useEffect(() => {
     try {
-      const saved = window.sessionStorage.getItem(STORAGE_KEY);
-      if (saved && BOTS.some((b) => b.id === saved)) setSelected(saved);
+      const saved = window.sessionStorage.getItem(STORAGE_KEY) ?? window.sessionStorage.getItem(LEGACY_STORAGE_KEY);
+      if (saved && BOTS.some((b) => b.id === saved)) {
+        setSelected(saved);
+        window.sessionStorage.setItem(STORAGE_KEY, saved);
+      }
     } catch {
       /* storage unavailable: keep the default */
     }
@@ -43,16 +55,23 @@ export default function Providers({ brand, children }: { brand: BrandAssets; chi
   }, []);
 
   const selection = useMemo(() => ({ selectedId, setSelectedId }), [selectedId, setSelectedId]);
+  const sessionUploads = useMemo<SessionUploads>(
+    () => ({ ...uploads, setUpload: (mode, file) => setUploads((current) => ({ ...current, [mode]: file })) }),
+    [uploads],
+  );
 
   return (
     <BrandContext.Provider value={brand}>
-      <BotSelectionContext.Provider value={selection}>{children}</BotSelectionContext.Provider>
+      <BotSelectionContext.Provider value={selection}>
+        <SessionUploadContext.Provider value={sessionUploads}>{children}</SessionUploadContext.Provider>
+      </BotSelectionContext.Provider>
     </BrandContext.Provider>
   );
 }
 
 export const useBrand = () => useContext(BrandContext);
 export const useBotSelection = () => useContext(BotSelectionContext);
+export const useSessionUploads = () => useContext(SessionUploadContext);
 
 /** The selected bot with its resolved portrait URL. */
 export function useSelectedBot() {

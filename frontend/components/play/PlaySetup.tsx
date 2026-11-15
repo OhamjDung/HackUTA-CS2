@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import ModeLink from '@/components/mode/ModeLink';
 import { useEffect } from 'react';
 import { useBotSelection, useBrand } from '@/app/providers';
 import { Avatar } from '@/components/bots/RosterArc';
@@ -62,9 +62,9 @@ export default function PlaySetup({ botParam, sceneParam }: { botParam?: string;
         <p className="mt-[36px] font-mono text-[13px] font-bold uppercase tracking-[0.06em] text-[#D8D8DE]">02 / Scene</p>
         <div className="mt-[16px] flex flex-wrap items-center gap-[16px]">
           <span className="text-[20px] font-bold tracking-[-0.02em] text-white">{sceneLabel}</span>
-          <Link href={`/scenes?tab=famous&bot=${bot.id}`} className="border-b border-white/60 pb-[1px] text-[14px] font-medium text-white hover:border-white">
+          <ModeLink href={`/scenes?tab=famous&bot=${bot.id}`} className="border-b border-white/60 pb-[1px] text-[14px] font-medium text-white hover:border-white">
             Change scene
-          </Link>
+          </ModeLink>
         </div>
       </section>
 
@@ -78,13 +78,13 @@ export default function PlaySetup({ botParam, sceneParam }: { botParam?: string;
             {bot.game} · {bot.tags.join(' / ')}
           </p>
         </div>
-        <Link
+        <ModeLink
           href={`/studio?bot=${bot.id}${sceneParam ? `&scene=${sceneParam}` : ''}`}
           className="group mt-[32px] flex h-[62px] items-center justify-between rounded-full bg-[#F5F4F0] pl-[28px] pr-[10px] text-[20px] font-bold text-[#111111] transition-colors hover:bg-white"
         >
           Start match in studio
           <span className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-brand transition-transform group-hover:translate-x-0.5">{arrow}</span>
-        </Link>
+        </ModeLink>
       </section>
     </div>
   );
