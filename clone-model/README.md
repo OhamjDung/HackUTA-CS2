@@ -66,3 +66,15 @@ been wired into live CS2. A training-loss decrease alone does not establish play
 No route or identity is promoted to the playable clone just because training completed.
 
 The current learned run excludes match 2393226: its donk-named slot has Steam ID 76561198018303780, which differs from canonical donk 76561198386265483 in the other four recordings. Ownership of that event account is unverified. The run uses three donk training matches plus one holdout, and four broky training matches plus one holdout (180 parsed rounds total). The public preparation archive retains all ten source recordings; use this directory's games.json to select the verified nine.
+
+## Inspect generated paths without promoting them
+
+`review.py` uses the same pinned PredictionEngine and checkpoint/manifest hashes. It exports up to four deterministic **development** round examples per player, using an alive midpoint (early anchor if already dead), with real, own-identity, other-identity and generic-base paths. It does not select the best-looking paths or change a clone profile.
+
+```bash
+python review.py --csnet /content/csnet --cache /content/cache --checkpoint /content/checkpoints/cs-net-v4-pro.pt --adapter /content/run/best.pt --out /content/review.json --per-player 4
+```
+
+The new offline artifact format is `cs2.clone.review.v1`, not a match-service API change. Each case identifies player/Steam ID, match/zero-based round, side, context tick and round time, start position, actual trace and three prediction traces. Paths are `[seconds after context, x, y, z]` in Source units; the first predicted point is at 0.25 s. Separate yaw/pitch, alive and firing values keep upstream meanings; the angle is the heading used for that step. Native early-stop lengths are retained, not filled with invented movement. A consumer can use start_position at t=0. No map collision approval, 64 Hz playback conversion, recorded-game provenance or in-game deployment is implied. Keep exports under ignored data/, outside playable clones.
+
+After a complete test-split validation, progress.json now records `validation_failed` or `validated_pass` and deployed=false; a dev-only review cannot overwrite the held-out result. The first experimental adapter failed both held-out identity tests; see results/first-a100.md and GitHub prerelease learned-clones-a100-v1. Passing an offline test would still require manual path and game checks before promotion.

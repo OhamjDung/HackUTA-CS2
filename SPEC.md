@@ -50,6 +50,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Generating model: CS-NET v4 plus player identity | Arjun (Codex) | In progress. First A100 experiment trained 600 updates, selected step 400; both held-out identity tests failed. Experimental checkpoints/results preserved; review/export work next. | `clone-model/` | 2026-11-14 |
 | Offline weapon-role and habit audit | Ashirwad (Codex) | In progress. Independent build-data audit and narrow pipeline correction; candidate bundles only, no playable-clone promotion. | `tools/habit-audit/`, `clone-pipeline/` | 2026-11-14 |
 | Independent mock replay QA | Ashirwad (Codex) | In progress. Separate task branch for mock-only browser/API checks and reproducible defect report; implementation unchanged. | `tools/replay-qa/` | 2026-11-14 |
+| Offline generated-path review export | Arjun (Codex) | In progress. Development-only real/own/other/base export written; 12 CPU tests pass. GPU export check pending. | `clone-model/review.py` | 2026-11-14 |
 | Replay page: real player next to clone | Unassigned | In progress (demo version by Ashirwad: 2D map from positions, no video, no generated path) | `match-service/demo/replay.html` | 2026-11-14 |
 | Clone profile page | Unassigned | Not started | Not decided | 2026-11-14 |
 | Caster voice (Gemini script, ElevenLabs audio) | Unassigned | Not started | Not decided | 2026-11-14 |
@@ -626,7 +627,7 @@ model, without retraining the network.
 
 ### 8.5 How generated movement reaches the demo (made by hand)
 
-The model does not run during the match. For the demo, a person builds generated segments offline:
+The model does not run during the match. `clone-model/review.py` now exports development-only diagnostic examples via the same pinned PredictionEngine: actual, own identity, other identity and base paths, with timing/side/identity/provenance and native early-stop lengths. This new `cs2.clone.review.v1` offline file does not alter the match-service API. It is not a recorded bot match or an approved playback file; failed-validation identities are not promoted. Twelve CPU tests pass, including development/holdout exclusion, dead-anchor fallback and trace timing/channel checks. The exporter has not yet run on the GPU at this commit. Full test validation now writes an explicit final pass/fail state; dev reviews do not change it. For the demo, a person builds generated segments offline:
 
 1. Pick a real moment from a held-back game, for example the start of a round.
 2. Ask the model for the next 4 seconds of the clone's movement, with the clone's identity vector.
@@ -1081,6 +1082,7 @@ demo. A released product would need each player's or team's permission.
 ## 19. Change log
 
 - 2026-11-14, Ashirwad (Codex): read and consumed Arjun's friend handoff package, removed only its temporary directory, and claimed the CPU habit audit/correction and independent mock replay QA. Instructions preserved outside the checkout.
+- 2026-11-14, Arjun (Codex): added development-only generated-path review export from the pinned prediction engine and explicit completed validation states. Twelve CPU tests pass; GPU export check pending. No failed identity or generated path is promoted.
 
 - 2026-11-14, Arjun (Codex): preserved and reported the first completed A100 learned-clone experiment (600 updates, selected 400); both held-out identity tests failed, so no promotion. Published experimental adapter/metrics artifacts and a syntax-checked reproduction notebook. Added Arjun's explicit recipient cleanup instructions to the temporary friend handoffs.
 
