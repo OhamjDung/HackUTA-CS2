@@ -1,0 +1,227 @@
+{
+  "player": "donk",
+  "experiment": "player model, self-trained on imagined play (clone-model/imagine.py)",
+  "csnet_revision": "268dd2193c8a3d6e330c07dde5a851196c94eeaa",
+  "base_checkpoint_sha256": "d961a2d065464da19809d9b6d13e7467fde06a5a93e93c19b12ecd001cce5c20",
+  "manifest_sha256": "ebe8bf37c5cbb879e3c845fbf2b9cf9e8ede9f498393bb9d0706ac04cd927c00",
+  "iterations": [
+    {
+      "iteration": 0,
+      "mean_ade": 133.20004146626346,
+      "violation_share": 0.00049813200498132,
+      "backwards_share": 0.07621419676214197,
+      "move_w1": 4.287739115859128,
+      "turn_w1": 4.843489983454527,
+      "selection_score": 149.09457122853522,
+      "kept": 0,
+      "tried": 0
+    },
+    {
+      "iteration": 1,
+      "mean_ade": 128.78335569503017,
+      "violation_share": 0.0015052684395383843,
+      "backwards_share": 0.08931259407927747,
+      "move_w1": 4.582301486843327,
+      "turn_w1": 5.640257394943906,
+      "selection_score": 146.47101428774317,
+      "limits_ok": false,
+      "kept": 146,
+      "tried": 80,
+      "train": [
+        {
+          "step": 1,
+          "nll_real": 0.6866492033004761,
+          "nll_imagined": 0.46956849098205566,
+          "kl": 0.05862978845834732
+        },
+        {
+          "step": 25,
+          "nll_real": 0.7142578959465027,
+          "nll_imagined": 0.5888093113899231,
+          "kl": 0.06889868527650833
+        },
+        {
+          "step": 50,
+          "nll_real": 0.6865988969802856,
+          "nll_imagined": 0.41759419441223145,
+          "kl": 0.05955149978399277
+        },
+        {
+          "step": 75,
+          "nll_real": 0.7240428924560547,
+          "nll_imagined": 0.5454304814338684,
+          "kl": 0.07712884247303009
+        },
+        {
+          "step": 100,
+          "nll_real": 0.6912133097648621,
+          "nll_imagined": 0.31204506754875183,
+          "kl": 0.08381035923957825
+        }
+      ],
+      "kept_mean_ade": 80.09660286956519
+    },
+    {
+      "iteration": 2,
+      "mean_ade": 136.88742887243453,
+      "violation_share": 0.00024906600249066,
+      "backwards_share": 0.0784557907845579,
+      "move_w1": 3.5082281203728556,
+      "turn_w1": 5.069609399013234,
+      "selection_score": 151.56462820502244,
+      "limits_ok": true,
+      "kept": 147,
+      "tried": 80,
+      "train": [
+        {
+          "step": 1,
+          "nll_real": 0.656445324420929,
+          "nll_imagined": 0.4270104765892029,
+          "kl": 0.07512550055980682
+        },
+        {
+          "step": 25,
+          "nll_real": 0.9039276838302612,
+          "nll_imagined": 0.42631763219833374,
+          "kl": 0.10930941998958588
+        },
+        {
+          "step": 50,
+          "nll_real": 0.6356477737426758,
+          "nll_imagined": 0.33345168828964233,
+          "kl": 0.093177929520607
+        },
+        {
+          "step": 75,
+          "nll_real": 0.6984919905662537,
+          "nll_imagined": 0.3701940178871155,
+          "kl": 0.10490177571773529
+        },
+        {
+          "step": 100,
+          "nll_real": 0.747014045715332,
+          "nll_imagined": 0.21954672038555145,
+          "kl": 0.10448399186134338
+        }
+      ],
+      "kept_mean_ade": 76.17516052430142
+    },
+    {
+      "iteration": 3,
+      "mean_ade": 127.96404345488557,
+      "violation_share": 0.0002479543763947434,
+      "backwards_share": 0.09075130176047608,
+      "move_w1": 4.538851437130457,
+      "turn_w1": 5.354312136683241,
+      "selection_score": 145.13270689124562,
+      "limits_ok": true,
+      "kept": 146,
+      "tried": 80,
+      "train": [
+        {
+          "step": 1,
+          "nll_real": 0.6264217495918274,
+          "nll_imagined": 0.42410749197006226,
+          "kl": 0.11338251829147339
+        },
+        {
+          "step": 25,
+          "nll_real": 0.5947747826576233,
+          "nll_imagined": 0.32690852880477905,
+          "kl": 0.10094861686229706
+        },
+        {
+          "step": 50,
+          "nll_real": 0.47719714045524597,
+          "nll_imagined": 0.35412418842315674,
+          "kl": 0.11984535306692123
+        },
+        {
+          "step": 75,
+          "nll_real": 0.4984970688819885,
+          "nll_imagined": 0.4643121361732483,
+          "kl": 0.12654805183410645
+        },
+        {
+          "step": 100,
+          "nll_real": 0.5731940865516663,
+          "nll_imagined": 0.4362521767616272,
+          "kl": 0.14319288730621338
+        }
+      ],
+      "kept_mean_ade": 67.12731953605302
+    },
+    {
+      "iteration": 4,
+      "mean_ade": 129.41296014946025,
+      "violation_share": 0.0,
+      "backwards_share": 0.09095452273863068,
+      "move_w1": 3.6232681069881667,
+      "turn_w1": 5.123839510342541,
+      "selection_score": 144.40218717906532,
+      "limits_ok": true,
+      "kept": 148,
+      "tried": 80,
+      "train": [
+        {
+          "step": 1,
+          "nll_real": 0.5871760249137878,
+          "nll_imagined": 0.48027119040489197,
+          "kl": 0.1235092431306839
+        },
+        {
+          "step": 25,
+          "nll_real": 0.787865161895752,
+          "nll_imagined": 0.4052184522151947,
+          "kl": 0.18223443627357483
+        },
+        {
+          "step": 50,
+          "nll_real": 0.5540691614151001,
+          "nll_imagined": 0.32435810565948486,
+          "kl": 0.10559594631195068
+        },
+        {
+          "step": 75,
+          "nll_real": 0.732306957244873,
+          "nll_imagined": 0.31178298592567444,
+          "kl": 0.13117578625679016
+        },
+        {
+          "step": 100,
+          "nll_real": 0.6204445958137512,
+          "nll_imagined": 0.32852357625961304,
+          "kl": 0.1412050724029541
+        }
+      ],
+      "kept_mean_ade": 68.27258819303646
+    }
+  ],
+  "best_iteration": 4,
+  "settings": {
+    "csnet": "/content/run2/csnet",
+    "cache": "/content/run2/cache",
+    "checkpoint": "/content/run2/checkpoints/cs-net-v4-pro.pt",
+    "out": "/content/round4-development/v1-donk",
+    "player": "donk",
+    "device": "cuda",
+    "iterations": "4",
+    "moments_per_iteration": "80",
+    "select_moments": "32",
+    "steps_per_iteration": "100",
+    "budget_minutes": "60.0",
+    "dev_only": "True",
+    "samples": "8",
+    "batch_size": "6",
+    "lr": "0.0003",
+    "kl": "0.1",
+    "imagined_weight": "1.0",
+    "rank": "16",
+    "keep_last": "1200"
+  },
+  "test_C_windows": 119,
+  "pool_windows": 635,
+  "minutes_before_test": 18.2,
+  "test": "not run: development experiment; consumed final sets remain untouched",
+  "deployed": false
+}

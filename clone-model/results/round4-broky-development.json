@@ -1,0 +1,227 @@
+{
+  "player": "broky",
+  "experiment": "player model, self-trained on imagined play (clone-model/imagine.py)",
+  "csnet_revision": "268dd2193c8a3d6e330c07dde5a851196c94eeaa",
+  "base_checkpoint_sha256": "d961a2d065464da19809d9b6d13e7467fde06a5a93e93c19b12ecd001cce5c20",
+  "manifest_sha256": "ebe8bf37c5cbb879e3c845fbf2b9cf9e8ede9f498393bb9d0706ac04cd927c00",
+  "iterations": [
+    {
+      "iteration": 0,
+      "mean_ade": 125.3570277171992,
+      "violation_share": 0.002685546875,
+      "backwards_share": 0.01513671875,
+      "move_w1": 4.656962824254966,
+      "turn_w1": 4.739518513874641,
+      "selection_score": 141.8328924533419,
+      "kept": 0,
+      "tried": 0
+    },
+    {
+      "iteration": 1,
+      "mean_ade": 119.79754203270006,
+      "violation_share": 0.001220703125,
+      "backwards_share": 0.015380859375,
+      "move_w1": 4.622762018851649,
+      "turn_w1": 5.350836936913339,
+      "selection_score": 137.12877521951685,
+      "limits_ok": true,
+      "kept": 144,
+      "tried": 80,
+      "train": [
+        {
+          "step": 1,
+          "nll_real": 0.5544221997261047,
+          "nll_imagined": 0.48116856813430786,
+          "kl": 0.04413363337516785
+        },
+        {
+          "step": 25,
+          "nll_real": 0.7695751190185547,
+          "nll_imagined": 0.36077457666397095,
+          "kl": 0.04937375709414482
+        },
+        {
+          "step": 50,
+          "nll_real": 0.6606404185295105,
+          "nll_imagined": 0.3604804575443268,
+          "kl": 0.06212536618113518
+        },
+        {
+          "step": 75,
+          "nll_real": 0.6208641529083252,
+          "nll_imagined": 0.30756253004074097,
+          "kl": 0.05773954465985298
+        },
+        {
+          "step": 100,
+          "nll_real": 0.5131590962409973,
+          "nll_imagined": 0.40820953249931335,
+          "kl": 0.0697573572397232
+        }
+      ],
+      "kept_mean_ade": 68.26546302273447
+    },
+    {
+      "iteration": 2,
+      "mean_ade": 122.16289145081689,
+      "violation_share": 0.0009765625,
+      "backwards_share": 0.02294921875,
+      "move_w1": 4.8846496607455405,
+      "turn_w1": 5.375712535356719,
+      "selection_score": 140.0554897146248,
+      "limits_ok": true,
+      "kept": 142,
+      "tried": 80,
+      "train": [
+        {
+          "step": 1,
+          "nll_real": 0.5157784223556519,
+          "nll_imagined": 0.4108176529407501,
+          "kl": 0.06882655620574951
+        },
+        {
+          "step": 25,
+          "nll_real": 0.7666909098625183,
+          "nll_imagined": 0.48922792077064514,
+          "kl": 0.08698296546936035
+        },
+        {
+          "step": 50,
+          "nll_real": 0.6410877108573914,
+          "nll_imagined": 0.1879664659500122,
+          "kl": 0.06702220439910889
+        },
+        {
+          "step": 75,
+          "nll_real": 0.564296305179596,
+          "nll_imagined": 0.3984224796295166,
+          "kl": 0.09826341271400452
+        },
+        {
+          "step": 100,
+          "nll_real": 0.5981044769287109,
+          "nll_imagined": 0.4122145473957062,
+          "kl": 0.09679095447063446
+        }
+      ],
+      "kept_mean_ade": 66.1702932440941
+    },
+    {
+      "iteration": 3,
+      "mean_ade": 123.92824922850821,
+      "violation_share": 0.0009765625,
+      "backwards_share": 0.016845703125,
+      "move_w1": 4.548641234891072,
+      "turn_w1": 5.670488622360361,
+      "selection_score": 141.59427006096823,
+      "limits_ok": true,
+      "kept": 144,
+      "tried": 80,
+      "train": [
+        {
+          "step": 1,
+          "nll_real": 0.488115131855011,
+          "nll_imagined": 0.35660380125045776,
+          "kl": 0.10717308521270752
+        },
+        {
+          "step": 25,
+          "nll_real": 0.7416651844978333,
+          "nll_imagined": 0.34207117557525635,
+          "kl": 0.10276079177856445
+        },
+        {
+          "step": 50,
+          "nll_real": 0.7783678770065308,
+          "nll_imagined": 0.2964135706424713,
+          "kl": 0.10663660615682602
+        },
+        {
+          "step": 75,
+          "nll_real": 0.5918633937835693,
+          "nll_imagined": 0.2695268988609314,
+          "kl": 0.10125087201595306
+        },
+        {
+          "step": 100,
+          "nll_real": 0.5710309743881226,
+          "nll_imagined": 0.4512186646461487,
+          "kl": 0.12458907067775726
+        }
+      ],
+      "kept_mean_ade": 64.75219792509716
+    },
+    {
+      "iteration": 4,
+      "mean_ade": 124.6045416864765,
+      "violation_share": 0.000732421875,
+      "backwards_share": 0.021484375,
+      "move_w1": 4.844456403482958,
+      "turn_w1": 5.46215531893686,
+      "selection_score": 142.54737808650256,
+      "limits_ok": true,
+      "kept": 144,
+      "tried": 80,
+      "train": [
+        {
+          "step": 1,
+          "nll_real": 0.4570338726043701,
+          "nll_imagined": 0.35869839787483215,
+          "kl": 0.11245396733283997
+        },
+        {
+          "step": 25,
+          "nll_real": 0.7032787799835205,
+          "nll_imagined": 0.2545119822025299,
+          "kl": 0.14271728694438934
+        },
+        {
+          "step": 50,
+          "nll_real": 0.7566754221916199,
+          "nll_imagined": 0.26304978132247925,
+          "kl": 0.11965864151716232
+        },
+        {
+          "step": 75,
+          "nll_real": 0.5035504102706909,
+          "nll_imagined": 0.3444913625717163,
+          "kl": 0.11616387218236923
+        },
+        {
+          "step": 100,
+          "nll_real": 0.41360288858413696,
+          "nll_imagined": 0.31142881512641907,
+          "kl": 0.10849492251873016
+        }
+      ],
+      "kept_mean_ade": 58.88733614266347
+    }
+  ],
+  "best_iteration": 1,
+  "settings": {
+    "csnet": "/content/run2/csnet",
+    "cache": "/content/run2/cache",
+    "checkpoint": "/content/run2/checkpoints/cs-net-v4-pro.pt",
+    "out": "/content/round4-development/v1-broky",
+    "player": "broky",
+    "device": "cuda",
+    "iterations": "4",
+    "moments_per_iteration": "80",
+    "select_moments": "32",
+    "steps_per_iteration": "100",
+    "budget_minutes": "60.0",
+    "dev_only": "True",
+    "samples": "8",
+    "batch_size": "6",
+    "lr": "0.0003",
+    "kl": "0.1",
+    "imagined_weight": "1.0",
+    "rank": "16",
+    "keep_last": "1200"
+  },
+  "test_C_windows": 156,
+  "pool_windows": 746,
+  "minutes_before_test": 18.0,
+  "test": "not run: development experiment; consumed final sets remain untouched",
+  "deployed": false
+}

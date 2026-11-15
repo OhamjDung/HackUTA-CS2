@@ -1,0 +1,99 @@
+{
+  "scope": "round4_development_only",
+  "players": {
+    "donk": {
+      "player": "donk",
+      "state": "development_candidate_unvalidated",
+      "best_iteration": 4,
+      "completed_iterations": 4,
+      "baseline": {
+        "mean_ade": 133.20004146626346,
+        "selection_score": 149.09457122853522,
+        "turn_w1": 4.843489983454527,
+        "move_w1": 4.287739115859128,
+        "violation_share": 0.00049813200498132
+      },
+      "optimizer_updates": 400,
+      "elapsed_minutes": 18.2,
+      "selected": {
+        "mean_ade": 129.41296014946025,
+        "selection_score": 144.40218717906532,
+        "turn_w1": 5.123839510342541,
+        "move_w1": 3.6232681069881667,
+        "violation_share": 0.0
+      },
+      "development_component_checks": {
+        "path": true,
+        "view": false,
+        "tempo": true,
+        "human_limits": true,
+        "joint_selection": true
+      },
+      "all_measured_dev_components_nonregressing": false,
+      "final_test_run": false,
+      "deployed": false,
+      "all_feedback_fixed": false,
+      "unestablished": [
+        "actual CS2 audibility",
+        "causal hearing/visibility",
+        "utility strategy",
+        "whole-round adaptation",
+        "live controller behavior",
+        "self-kill resolution",
+        "jump/AWP quirk fidelity",
+        "new-match generalization"
+      ],
+      "interpretation": "Development selection only. Component regression remains a limitation even when the joint objective improves.",
+      "adapter_sha256": "afbd85aed5c7391f7229277166f2b2efa2e9ed3f327e846f4d614eebae408644",
+      "base_checkpoint_sha256": "d961a2d065464da19809d9b6d13e7467fde06a5a93e93c19b12ecd001cce5c20",
+      "manifest_sha256": "ebe8bf37c5cbb879e3c845fbf2b9cf9e8ede9f498393bb9d0706ac04cd927c00"
+    },
+    "broky": {
+      "player": "broky",
+      "state": "development_candidate_unvalidated",
+      "best_iteration": 1,
+      "completed_iterations": 4,
+      "baseline": {
+        "mean_ade": 125.3570277171992,
+        "selection_score": 141.8328924533419,
+        "turn_w1": 4.739518513874641,
+        "move_w1": 4.656962824254966,
+        "violation_share": 0.002685546875
+      },
+      "optimizer_updates": 400,
+      "elapsed_minutes": 18.0,
+      "selected": {
+        "mean_ade": 119.79754203270006,
+        "selection_score": 137.12877521951685,
+        "turn_w1": 5.350836936913339,
+        "move_w1": 4.622762018851649,
+        "violation_share": 0.001220703125
+      },
+      "development_component_checks": {
+        "path": true,
+        "view": false,
+        "tempo": true,
+        "human_limits": true,
+        "joint_selection": true
+      },
+      "all_measured_dev_components_nonregressing": false,
+      "final_test_run": false,
+      "deployed": false,
+      "all_feedback_fixed": false,
+      "unestablished": [
+        "actual CS2 audibility",
+        "causal hearing/visibility",
+        "utility strategy",
+        "whole-round adaptation",
+        "live controller behavior",
+        "self-kill resolution",
+        "jump/AWP quirk fidelity",
+        "new-match generalization"
+      ],
+      "interpretation": "Development selection only. Component regression remains a limitation even when the joint objective improves.",
+      "adapter_sha256": "6a0e53e36f3f54eec64719e83f8fe1359245906ece32dd93a8f2cabdd796359c",
+      "base_checkpoint_sha256": "d961a2d065464da19809d9b6d13e7467fde06a5a93e93c19b12ecd001cce5c20",
+      "manifest_sha256": "ebe8bf37c5cbb879e3c845fbf2b9cf9e8ede9f498393bb9d0706ac04cd927c00"
+    }
+  }
+}

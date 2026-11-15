@@ -15,3 +15,10 @@ CPU suite before launch:52 passed,5 optional tests skipped; original imagination
 Training-only observational reference: gamesense_audit.py uses exactly eligible training rounds, excludes dev and modulo6==3, and rejects known holdouts/ambiguous account. It measured40 donk and42 broky rounds. The full per-round artifact stays outside Git. Summary/provenance: results/round4-training-proxies.json. Its labels use enemy truth offline; 4Hz resolution cannot establish sub-250ms reactions. Proximity, turning/quieter response and event coverage are explicit proxies with confounders, not causal or skill scores. Missing sound fields are marked unknown.
 
 Tom diagnosis prompt: handoffs/tom-self-kill-diagnosis.md. It requests recorded deaths and controller/grenade timelines before a fix; do not assume suicide is caused by training. Do not send record via netcon, restart his game without permission, or install the proprietary bot-base launcher as an agent.
+
+Completed outcome: both players finished four iterations/400 updates on A100-40GB. Donk selected4
+(18.2min), broky selected1 (18.0min total experiment). Both improve path/tempo/limits and regress
+turn-distribution fidelity. Development candidates only; neither promoted or final-tested. Full
+metrics, artifact hashes, reproduction and next-stage priorities: results/round4-development.md.
+Final local suite:60 passed,5 optional Open3D skips. Executed source and saved adapter metadata/tensors
+were verified after download; no gameplay fix is inferred from optimizer completion.
