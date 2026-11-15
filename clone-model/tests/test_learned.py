@@ -14,6 +14,40 @@ from identity import PlayerAdapter
 from validate import path_metrics
 
 
+def test_validation_cannot_approve_failed_or_empty_results():
+    from validate import validation_state
+    assert validation_state({"donk": {"identity_test_pass": True}, "broky": {"identity_test_pass": False}}) == "validation_failed"
+    assert validation_state({"donk": {"identity_test_pass": True}, "broky": {"identity_test_pass": True}}) == "validated_pass"
+    with pytest.raises(ValueError):
+        validation_state({})
+
+
+def test_review_paths_preserve_time_channels_and_early_stop():
+    from review import trace_payload
+    sample = dict(pred_points=[[1, 2, 3], [4, 5, 6]], pred_yaw=[179, -179],
+        pred_pitch=[0, 1], pred_alive=[1, 1], pred_firing=[0, 1], end_stopped_at=2)
+    trace = trace_payload(sample, "pred")
+    assert trace["path"] == [[.25, 1., 2., 3.], [.5, 4., 5., 6.]]
+    assert trace["end_stopped_at"] == 2 and trace["yaw_degrees"] == [179, -179]
+    sample["pred_firing"] = [0]
+    with pytest.raises(ValueError):
+        trace_payload(sample, "pred")
+
+
+def test_review_excludes_heldout_matches_and_dead_midpoints(tmp_path):
+    import json
+    from review import review_cases
+    entry = dict(player="donk", match_id="2393237", file="r.npz", split="dev", target_index=2, ticks=80)
+    alive = np.zeros((80, 10), dtype=bool); alive[15, 2] = True
+    np.savez(tmp_path / "r.npz", player_alive_mask=alive, _meta=json.dumps({}))
+    manifest = dict(players={"donk": "sid"}, rounds=[entry])
+    cases = list(review_cases(manifest, tmp_path, 1))
+    assert len(cases) == 1 and cases[0][2] == 15
+    entry["match_id"] = "2393242"
+    with pytest.raises(ValueError):
+        list(review_cases(manifest, tmp_path, 1))
+
+
 def test_unknown_identity_is_the_base_even_after_bias_training():
     adapter = PlayerAdapter(REGISTRY, 8)
     x = torch.randn(3, 8)

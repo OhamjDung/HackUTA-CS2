@@ -34,6 +34,28 @@ def path_metrics(predicted, actual, start):
         mean_speed_error=float(abs(pred_steps.mean() - true_steps.mean()) / .25))
 
 
+def validation_state(summary):
+    if not summary:
+        raise ValueError("Cannot approve an empty validation")
+    return "validated_pass" if all(row["identity_test_pass"] for row in summary.values()) else "validation_failed"
+
+
+def load_evaluator(csnet, cache, checkpoint, adapter_path, device):
+    configure(csnet)
+    from prediction_engine import PredictionEngine
+    manifest = json.loads((cache / "manifest.json").read_text())
+    saved = torch.load(adapter_path, map_location="cpu", weights_only=True)
+    if saved["registry"] != manifest["registry"] or saved["csnet_revision"] != CSNET_REVISION:
+        raise ValueError("Adapter identity registry or upstream revision mismatch")
+    if saved["base_checkpoint_sha256"] != sha256(checkpoint) or saved["manifest_sha256"] != sha256(cache / "manifest.json"):
+        raise ValueError("Base checkpoint or data manifest differs from the training run")
+    engine = PredictionEngine(str(csnet / "config/pretrain-a100-pro.yaml"), str(checkpoint),
+        device=device, maps_dir=str(csnet / "maps/optimized_obj_files"))
+    adapter = PlayerAdapter(saved["registry"], saved["d_model"], saved["d_identity"]).to(device).eval()
+    adapter.load_state_dict(saved["adapter"], strict=True)
+    return manifest, saved, engine, adapter
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--csnet", type=Path, required=True)
@@ -44,19 +66,8 @@ def main():
     parser.add_argument("--device", default="cuda", choices=["cuda", "cpu"])
     parser.add_argument("--split", default="test", choices=["test", "dev"])
     args = parser.parse_args()
-    configure(args.csnet)
-    from prediction_engine import PredictionEngine
     torch.set_num_threads(4)
-    manifest = json.loads((args.cache / "manifest.json").read_text())
-    saved = torch.load(args.adapter, map_location="cpu", weights_only=True)
-    if saved["registry"] != manifest["registry"] or saved["csnet_revision"] != CSNET_REVISION:
-        raise ValueError("Adapter identity registry or upstream revision mismatch")
-    if saved["base_checkpoint_sha256"] != sha256(args.checkpoint) or saved["manifest_sha256"] != sha256(args.cache / "manifest.json"):
-        raise ValueError("Base checkpoint or data manifest differs from the training run")
-    engine = PredictionEngine(str(args.csnet / "config/pretrain-a100-pro.yaml"), str(args.checkpoint),
-        device=args.device, maps_dir=str(args.csnet / "maps/optimized_obj_files"))
-    adapter = PlayerAdapter(saved["registry"], saved["d_model"], saved["d_identity"]).to(args.device).eval()
-    adapter.load_state_dict(saved["adapter"], strict=True)
+    manifest, saved, engine, adapter = load_evaluator(args.csnet, args.cache, args.checkpoint, args.adapter, args.device)
     selected = [e for e in manifest["rounds"] if e["split"] == args.split]
     if args.split == "test" and any(e["match_id"] not in HOLDOUTS for e in selected):
         raise ValueError("Test split contains a non-held-out match")
@@ -104,6 +115,13 @@ def main():
             summary[name]["own"]["ade"] < summary[name]["other"]["ade"])
     write_json(args.out / "validation.json", dict(split=args.split, selected_step=saved["step"],
         summary=summary, records=records, interpretation="Movement tests only; not proof of identical player quirks or combat skill."))
+    if args.split == "test":
+        progress_path = args.out / "progress.json"
+        progress = json.loads(progress_path.read_text()) if progress_path.exists() else {}
+        progress.update(state=validation_state(summary), selected_step=saved["step"],
+            identity_test_pass={name: row["identity_test_pass"] for name, row in summary.items()},
+            deployed=False)
+        write_json(progress_path, progress)
     print("VALIDATION_COMPLETE", json.dumps(summary), flush=True)
 
 
