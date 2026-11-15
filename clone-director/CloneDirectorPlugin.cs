@@ -395,7 +395,7 @@ public sealed partial class CloneDirectorPlugin : BasePlugin
     }
     private void Reset()
     {
-        EndPuzzleMode(restoreCvars: false);
+        EndPuzzleMode();   // puts the cvars a puzzle changed back, so a new match is not left in puzzle settings
         _recorder.Clear();
         ++_generation;
         _live = false;

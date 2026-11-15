@@ -96,6 +96,19 @@ record the change in `SPEC.md`.
   `-p:BotControllerApiPath=<game>\csgo\addons\counterstrikesharp\shared\BotControllerApi\BotControllerApi.dll`
   (`clone-director/README.md`). With it the build and the C# tests run.
 
+- **A CS2 crash can revert both `gameinfo.gi` and `overrides/botprofile.vpk` (seen 2026-11-15).** After any
+  crash, check both before a match: `gameinfo.gi` needs the `addons/metamod` line, and the vpk must hold
+  the clone entries (else `no profile for '<id>' exists`). Reinstall from `botprofile.vpk.original` with
+  `add_clone_bot_entries.py` while CS2 is closed. Launch CS2 yourself with
+  `cs2.exe -steam -insecure -netconport 2121 -usercon`, not from the Steam library (no plugins).
+- **v2 game sense (added 2026-11-15).** Rules live in `clone-director/Core/GameSense.cs` and
+  `GameSenseMode.cs` and are switched per clone in the profile's `game_sense` section (all off by default).
+  Measured facts: the walk key is button bit 16, and route starts from one spawn spot lie within 16 units of
+  each other (neighbouring spots 64-128 apart). In the first live v2 match, look for `saw enemy` stop reasons;
+  if none appear, the spotted-by mask is not slot-indexed and `enemy_close_handoff` must go back on.
+- **Do not lower v2's strength.** v2 bot entries are exact copies of the originals (Aggression 60/55,
+  Teamwork 100, no human-aim limits). Only override a field after showing it does not weaken the bot.
+
 ## 8. Voices
 
 - Clone a real person's voice only with that person's authorization. ElevenLabs Professional Voice
