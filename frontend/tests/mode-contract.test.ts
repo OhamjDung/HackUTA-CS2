@@ -17,8 +17,8 @@ test('destination validation removes cross-mode identifiers', () => {
 });
 
 test('route-specific parameters survive only on routes that support them', () => {
-  const incoming = new URLSearchParams('bot=atlas&scene=deep-space&tab=famous');
-  assert.equal(modeHref('/scenes', 'odyssey', incoming), '/scenes?mode=odyssey&tab=famous&bot=atlas');
+  const incoming = new URLSearchParams('bot=odysseus&scene=legendary&tab=famous');
+  assert.equal(modeHref('/scenes', 'odyssey', incoming), '/scenes?mode=odyssey&tab=famous&bot=odysseus');
   assert.equal(modeHref('/leaderboard', 'odyssey', incoming), '/leaderboard?mode=odyssey');
 });
 
