@@ -87,8 +87,8 @@ CS2-Bot-Improver already ships. A clone without `stand_in_bot` is rejected in th
 
 How it controls the game:
 - **Commands out** through one of three channels (`CS2_CONSOLE`). Try them in this order:
-  1. `netcon` (default): CS2's network console. Start CS2 with `-netconport 2121`. Not confirmed
-     that CS2 still supports this.
+  1. `netcon` (default): CS2's network console. Start CS2 with `-netconport 2121`. **Works:** Tom
+     ran it in Bot Mode on Windows on 2026-11-14.
   2. `rcon`: Valve's remote console protocol. Start CS2 with `-usercon` and run
      `rcon_password <password>` in its console. Not confirmed that CS2 answers RCON in Bot Mode.
   3. `plugin`: the MatchBridge plugin in `plugin/MatchBridge/`, for CounterStrikeSharp (which
@@ -109,8 +109,10 @@ plain name (letters, digits, `_`, `.`, `-`; at most 32) are skipped with a warni
 What a match does: switch to the map and mode, wait for CS2 to report the map, set team names
 (`Alpha` starts CT, `Bravo` starts T, so scores follow teams across halftime), kick bots, add each
 stand-in with `bot_add_ct "<name>"` / `bot_add_t "<name>"`, put the person at the PC on their team
-(or in spectator for bot vs bot), mark the match `ready`, then after the warmup start recording and
-end warmup. Scores and the end of the match come from game state. One match at a time; at most one
+(or in spectator for bot vs bot), mark the match `ready`, then after the warmup send
+`mp_warmup_end`, `mp_restartgame 1` and `record`. Game state is ignored until 2 s after the
+restart (`CS2_RESTART_SECONDS`), because Bot Mode can report `live` before the match starts. Scores
+and the end of the match come from game state. One match at a time; at most one
 human (the person at the CS2 PC).
 
 ### Setup on the CS2 machine (Windows)
@@ -160,10 +162,18 @@ then copy `plugin/MatchBridge/bin/Release/net8.0/MatchBridge.dll` and a `matchbr
 | `GSI_TOKEN` | `change-me` | Must match `token` in the game state config file |
 | `CS2_DEMO_DIR` | not set | Folder where CS2 saves `match_<id>.dem`; served at `demo_url` |
 | `CS2_MAP_LOAD_SECONDS` | 90 | How long to wait for CS2 to report the map before failing |
+| `CS2_RESTART_SECONDS` | 2 | How long to ignore game state after `mp_restartgame 1` |
 | `WARMUP_SECONDS` | 5 | Time in `ready` before the match goes live |
 | `SERVER_IP`, `SERVER_PORT` | `127.0.0.1`, 27015 | What goes in `server` and `join_link` |
 
-Not checked yet: that CS2 accepts `-netconport`; that it answers RCON in Bot Mode; that MatchBridge
+Ran in CS2 (Tom, Bot Mode, 2026-11-14): netcon commands, game state arriving at `/health`, and a
+wingman bot-vs-bot match that loaded the map, added `donk` and `broky`, set the team names and went
+`ready` then `live`. **Broken in that run:** the score stayed 0-0 and game state stayed at round 0
+in freeze time while CS2 reset rounds about every 30 s; `status` counted the two bots as humans; and
+`record` was accepted but no `.dem` file appeared. Not yet known why. The service now restarts the
+game after adding bots (as CS2-Bot-Improver's own commands do); that is not yet tried in CS2.
+
+Not checked yet: that it answers RCON in Bot Mode; that MatchBridge
 builds and loads (it has never been compiled), and that running commands through `Server.NextFrame`
 and moving the player with `ChangeTeam` work; that `start-cs2.ps1` runs; the exact game state CS2
 sends on a map change; where CS2 saves recordings; and that `jointeam` and the team-name commands

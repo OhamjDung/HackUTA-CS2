@@ -40,6 +40,7 @@ class Settings:
     gsi_token: str = "change-me"
     demo_dir: Path | None = None
     map_load_seconds: float = 90.0
+    restart_seconds: float = 2.0  # wait after mp_restartgame before trusting game state
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -61,6 +62,7 @@ class Settings:
             gsi_token=env.get("GSI_TOKEN", cls.gsi_token),
             demo_dir=Path(demo_dir) if demo_dir else None,
             map_load_seconds=float(env.get("CS2_MAP_LOAD_SECONDS", cls.map_load_seconds)),
+            restart_seconds=float(env.get("CS2_RESTART_SECONDS", cls.restart_seconds)),
         )
 
 

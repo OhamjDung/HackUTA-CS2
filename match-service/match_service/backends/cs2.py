@@ -43,6 +43,9 @@ class Cs2Backend:
         self.ch = channel
         self.current: MatchRecord | None = None
         self.stand_ins: dict[str, str] = {}  # clone_id -> bot name, for the current match
+        # True once the service has ended warmup and restarted the game. Before that, CS2 may already
+        # report `live` (Bot Mode can skip warmup), but those rounds aren't the match.
+        self.started = False
         self.gsi: dict = {}
         self.gsi_at: datetime | None = None
 
@@ -62,6 +65,7 @@ class Cs2Backend:
 
     def start(self, record: MatchRecord, clones: dict[str, Clone]) -> None:
         self.current = record
+        self.started = False
         self.stand_ins = {p.clone_id: clones[p.clone_id].stand_in_bot
                           for p in record.match.players if p.is_clone}
         record.task = asyncio.create_task(self._run(record))
@@ -108,7 +112,7 @@ class Cs2Backend:
         game_map = payload.get("map") or {}
         phase = game_map.get("phase")
 
-        if m.status == "ready" and phase == "live":
+        if m.status == "ready" and phase == "live" and self.started:
             m.status = "live"
             await self.emit(record, "match.live", {})
         if m.status != "live":
@@ -173,10 +177,15 @@ class Cs2Backend:
         await self.emit(record, "match.ready", {"server": m.server.model_dump(), "join_link": m.join_link})
 
         await asyncio.sleep(self.s.warmup_seconds)
+        # End warmup, then restart so round 1 starts with the bots in place and the score at 0-0.
+        # CS2-Bot-Improver's own team commands (Commands.txt) also end with `mp_restartgame 1`.
         try:
-            await self.ch.send([f"record {self.demo_name(m.match_id)}", "mp_warmup_end"])
+            await self.ch.send(["mp_warmup_end", "mp_restartgame 1", f"record {self.demo_name(m.match_id)}"])
         except (OSError, asyncio.TimeoutError) as exc:
             return await self._fail(record, f"Lost the CS2 console while starting the match ({exc!r})")
+        # Ignore game state until the restart has happened (it takes 1 s), so old scores don't count.
+        await asyncio.sleep(self.s.restart_seconds)
+        self.started = True
         # From here, game state updates (handle_gsi) move the match to live, count rounds, and end it.
 
     async def _advance_score(self, record: MatchRecord, target: Score) -> None:

@@ -111,6 +111,12 @@ only when no usable base exists, and say so here.
 Checked on 2026-11-14.
 
 **Checked by running a query or request:**
+- The match service in CS2 (Tom, Bot Mode on Windows, 2026-11-14): netcon commands reach the game
+  (`/health` reachable), game state arrives at `/gsi`, and a wingman donk-vs-broky match loaded
+  `de_mirage`, added both bots, set the team names, and went `ready` then `live`. **Failed in the
+  same run:** the score stayed 0-0 (game state stuck at round 0, freeze time, while CS2 reset rounds
+  about every 30 s), `status` counted both bots as humans, and `record` made no `.dem` file. The
+  service went `live` 0.2 s after `ready` because Bot Mode already reported `live`; fixed (below).
 - Every GitHub repository in section 4 exists. Stars, licenses, and update dates come from GitHub.
 - The OpenCS2 counts in section 7 come from queries against its index tables.
 - The match service's cs2 backend, against a fake console and hand-written game state updates
@@ -119,7 +125,7 @@ Checked on 2026-11-14.
   (`match-service/tests/test_channels.py`, 5 tests, all pass). This checks the Python side only.
 - Console safety: every channel refuses commands with a newline or `;` before connecting, and
   profiles with an unsafe `stand_in_bot` are skipped (`match-service/tests/test_safety.py`, 6
-  tests). All 32 match service tests pass. Tom ran the 26 earlier tests on Windows: they pass with
+  tests). All 33 match service tests pass. Tom ran the 26 earlier tests on Windows: they pass with
   `uv run python -m pytest` (Application Control blocks `uv run pytest` there).
 
 - CloneDirector Release build with .NET SDK 10.0.404 and CounterStrikeSharp.API 1.0.378:
@@ -152,16 +158,19 @@ Checked on 2026-11-14.
 - Adding a custom entry to the bot personality file.
 - Running or training CS-NET v4 on this project's data.
 - Every time estimate in section 11.
-- Sending console commands to CS2 from the match service, through any of the three channels:
-  CS2's network console (`-netconport`; no source confirms CS2 still supports it), RCON on a Bot
-  Mode game (`-usercon`, `rcon_password`), or the MatchBridge plugin.
+- Sending console commands to CS2 through RCON (`-usercon`, `rcon_password`) or the MatchBridge
+  plugin. Not needed while netcon works.
+- Why rounds reset with no score in Tom's run, and whether `mp_restartgame 1` after adding bots
+  fixes it.
 - Building MatchBridge (never compiled), CounterStrikeSharp loading it, `Server.NextFrame` running
   the commands, and `matchbridge_jointeam` moving the player.
 - `tv_record` / `tv_stoprecord` recording a Bot Mode game (used by the RCON and plugin channels).
 - Running `match-service/start-cs2.ps1` on Windows. It was written on a Mac without PowerShell.
 - CS2 sending game state to the match service's `/gsi` endpoint, and what it sends on a map change.
-- `jointeam`, `mp_teamname_1`/`_2`, and `bot_add_ct "<name>"` behaving as the service expects.
-- Recording a bot match to a `.dem` file on the laptop and serving it at `demo_url`.
+- `jointeam` behaving as the service expects. (`mp_teamname_1`/`_2` and `bot_add_ct "<name>"`
+  worked in Tom's run.)
+- Recording a bot match to a `.dem` file on the laptop and serving it at `demo_url`. In Tom's run
+  `record` was accepted but no file appeared.
 
 When you run one of these, move it up and record the result here.
 
@@ -642,7 +651,10 @@ setup steps.
 - The recording is `match_<id>.dem`, served at `demo_url` from `CS2_DEMO_DIR`.
 - `GET /health` reports whether the console answers and when game state last arrived.
 
-Which channel works in CS2 is not tested. Try netcon first, then RCON, then the plugin.
+netcon works in CS2 Bot Mode (Tom's run, 2026-11-14); RCON and the plugin stay as fallbacks.
+- At match start the service sends `mp_warmup_end`, `mp_restartgame 1` and `record`, then ignores
+  game state for 2 s. Bot Mode reported `live` before the match started, and CS2-Bot-Improver's own
+  team commands end with `mp_restartgame 1` after adding bots.
 
 **The link to the replay page.** `demo_url` is the input to the clone pipeline for the clone's side
 of the replay.
@@ -888,8 +900,8 @@ demo. A released product would need each player's or team's permission.
 4. **Is broky on FaZe's November 2026 lineup?**
 5. **Project name and domain name.**
 6. **A license file for this repository.**
-7. **Which console channel works in CS2.** All three are written (netcon, RCON, MatchBridge
-   plugin); none is tested in CS2. Tom's laptop test with `GET /health` decides.
+7. **Scores and recordings in CS2.** netcon and game state work. In Tom's first run rounds reset
+   with no score and no `.dem` file was written. Next: Tom's probes, then a run with the restart fix.
 
 ## 17. After the hackathon
 
@@ -920,6 +932,8 @@ demo. A released product would need each player's or team's permission.
 
 Newest first. One line per change: date, who, what changed.
 
+- 2026-11-14, Ashirwad: recorded Tom's first CS2 run (netcon and game state work; no score, no
+  recording); match start now ends warmup, restarts the game, and ignores game state for 2 s.
 - 2026-11-14, Arjun (Codex): built the first broky clone from four real Mirage matches (79 routes), held out 22 rounds, corrected purchase order in both clones, added data-built clone documentation and explicit strength limits; 10 pipeline, 26 C#, and 32 service tests pass. All 159 routes load in C#. No in-game bot or replay test was run.
 
 - 2026-11-14, Ashirwad: console safety from Tom's review (refuse newline and `;` in commands; strict

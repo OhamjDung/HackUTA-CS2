@@ -19,7 +19,7 @@ ASH = "76561198000000001"
 
 
 def settings(tmp_path, **extra):
-    base = dict(backend="cs2", warmup_seconds=0.01, map_load_seconds=1.0, gsi_token=TOKEN, demo_dir=tmp_path)
+    base = dict(backend="cs2", warmup_seconds=0.01, map_load_seconds=1.0, restart_seconds=0.0, gsi_token=TOKEN, demo_dir=tmp_path)
     base.update(extra)
     return Settings(**base)
 
@@ -82,8 +82,8 @@ def test_full_match(game, tmp_path):
     assert "jointeam 3" in channel.sent  # the human joins CT
     assert channel.sent.index("bot_kick") < channel.sent.index('bot_add_ct "donk"')
     assert m["join_link"] == "steam://connect/127.0.0.1:27015"
-    wait_sent(channel, "mp_warmup_end")
-    assert f"record match_{match_id}" in channel.sent
+    wait_sent(channel, f"record match_{match_id}")
+    assert channel.sent[-3:] == ["mp_warmup_end", "mp_restartgame 1", f"record match_{match_id}"]
 
     gsi(client, phase="live")
     wait_for(client, match_id, "live")
@@ -108,6 +108,28 @@ def test_full_match(game, tmp_path):
     assert evs[:2] == ["match.ready", "match.live"] and evs[-1] == "match.ended"
     assert evs.count("round.ended") == 11
     assert client.get(m["demo_url"].replace("http://localhost:8000", "")).content == b"demo"
+
+
+def test_live_before_start_is_ignored(tmp_path):
+    # Seen on Tom's PC: Bot Mode reported `live` 0.2 s after ready, before the service ended warmup.
+    channel = RecordingChannel()
+    app = create_app(settings(tmp_path, warmup_seconds=0.5, restart_seconds=0.3), channel=channel)
+    with TestClient(app) as client:
+        match_id = client.post("/matches", json=wingman()).json()["match_id"]
+        wait_sent(channel, "map de_mirage")
+        gsi(client)
+        wait_for(client, match_id, "ready")
+        gsi(client, phase="live", ct=("Alpha", 2))  # rounds played before the match starts
+        assert client.get(f"/matches/{match_id}").json()["status"] == "ready"
+
+        wait_sent(channel, "mp_restartgame 1")
+        gsi(client, phase="live", ct=("Alpha", 2))  # still within the restart wait
+        assert client.get(f"/matches/{match_id}").json()["status"] == "ready"
+
+        time.sleep(0.4)
+        gsi(client, phase="live")  # after the restart: 0-0
+        m = wait_for(client, match_id, "live")
+        assert m["score"] == {"CT": 0, "T": 0} and m["round"] == 0
 
 
 def test_bot_vs_bot_spectates(game):
