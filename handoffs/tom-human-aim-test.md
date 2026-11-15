@@ -21,6 +21,10 @@ reaction time. In a simulation of the bot's aim, a 90-degree flick takes 0.14 s 
 **Suspected cause of the backwards walking:** `donkL`'s restlessness rule (it sidesteps the bot when
 it has been still for 2 s, and the bot then walks back to its spot while aiming at its angle).
 
+**Correction, 2026-11-15 (Tom):** items 1 and 2 below now apply to the new clones `donkL2` and
+`brokyL2` only. `donkL`, `brokyL` and the `_v1` clones are plain again. Where this file says
+`donkL`, test `donkL2`, and copy `clones\donkL2.json` and `clones\brokyL2.json` as well.
+
 **What is new on `main`:**
 
 1. `clone-director/tools/add_clone_bot_entries.py` now gives the four clone entries (`donk_v1`,

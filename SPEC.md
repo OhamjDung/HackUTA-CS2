@@ -35,7 +35,8 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Character showcase: auto-cycle loop + AnimationMixer fallback (B4) | Nikesh | Done. Full 5-model auto-loop verified live (CS2→Smash→Fortnite→FIFA→Halo→CS2), pause freeze + manual override verified, mixer path unit-verified, 0 errors, 0 refetches | `frontend/` | 2026-11-14 |
 | Character showcase: chromatic lighting/HUD sync + GLB gatekeeper | Nikesh | Done. Per-character rim/accent verified live (artist FIFA rig renders through mixer path, 0 errors); `verify-models.mjs`: 5/5 PASS (Idle clip, skins, meshopt, 0.31MB/10MB) | `frontend/` | 2026-11-14 |
 | 3D Character Glitch-Swap Showcase (Nodes A1-A5, B1-B4, C1-C2) | Nikesh | COMPLETE & VERIFIED. Artist KTX2+Meshopt rigs integrated (5/5 gatekeeper PASS, 0.31MB); 5-character live sweep: mixer path, 1.85m framing, chromatic rim/HUD, KTX transcode clean, 0 errors, 0 refetches | `frontend/`, `frontend/scripts/chargen/` | 2026-11-14 |
-| Landing page visual pass: hero staging, light rig and character presence | Ashirwad | In progress. Second pass after review: the arm-aim stance layer (`lib/posing.ts`, which pushed Mario's hand through his chest) is removed and each artist Idle clip plays untouched; `lib/presence.ts` adds only breath, a spine weight shift and a small head follow of the cursor (arms and legs never touched). Low hero camera, three-quarter turn, every character fitted to the same height (width-capped for Mario), rise-and-settle entrance. Light rig: warm key with shadows, two coloured back rims per character, top spot, contact shadow and colour pool; neutral tone mapping and a high-threshold bloom. Colour-reactive CSS backdrop and headline. Checked in a browser against `next dev`: all 5 characters front and side at 1440x900, auto-cycle, Bots page, 375 px (no overflow), 0 new console errors. `tsc` clean; `next build` not run. | `frontend/lib/presence.ts`, `frontend/components/canvas/`, `frontend/components/ui/StageBackdrop.tsx`, `frontend/app/`, `frontend/lib/shaders/glitchPass.ts` | 2026-11-15 |
+| Landing page visual pass: hero staging, light rig and character presence | Ashirwad | In progress. Second pass after review: the arm-aim stance layer (`lib/posing.ts`, which pushed Mario's hand through his chest) is removed and each artist Idle clip plays untouched; `lib/presence.ts` adds only breath, a spine weight shift and a small head follow of the cursor (arms and legs never touched). Low hero camera, three-quarter turn, every character fitted to the same height (width-capped for Mario), rise-and-settle entrance. Light rig: warm key with shadows, two coloured back rims per character, top spot, contact shadow and colour pool; neutral tone mapping and a high-threshold bloom. Colour-reactive CSS backdrop and headline. Checked in a browser against `next dev`: all 5 characters front and side at 1440x900, auto-cycle, Bots page, 375 px (no overflow), 0 new console errors. `tsc` clean; `next build` not run. | `frontend/lib/presence.ts`, `frontend/components/canvas/`, `frontend/components/ui/StageBackdrop.tsx`, `frontend/components/faze/FazeHome.tsx`, `frontend/app/globals.css`, `frontend/lib/shaders/glitchPass.ts` | 2026-11-15 |
+| DoppelGamer dual-mode foundation (FaZe + Odyssey) | Nikesh (Codex) | Done in working tree; user will commit. Six public routes resolve explicit `mode=faze\|odyssey` on the server, default invalid/absent modes to FaZe, filter cross-mode query IDs, preserve per-mode route memory and session-only uploads, and mount exactly one mode. Odyssey is CSS/HTML-only; production build, typecheck, 4 contract tests and 5/5 model verification pass. Browser smoke covered 12 route/mode combinations, invalid URLs, history and rapid switching. | `frontend/lib/mode/`, `frontend/components/mode/`, `frontend/modes/odyssey/`, `frontend/tests/mode-contract.test.ts` | 2026-11-15 |
 | Stand-in bots: built-in CS2-Bot-Improver pro bots used in place of clones until CloneDirector works | Ashirwad | In progress. `donk_v1` and `broky_v1` profiles use the `donk` and `broky` bots; not run in CS2 | `match-service/sample_clones/` | 2026-11-14 |
 | In-game similarity score: a bot's rounds in CS2 against the real player's held-back match (section 10.2) | Ashirwad | In progress. Scorer, map-area lookup and both held-back references written and tested; served as `GET /matches/{id}/score` and shown on the proof page (run against the mock in a browser); no real CS2 trace scored yet | `clone-pipeline/clone_pipeline/ingame.py`, `clone-pipeline/references/`, `match-service/match_service/scoring.py` | 2026-11-14 |
 | Side-by-side page, stand-in version (two synced panels; replay page content replaces it) | Ashirwad (live check by Codex) | In progress. Both live map panels drew bot positions from CS2. Replay played the donk stand-in and a recorded pro donk opening on one clock. The event list showed the service's halftime scoring error. | `match-service/demo/`, `match-service/match_service/replay.py` | 2026-11-14 |
@@ -55,7 +56,12 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Diagnosis of the failed neural identity model | Arjun (Claude) | Done. Adapters judged not usable: no change in 64% to 72% of test windows. Not offered as bots. | `clone-model/results/diagnosis-2026-11-14.md` | 2026-11-14 |
 | Second learned-identity experiment (`v2.py`): many identities, identity at every step, likelihood "who is it?" test | Arjun (Claude) | Done. **Held-back test passed once**: 8 of 10 players had the true identity in their team's top 2 (rule: 6), 6 of 10 ranked first; donk 1st, broky 3rd (fails individually). Caveat: for 6 of 10 players, no identity fits the real moves slightly better than their own. Scores recorded moves only; generates no play. Weights saved on Arjun's PC (checksum matched); not committed. | `clone-model/v2.py`, `clone-model/results/second-a100.md` | 2026-11-14 |
 | Human limits measured from elite pros (`limits.py`) | Arjun (Claude) | Done. 80 player-matches, 50 pros, 8 non-held-back Mirage matches: turn speed, acceleration, flick time, backwards walking, per-step limits at 4 Hz. 5 tests pass. Also measures any recorded bot match. | `clone-pipeline/clone_pipeline/limits.py`, `clone-model/results/human-limits.csv` | 2026-11-15 |
-| Round 3 design: human limits and perception-first evaluation | Arjun (Claude) | Step 1 built, **not run in CS2**: clone bot entries get human aim settings (simulated 45° flick 0.34 s, peak under 1,200 °/s); `donkL`/`brokyL` no longer use the restlessness and crouch-at-burst rules; `limits check` tests a bot in a recording against 9 limits that all 80 real pro player-matches pass. Tests: 55 pipeline, 3 tool, 30 C#. Tom's test steps in `handoffs/tom-human-aim-test.md`. Steps 2 to 4 design only. | `clone-model/ROUND3_DESIGN.md`, `clone-director/tools/add_clone_bot_entries.py`, `clone-pipeline/references/human_limits.json` | 2026-11-15 |
+| Round 3 design: human limits and perception-first evaluation | Arjun (Claude) | Step 1 built, **not run in CS2**: the `donkL2`/`brokyL2` bot entries get human aim settings (simulated 45° flick 0.34 s, peak under 1,200 °/s) and those two clones do not use the restlessness and crouch-at-burst rules (changed by Tom 2026-11-15: step 1 first applied to `donkL`/`brokyL` and all four entries; those are back to plain entries and five rules so versions can be compared); `limits check` tests a bot in a recording against 9 limits that all 80 real pro player-matches pass. Tests: 55 pipeline, 3 tool, 30 C#. Tom's test steps in `handoffs/tom-human-aim-test.md`. Steps 2 to 4 design only. | `clone-model/ROUND3_DESIGN.md`, `clone-director/tools/add_clone_bot_entries.py`, `clone-pipeline/references/human_limits.json` | 2026-11-15 |
+| Clone versions `donkL2` and `brokyL2` (Round 3 step 1 as separate clones) | Tom (with Claude) | Done as files and code; **not run in CS2 by this agent**. Same routes and quirks as `donkL`/`brokyL`, without the restlessness and crouch rules; `add_clone_bot_entries.py` gives only these two human aim settings. `donkL`/`brokyL` are back to five rules and plain bot entries. The bot entries must be re-installed with the tool before the L2 clones can join. 3 tool tests pass. | `clones/donkL2.json`, `clones/brokyL2.json`, `clone-director/tools/add_clone_bot_entries.py` | 2026-11-15 |
+| CloneDirector: enemy-contact hand-off and death log line | Tom (with Claude) | Built and tested on Tom's PC (Release build, zero warnings/errors; 31 C# tests pass, one new); **not run in CS2 by this agent**, and the new build is not installed in the game. Route playback stops when a living enemy is within 900 units; each clone death writes a `DEATH` log line. | `clone-director/CloneDirectorPlugin.cs`, `clone-director/Core/Combat.cs` | 2026-11-15 |
+| Match service: no random extra bot with one clone; stays reachable on Windows | Tom (with Claude) | Done against fakes: 77 of 78 match service tests pass on Tom's PC (5 new in `test_settle.py`; the one failure is the symlink test, which needs a Windows privilege). Not confirmed in CS2 by this agent. `start-cs2.ps1` now starts uvicorn on the selector event loop. | `match-service/match_service/backends/cs2.py`, `match-service/match_service/loop.py`, `match-service/start-cs2.ps1` | 2026-11-15 |
+| Replay puzzles and death feedback (retry the last 10 s before a death; Lichess-style library) | Tom (with Claude) | In progress. Committed while still being written. Service side (puzzle store on SQLite, rule-based feedback, routes), CloneDirector puzzle mode (`puzzle_load`, `puzzle_stop`, `puzzle_status`), a seed-puzzle cutter, two seed puzzles and frontend pages exist. On Tom's PC: 102 of 103 match service tests pass (the failure is the symlink test), CloneDirector builds and 40 C# tests pass, `tsc --noEmit` is clean. **Not run in CS2, pages not opened in a browser.** Design: `.plans/replay-puzzles-spec.md`. | `match-service/match_service/puzzles.py`, `feedback.py`, `puzzle_routes.py`, `match-service/seed_puzzles/`, `clone-director/PuzzleMode.cs`, `clone-director/Core/Puzzles.cs`, `clone-pipeline/clone_pipeline/seed_puzzles.py`, `frontend/app/puzzles/`, `frontend/components/puzzles/` | 2026-11-15 |
+| Clones `donkLF` and `brokyLF`: named for the Round 4 development adapter | Tom (with Claude) | Files only. Each is the `L2` clone plus a `model` block pointing at the release `round4-development-v1`; `routes_generated` is false, so they play the same recorded routes as `L2`. **No bot entry yet:** `add_clone_bot_entries.py` does not list these ids, so they cannot join a match. Not run in CS2. | `clones/donkLF.json`, `clones/brokyLF.json` | 2026-11-15 |
 | Donk-only model (`donk.py`): CS-NET specialised to donk with LoRA and a KL anchor to the base | Arjun (Claude) | Done, **failed its pass rule** (run once on a Colab A100). Teacher-forced loss 0.44% better than the base on dev-A, but free-running paths on dev-B were worse (mean error 180.4 vs 172.7; 95% range of the difference 2.8 to 12.6) and broke human limits slightly more (0.64% vs 0.46% of steps). Backwards walking and turning moved towards donk. Overfit after 100 steps. Weights not saved. | `clone-model/donk.py`, `clone-model/results/donk-a100.md` | 2026-11-15 |
 | Donk model self-trained on imagined play (`imagine.py`): expert iteration with a best-of-8 judge against donk's real path and the human limits | Arjun (Claude) | Done, **passed its rule** on test-C (run once, Colab A100, 47.5 min). Generated paths 11.3% closer to donk's than the generic model's (147.6 vs 166.4; 95% range of the difference -27.3 to -10.2); human-limit breaks 0.05% vs 0.55%; backwards share 5.4% (donk 5.0%, generic 9.6%). View turning moved further from donk's. Not in CS2 yet. Adapter in the GitHub release `donk-imagined-v1` (https://github.com/OhamjDung/HackUTA-CS2/releases/tag/donk-imagined-v1; zip sha256 b6838e89…5f5d93585b), not in git. | `clone-model/imagine.py`, `clone-model/results/imagine-a100.md` | 2026-11-15 |
 | Training-only game-sense proxy measurements | Arjun (Codex) | Done as offline proxies:82 rounds, 5 tests pass. No actual audibility/causality or runtime control claims. | `clone-model/gamesense_audit.py`, `clone-model/results/round4-training-proxies.json` | 2026-11-15 |
@@ -71,6 +77,7 @@ States: `Not started`, `In progress`, `Done`, `Blocked` (say what blocks it).
 | Independent mock replay QA, and fixes | Ashirwad (Codex QA; fixes by Ashirwad) | Done. All 12 findings fixed in `match-service/`: edge suite 11 pass (the 8 expected failures now pass), browser harness 31 of 31 with no page errors, 73 match service tests pass on the merged main. Mock only. | `tools/replay-qa/`, `match-service/` | 2026-11-14 |
 | Offline generated-path review export | Arjun (Codex) | Done. Eight development cases exported on A100 (24 generated paths plus real paths), JSON checked and plots inspected; 12 CPU tests pass. No route promotion. | `clone-model/review.py` | 2026-11-14 |
 | Replay page: real player next to clone | Unassigned | In progress (demo version by Ashirwad: 2D map from positions, no video; a generated-path tab shows the model's offline development review files, run against the mock in a browser) | `match-service/demo/replay.html`, `match-service/match_service/generated.py` | 2026-11-14 |
+| Replay puzzles: 10 s rewind on death, Puzzles tab, library with ratings, instant mistake feedback, multi-POV form | Tom (with Claude) | In progress. Service, library, feedback, seed puzzles (two real pro moments) and the Puzzles tab built and tested without CS2 (25 service tests, 9 C# tests, browser check on a mock). **The in-game rewind and playback in CloneDirector is written and compiled but never run in CS2.** The multi-POV form stores footage only. See section 9.6 | `match-service/match_service/puzzles.py`, `feedback.py`, `puzzle_routes.py`, `seed_puzzles/`, `clone-director/PuzzleMode.cs`, `frontend/app/puzzles/`, `frontend/components/puzzles/` | 2026-11-15 |
 | Clone profile page | Unassigned | Not started | Not decided | 2026-11-14 |
 | Caster voice (Gemini script, ElevenLabs audio) | Unassigned | Not started | Not decided | 2026-11-14 |
 | Pro bot voices: donk and broky (ElevenLabs) | Unassigned (research by Codex) | In progress. MVP targets verified voice packs for `donk_v1` and `broky_v1`. Player authorization, verified voices, and playback tests pending. | Section 9.5 | 2026-11-14 |
@@ -304,6 +311,17 @@ Checked on 2026-11-14.
   (`clone-director/tools/add_clone_bot_entries.py`). donk_v1 (CT) vs donkL (T) then ran in one match under
   those names. **Not confirmed:** purchases, combat hand-off, donkL's jump quirk (one 70 s sample per bot gave
   8.6 and 14.6 jumps a minute, but the method is confounded and says nothing). **Step 4 not run:** `-Record tv` untried.
+- Tom's PC, 2026-11-15 (Claude): `uv run python -m pytest` in `match-service/`: 77 pass, 1 fails.
+  The failure is `test_generated.py::test_path_traversal_is_refused`, which makes a symlink and stops
+  with `WinError 1314` (Windows needs a privilege for that); it is not a fault in the service. The 5
+  new tests in `tests/test_settle.py` pass: the extra bot is kicked by name before the quota is set,
+  nothing is kicked when the clone's bot is missing or a name is unusual, and two clones set the quota
+  to 2. The game is a fake in these tests. `clone-director/tools`: 3 tests pass.
+  CloneDirector: Release build with zero warnings/errors and 31 C# tests pass, using
+  `-p:BotControllerApiPath=<game>\csgo\addons\counterstrikesharp\shared\BotControllerApi\BotControllerApi.dll`
+  (`clone-director/README.md`); a plain `dotnet test` fails because `clone-director/libs/` is empty.
+  The tests cover the 900-unit distance rule only, not the plugin inside CS2. The `--loop` value:
+  uvicorn 0.54.0's `Config` resolved it to the Windows selector loop; the service was not started.
 - Every GitHub repository in section 4 exists. Stars, licenses, and update dates come from GitHub.
 - The OpenCS2 counts in section 7 come from queries against its index tables.
 - The match service's cs2 backend, against a fake console and hand-written game state updates
@@ -371,6 +389,14 @@ Checked on 2026-11-14.
 - Whether CS2 sends bot positions to the service when the local player joins a team instead of
   spectating. Positions arrived in the bot-vs-bot spectator run.
 - Why `bot_add_ct "donk"` once added other bots straight after `bot_kick`.
+- Replay puzzles (section 9.6) in CS2 and in a browser: the death buffer, `puzzle_load`, the restore,
+  the solve rule, the feedback overlay and the puzzle pages. Only unit tests and a type check ran.
+- `donkLF`/`brokyLF` joining a match. They have no bot entry yet.
+- The 2026-11-15 changes in CS2: the extra-bot cleanup (`_settle_bots`) in a person-vs-clone match,
+  the selector event loop keeping the service reachable, the 900-unit enemy-contact hand-off, the
+  `DEATH` log line, and `donkL2`/`brokyL2` joining with human aim. The code comments say the random
+  extra bot and the `WinError 64` stop were seen on Tom's PC; the fixes were not confirmed there by
+  the agent that committed them.
 - Scoring the bot positions collected in a real CS2 match against the held-back reference.
 - CounterStrikeSharp loading MatchBridge, `Server.NextFrame` running
   the commands, and `matchbridge_jointeam` moving the player.
@@ -599,8 +625,8 @@ built on CounterStrikeSharp, the C# plugin framework that CS2-Bot-Improver insta
    took each route on that side at that money level. It then picks the segment of that label whose
    start is nearest to the bot's spawn point.
 4. **Playback.** When the round goes live, the plugin calls `LoadReplay` and `StartReplay`.
-5. **Hand-off.** The plugin calls `StopReplay` when the segment ends, when the bot takes damage, or
-   when an enemy fires nearby. CS2-Bot-Improver's own logic then fights and plays the objective,
+5. **Hand-off.** The plugin calls `StopReplay` when the segment ends, when the bot takes damage,
+   when an enemy fires nearby, or when an enemy comes close. CS2-Bot-Improver's own logic then fights and plays the objective,
    using the clone's personality numbers.
 6. **Round ends.** The plugin writes a log line: clone, route label, segment source, hand-off reason.
 
@@ -615,7 +641,13 @@ $2,000-3,999 force, and $4,000 or more full. These are unvalidated approximation
 equipment-value labels. Only routes matching side, source, and buy type are eligible. Route-label
 shares are renormalized over eligible labels, then the nearest starting position is selected.
 Enemy shots within 1,200 engine distance units stop playback, without a visibility check. Damage
-dealt or taken also stops it. Completion, death, pawn replacement, mode change, disconnect, map
+dealt or taken also stops it. Added 2026-11-15 (Tom, built and unit-tested, not run in CS2): a living enemy within 900
+units stops playback with the reason `enemy close` (`Combat.EnemyContactRadius`; 3D distance, no
+visibility check, so it also fires through walls; a starting value to tune), because a route never
+looks at enemies and a clone could die before a shot or damage stopped it. Each clone death writes a
+`DEATH` line to the CounterStrikeSharp log: clone id, slot, killer (`self`, `none` or a name), weapon
+(`world` with no attacker is a fall, `planted_c4` the bomb, `inferno` fire), whether the route was
+still playing, the last hand-off reason and the position. Completion, death, pawn replacement, mode change, disconnect, map
 change, and unload are handled. The last route and first hand-off reason stay visible until the
 next round. A failed stop is reported and prevents starting another route or purchase plan.
 
@@ -901,6 +933,13 @@ A clone with quirks has `L` after the player's name: `donkL`, `brokyL`. It reuse
 routes and purchases, sets `stand_in_bot` to the installed bot name, and adds the fields `learned`,
 `quirks`, `quirk_controls`, and `quirk_reference`. Code that reads only the older fields is unaffected.
 
+A later version of a quirk clone gets a number: `donkL2`, `brokyL2` (2026-11-15). An earlier version
+is not changed once teammates have watched it, so versions can be compared. `L2` is `L` without the
+restlessness and crouch rules (kept in the profile under `quirk_controls_disabled` with the reason),
+and its bot entry has the human aim settings of section 8.10. Each version needs its own bot entry:
+add the id to `COPIES` (and to `HUMAN_AIM_IDS` for human aim) in
+`clone-director/tools/add_clone_bot_entries.py` and run the tool again.
+
 **The quirk test.** It replaces per-window path error as the identity test. The rule was fixed
 before anything was scored with it, and it is looser than the first test, which required the
 player's own identity to beat every alternative outright:
@@ -983,6 +1022,8 @@ Full design: `clone-model/ROUND3_DESIGN.md`. Summary:
   it, likeness 1 to 7, robotic moments), with real donk as the control; tier 3 automatic proxies,
   including the earlier similarity score. A clone ships only if tiers 1 and 2 pass. Pass rules are in the
   design and fixed now.
+- **Where step 1 lives (2026-11-15):** in the clones `donkL2` and `brokyL2` only. `donkL` and
+  `brokyL` keep the unlimited aim and all five rules, as the version Arjun watched.
 - **Order:** step 1 fixes the live bot's aim settings and rules (no training); step 2 lets the model
   generate routes; step 3 trains `v3`; step 4 tests. No unused donk Mirage match is left for a final
   test; the design recommends the people panel as the final test.
@@ -1127,6 +1168,17 @@ setup steps.
   after 20 s otherwise. That shows a bot with the right name, not CloneDirector's attachment.
   `de_mirage` only. `start-cs2.ps1 -Bots clone` installs MatchBridge and sets this up.
 - `clone_id` and `stand_in_bot` must be plain names; profiles that break this are skipped.
+- Extra bots (2026-11-15, tested against a fake game only). The bot base keeps a bot quota of 2, so
+  a match with one clone, as when a person plays a clone, got a random second bot. After the bots are
+  added the service (`_settle_bots`) reads `status` until every clone's bot is listed (up to
+  `CS2_SETTLE_SECONDS`, default 6), then sends `bot_kick "<name>"` for each other bot and
+  `bot_quota <number of clones>` in one batch, kicks first. `bot_quota 0` would remove every bot and a
+  lower quota alone removes a random one. It changes nothing if a clone's bot is missing or another
+  bot's name is not a plain name. No endpoint or message changed.
+- Event loop (2026-11-15). On Windows `start-cs2.ps1` starts uvicorn with
+  `--loop match_service.loop:selector_loop`. With the default loop, a reset connection could close
+  the listening socket (`WinError 64`, "Accept failed on a socket"): the process stayed alive, nothing
+  answered, and the demo pages showed "Failed to fetch".
 
 netcon works in CS2 Bot Mode (Tom's run, 2026-11-14); RCON and the plugin stay as fallbacks.
 - At match start the service sends `mp_warmup_end` and `mp_restartgame 1`, then ignores
@@ -1276,6 +1328,85 @@ cues × 3 variants × 35 characters is 2,625 characters per bot per full TTS pas
 does not use ElevenLabs credits per match. The provider docs and repo interfaces were read.
 No player authorization, voice training, generation, audio quality comparison, or in-game
 voice delivery has been verified.
+
+### 9.6 Replay puzzles (added 2026-11-15, Tom with Claude)
+
+Plan and interview answers: `.plans/replay-puzzles-spec.md`. Built from zero; the restore calls follow
+CS2PracticeMod (MIT, CounterStrikeSharp), the library follows Lichess's puzzle model.
+
+- **What a player sees.** When a human dies in CS2, the key mistakes show at once as a popup on every page of
+  the Next.js app (`DeathWatcher`), with "Save as puzzle" and "Retry last 10 s". A new **Puzzles** tab
+  (`/puzzles`, `/puzzles/<id>`) holds the library: puzzle of the day, "next for your rating", themes and
+  source filters, sort by difficulty, plays, votes or newest, a rating, a streak and an attempt history. A
+  puzzle page replays the original clip on a top-down map, lists what went wrong, has "Practice in CS2",
+  a form to log an attempt, and thumbs. **Create** has two parts: save a death, and a multi-POV footage form.
+- **Solve rule.** Survive the window (10 s) and get more kills than the original clip, at least one
+  (`needed = max(1, original kills + 1)`); a tie fails. Elo for the player and the puzzle (K 32 and 16).
+- **A puzzle is one JSON file** (format in `match_service/puzzles.py` and `clone-director/Core/Puzzles.cs`, kept
+  in step): players with a start loadout and a 4-per-second track (position, view, health, weapon, fired),
+  kill and throw events, the original result, tags, a difficulty seed. Seed puzzles are committed in
+  `match-service/seed_puzzles/`; saved ones go to `data/puzzles/` (git-ignored) with a SQLite index
+  (`puzzles.db`: ratings, plays, votes, attempts, players, drafts).
+- **Seed puzzles are real:** `clone-pipeline/clone_pipeline/seed_puzzles.py` cut donk (Spirit v Falcons,
+  round 7) and broky (Inner Circle v FaZe, round 4) from two of the pro recordings in `data/demos/`: 10
+  players, 10 s, each player's last kill before dying. One kill each, so a solve needs two.
+- **Feedback** (`match_service/feedback.py`): rule-based, distance and timing, no model: took the fight alone,
+  died holding utility, stood still without firing, fired while running, switched weapon in the fight,
+  two enemies in reach, pushed at low health. At most three, biggest first. Thresholds are guesses. They do
+  not see walls.
+- **Service routes** (new, under `/puzzles`, `/deaths`, `/players`; listed in `match-service/README.md`): the
+  Server API is unchanged, but Ashirwad owns the service, so he should read them. `POST /puzzles/{id}/start`
+  and `POST /deaths/{id}/start` copy the puzzle into `PUZZLE_GAME_DIR` and send `puzzle_load <id>` through the
+  MatchBridge channel; the plugin reports the result to `POST /puzzles/{id}/result`. `start-cs2.ps1` sets
+  `PUZZLE_DEATH_DIR` and `PUZZLE_GAME_DIR` to folders in the CloneDirector plugin folder.
+- **CloneDirector** (`PuzzleMode.cs`, `Core/Puzzles.cs`): keeps the last 15 s of every player (4 samples a
+  second, never across a round); on a human's death writes the last 10 s to `deaths/death_<ms>.json`
+  (atomically). `puzzle_load <id>` sets `bot_quota` to the number of other players, moves each bot to the side
+  the puzzle needs, `mp_restartgame 1`, then at the round start restores every player's weapons, armor,
+  health, money, position and view and starts playback. The recorded players are **teleported along their
+  tracks every tick** (with velocity, so they animate) and play as ordinary bots after they take damage, hear
+  the hero's shot nearby, get within 900 units of the hero, or reach the point where they died in the
+  original. Smoke, fire, grenades in the air and dropped weapons are not restored. `puzzle_stop` puts the
+  changed cvars back. Needs `-Bots clone` (CloneDirector only takes commands through MatchBridge).
+- **Multi-POV footage form:** uploads one video per player (raw body, `.mp4 .webm .mov .mkv`, 500 MB each) and
+  stores them as a draft. **Nothing reads positions out of the video yet.** No puzzle comes out of it, and the
+  page says so.
+- **Checked (ran it):** 25 puzzle tests in `match-service/tests/test_puzzles.py` pass (rules, Elo, feedback,
+  the store, every route, the death-to-puzzle flow, the start commands against a fake MatchBridge, the
+  draft upload); full service suite 102 pass, 1 fail (the known Windows symlink test). 9 new C# tests pass
+  (recorder, JSON round trip, interpolation, rules): 40 of 40. `tsc --noEmit` clean. In Chrome against a mock
+  service on port 8001: the Puzzles tab, the library, a real pro puzzle with its replay and feedback, saving an
+  attempt (1500 to 1488), and the popup appearing within seconds of a death file being dropped in.
+- **Not checked: anything in CS2.** `puzzle_load`; whether bots can be moved to the other side with
+  `ChangeTeam`; the restore (weapons, armor, health, position); the teleport playback; the hand-offs; the
+  result report; the death file written by a real death; "Practice in CS2" and "Retry last 10 s" end to end;
+  whether a 4-per-second track is fine enough for a fight. The plugin was copied into the game folder while
+  CS2 was running, so CS2 needs a restart before it runs this code.
+- **Not built:** reading a game state from POV video; streak and vote rewards beyond the counters; user
+  accounts (a name kept in the browser stands in); recording demos of every match (`-Record tv` still
+  untried).
+
+### 9.6 Replay puzzles and death feedback (added 2026-11-15, in progress)
+
+Design and decisions: `.plans/replay-puzzles-spec.md`. Nothing here has run in CS2.
+
+- **What it is.** When the player dies, the demo page shows rule-based key mistakes, and the last 10
+  seconds become a puzzle the player can retry. Puzzles go into a library with ratings and themes,
+  seeded from pro recordings.
+- **Starting point.** Written from zero (section 4.2 has no base): no existing open-source tool
+  stores or scores CS2 retry moments. The library's features follow Lichess's puzzle database. The
+  seed cutter builds on demoparser2 and `clone_pipeline/parse.py`.
+- **Puzzle file.** One JSON file per puzzle: positions of all players 4 times a second, what the hero
+  held, shots and kills. Seed puzzles are committed in `match-service/seed_puzzles/`; the user's are
+  under the git-ignored `data/puzzles/`, with ratings, attempts and votes in SQLite (`puzzles.db`).
+- **Game side.** CloneDirector keeps a rolling buffer and writes each death to its `deaths` folder;
+  `puzzle_load <id>` replays a saved moment with the player as the hero, `puzzle_stop` puts the
+  changed cvars back. The restore is approximate: smoke, fire and grenades in flight are not restored.
+- **Service side.** `puzzle_routes.py` adds routes to the match service; the existing Server API
+  endpoints and messages are unchanged. `PUZZLE_SEED_DIR`, `PUZZLE_DIR`, `PUZZLE_DEATH_DIR` and
+  `PUZZLE_GAME_DIR` set the folders; `start-cs2.ps1` points the last two at the plugin folder.
+  Starting a puzzle in the game needs `start-cs2.ps1 -Bots clone` (commands go through MatchBridge).
+- **Feedback rules** are distance and timing heuristics with untuned thresholds. They do not see walls.
 
 ## 10. Proof and measurement
 
@@ -1544,6 +1675,35 @@ demo. A released product would need each player's or team's permission.
 ## 19. Change log
 
 - 2026-11-15, Ashirwad: landing page visual pass in `frontend/`. Removed `lib/posing.ts` (its arm-aim stance pushed Mario's hand through his chest and splayed other rigs); Idle clips now play as authored, with a restrained presence layer on spine, neck and head only (`lib/presence.ts`). Hero framing: lower camera, three-quarter yaw, common height with a width cap. New light rig (key, two coloured rims, top spot, contact shadow), `NeutralToneMapping` and a BloomNode pass in `glitchPass.ts`; colour-reactive backdrop (`StageBackdrop.tsx`) and headline. Landing headline line 1 changed from "Your stream." to "Clone anyone / on any game." ("Another dimension." kept; browser tab title and studio page unchanged). Font, tabs and navigation unchanged. Checked in a browser against `next dev` (desktop and mobile, 0 new console errors); `tsc` clean; `next build` not run.
+
+- 2026-11-15, Nikesh (Codex): implemented the DoppelGamer FaZe/Odyssey foundation across all six
+  existing routes. Added server-resolved mode boundaries, validated mode-aware links and switching,
+  per-mode route memory, a root session-only upload store, isolated Odyssey shell, reduced-motion
+  fade, and contract tests. Ran production build, typecheck, 4 mode tests, model verification and
+  browser route/history/rapid-switch smoke checks. No commit or push; the user will commit.
+
+- 2026-11-15, Nikesh (with Claude): added `FRONTEND_SYSTEM_DESIGN.md` (repo root) — a full
+  folder-level + low-level design doc for `frontend/`, written by reading the current source
+  (not a proposal). Covers the app's actual routes (`/`, `/bots`, `/leaderboard`, `/play`,
+  `/scenes`, `/studio` — the status board rows above only describe the original showcase scope
+  and are now stale against the real `frontend/` tree; flagging per the "say which one is wrong"
+  rule rather than rewriting another row without owning that work), the `AssetManager` singleton,
+  the TSL glitch/thermal shader, the rig-agnostic bone-posing math, and every algorithm in the
+  codebase. No code changed. Later the same day: per the user, gitignored
+  `FRONTEND_SYSTEM_DESIGN.md` (local reference doc only) — it was never committed, so this was a
+  plain `.gitignore` addition + unstage, not a history scrub. Also extended the root
+  `.gitignore`'s personal-agent-file rule (`CLAUDE.md`/`CLAUDE.local.md`) to `CODEX.md`/
+  `CODEX.local.md`, covering new `frontend/CODEX.md` + `frontend/CLAUDE.md` handoff docs (a
+  Codex/Claude dual-mode FaZe/Odyssey task split) — neither was ever committed, so nothing to
+  untrack; root `CLAUDE.md` stays tracked as before.
+
+- 2026-11-15, Tom (with Claude): committed the replay-puzzle work in progress at Tom's request (section 9.6): puzzle store, death feedback and routes in the match service, CloneDirector puzzle mode, seed-puzzle cutter with two seed puzzles, frontend puzzle pages, and clones `donkLF`/`brokyLF` (files only, no bot entry). 102 of 103 match service tests, 40 C# tests and `tsc --noEmit` pass on Tom's PC. Not run in CS2 or a browser; no existing endpoint changed.
+
+- 2026-11-15, Tom (with Claude): replay puzzles (section 9.6). Service: `puzzles.py`, `feedback.py`, `puzzle_routes.py`, two real pro seed puzzles; CloneDirector `PuzzleMode.cs` (death snapshots, restore, playback; compiled and unit-tested, **never run in CS2**); frontend Puzzles tab and a death popup. 25 new service tests, 9 new C# tests (40 pass). Rewind plan and answers in `.plans/replay-puzzles-spec.md`.
+
+- 2026-11-15, Tom (with Claude): correction to the entry below. CloneDirector does build on Tom's PC when `BotControllerApiPath` points at the installed controller DLL: Release build clean, 31 C# tests pass (one new). Status row, section 3 and AGENTS.md section 7 corrected. Still nothing confirmed in CS2.
+
+- 2026-11-15, Tom (with Claude): added clones `donkL2`/`brokyL2`, which now carry Round 3 step 1 (human aim bot entries, no restlessness or crouch rule). **`donkL`/`brokyL` are put back on purpose** to five rules and plain bot entries, so versions can be compared. CloneDirector: route playback stops when an enemy is within 900 units, and each clone death writes a `DEATH` log line (not run in CS2). Match service: removes the bot base's random extra bot when a match has one clone, and `start-cs2.ps1` uses the selector event loop so a reset connection cannot stop the service answering. 77 of 78 match service tests pass on Tom's PC (the failure is the symlink test), 3 tool tests pass; nothing confirmed in CS2 by this agent. AGENTS.md section 7 gained four rules.
 
 - 2026-11-15, Arjun (Codex): completed both Round4 development runs on A100-40GB (800 total updates), verified/downloaded adapters and source hashes, and preserved all iteration results. Path/tempo/limits improve but turning regresses for both; neither promoted or final-tested. Published detailed next-stage plan and Tom prompt. 60 tests pass,5 optional Open3D skips.
 

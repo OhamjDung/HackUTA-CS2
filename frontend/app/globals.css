@@ -24,14 +24,48 @@
 
 html,
 body {
-  background: var(--bg-studio);
-  color: var(--ink-primary);
+  background: #07090f;
   margin: 0;
   padding: 0;
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
+
+.mode-route {
+  min-height: 100svh;
+  opacity: 1;
+  transition: opacity 90ms ease;
+}
+.mode-route--leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mode-switch {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(8, 8, 10, 0.7);
+}
+.mode-switch button {
+  min-width: 70px;
+  height: 34px;
+  padding: 0 13px;
+  border-radius: 999px;
+  color: #b8b8c2;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.mode-switch button[aria-pressed='true'] {
+  color: #111;
+  background: #f5f4f0;
+}
+.mode-switch--compact button { min-width: 62px; height: 30px; }
+
 
 /* Hero stage fills the screen. */
 .stage-h-full {
@@ -114,6 +148,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .mode-route { transition: none; }
   .hud-flicker {
     animation: none;
   }
